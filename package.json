@@ -1,0 +1,30 @@
+{
+  "name": "cpfms",
+  "version": "1.0.0",
+  "description": "Cow Plantation Financial Management System",
+  "main": "server.js",
+  "scripts": {
+    "sql-install": "node sql_installer.js",
+    "sql-uninstall": "node sql_uninstaller.js",
+    "sql-reinstall": "npm run sql-uninstall && npm run sql-install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CS17B011/CPFMS.git"
+  },
+  "author": "Pritesh Computers",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CS17B011/CPFMS/issues"
+  },
+  "homepage": "https://github.com/CS17B011/CPFMS#readme",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}
