@@ -49,6 +49,23 @@
                     $("#selectAll").prop("checked", false);
                 }
             });
+
+            //Edit Modal Value Changes
+            $('table tbody .edit').click(function () {
+                var li_id = this.id;
+                var account_name = $("#" + li_id + " td:nth-child(3)").text();
+                var account_type = $("#" + li_id + " td:nth-child(4)").text(); var village_id = $("#" + li_id + " td:nth-child(5)").text(); var is_society = $("#" + li_id + " td:nth-child(6)").text();
+                if (is_society.trim() == "No")
+                    is_society = "0";
+                else
+                    is_society = "1";
+                $("#editEmployeeModal input[name=account_id]").val(li_id);
+                $("#editEmployeeModal input[name=account_name]").val(account_name);
+                $("#editEmployeeModal select[name=account_type]").val(account_type).change();
+                $("#editEmployeeModal select[name=village_id]").val(village_id).change();
+                $("#editEmployeeModal select[name=account_type]").val(account_type).change();
+                $("#editEmployeeModal input[name=is_society][value="+is_society+"]").prop('checked',true);
+            });
         });
     </script>
 </head>
@@ -90,7 +107,7 @@
                 </thead>
                 <tbody>
                     <% for(var item of data) { %>
-                    <tr>
+                    <tr id="<%= item.account_id%>">
                         <td>
                             <span class="custom-checkbox">
                                 <input type="checkbox" id="checkbox1" name="options[]" value="1">
@@ -109,10 +126,11 @@
                             <% } %>
                         </td>
                         <td>
-                            <a href="#editEmployeeModal" class="edit" data-toggle="modal"><i class="material-icons"
-                                    data-toggle="tooltip" title="Edit">&#xE254;</i></a>
-                            <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"><i class="material-icons"
-                                    data-toggle="tooltip" title="Delete">&#xE872;</i></a>
+                            <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="<%= item.account_id%>"><i
+                                    class="material-icons" data-toggle="tooltip">&#xE254;</i></a>
+                            <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
+                                data-id="<%= item.account_id%>"><i class="material-icons" data-toggle="tooltip"
+                                    title="Delete">&#xE872;</i></a>
                         </td>
                     </tr>
                     <% } %>
@@ -144,15 +162,17 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label><i>Account Head ID</i></label>
-                            <input type="text" class="form-control" name="account_id" maxlength="10" placeholder="Enter Account Head ID" required>
+                            <input type="text" class="form-control" name="account_id" maxlength="10"
+                                placeholder="Enter Account Head ID" required>
                         </div>
                         <div class="form-group">
                             <label><i>Account Head Name</i></label>
-                            <input type="text" class="form-control" name="account_name" placeholder="Enter Account Head Name" required>
+                            <input type="text" class="form-control" name="account_name"
+                                placeholder="Enter Account Head Name" required>
                         </div>
                         <div class="form-group">
                             <label><i>Account Head Type</i></label>
-                            <select class="form-control selectpicker" id="select-country" data-live-search="true"
+                            <select class="form-control selectpicker" id="select-account_type" data-live-search="true"
                                 name="account_type">
                                 <option data-tokens="Balance Sheet" value="B/S">Balance Sheet (B/S)</option>
                                 <option data-tokens="Profit & Loss" value="P&L">Profit & Loss Account (P&L)</option>
@@ -161,7 +181,7 @@
                         </div>
                         <div class="form-group">
                             <label><i>Village</i></label>
-                            <select class="form-control selectpicker" id="select-country" data-live-search="true"
+                            <select class="form-control selectpicker" id="select-village_id" data-live-search="true"
                                 name="village_id">
                                 <option data-tokens="china">China</option>
                                 <option data-tokens="malayasia">Malayasia</option>
@@ -189,27 +209,47 @@
     <div id="editEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form>
+                <form action="/accounthead/edit" method="POST">
                     <div class="modal-header">
-                        <h4 class="modal-title">Edit Employee</h4>
+                        <h3 class="modal-title">Edit Account Head</h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label>Name</label>
-                            <input type="text" class="form-control" required>
+                            <label><i>Account Head ID</i></label>
+                            <input type="text" class="form-control" name="account_id" maxlength="10"
+                                placeholder="Enter Account Head ID" value="" required>
                         </div>
                         <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" class="form-control" required>
+                            <label><i>Account Head Name</i></label>
+                            <input type="text" class="form-control" name="account_name"
+                                placeholder="Enter Account Head Name" value="" required>
                         </div>
                         <div class="form-group">
-                            <label>Address</label>
-                            <textarea class="form-control" required></textarea>
+                            <label><i>Account Head Type</i></label>
+                            <select class="form-control selectpicker" id="select-account_type" data-live-search="true"
+                                name="account_type">
+                                <option data-tokens="Balance Sheet" value="B/S">Balance Sheet (B/S)</option>
+                                <option data-tokens="Profit & Loss" value="P&L">Profit & Loss Account (P&L)</option>
+                                <option data-tokens="Trading Account" value="T/A">Trading Account (T/A)</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label>Phone</label>
-                            <input type="text" class="form-control" required>
+                            <label><i>Village</i></label>
+                            <select class="form-control selectpicker" id="select-village_id" data-live-search="true"
+                                name="village_id">
+                                <option data-tokens="china">China</option>
+                                <option data-tokens="malayasia">Malayasia</option>
+                                <option data-tokens="singapore">Singapore</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i>Is Society ?</i></label>
+                            <div class="radio">
+                                <label class="radio-inline"><input type="radio" name="is_society" value="1"
+                                        checked>Yes</label>
+                                <label class="radio-inline"><input type="radio" name="is_society" value="0">No</label>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">

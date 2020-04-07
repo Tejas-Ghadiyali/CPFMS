@@ -10,7 +10,6 @@ router.get('/', (req, res) => {
         }
         else
         {
-            console.log(connection.threadId);
             var sql = 'SELECT * from `Account_Head`'
             connection.query(sql, (err, results) => {
                 connection.release();
@@ -37,7 +36,6 @@ router.post('/', (req, res) => {
         }
         else
         {
-            console.log(connection.threadId);
             var { account_id, account_name, account_type, is_society, village_id } = req.body;
             var sql = 'INSERT INTO `Account_Head` (`account_id`, `account_name`, `account_type`, `is_society`, `village_id`) VALUES (?, ?, ?, ?, ?)'
             connection.query(sql, [account_id,account_name,account_type,is_society,village_id], (err, result) => {
@@ -55,7 +53,7 @@ router.post('/', (req, res) => {
     });
 });
 
-router.put('/', (req, res) => {
+router.post('/edit', (req, res) => {
     getConnection((err, connection) => {
         if (err)
         {
