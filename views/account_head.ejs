@@ -14,17 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
         rel="stylesheet" />
-
-
-
-
     <link rel="stylesheet" href="css/index.css">
-
-    <script>
-        $(function () {
-            $('.selectpicker').selectpicker();
-        });
-    </script>
 
     <script type="text/javascript">
         $(document).ready(function () {
@@ -50,8 +40,26 @@
                 }
             });
 
+            //Add Modal Focus
+            $(".table-title #addnew").click(function () {
+                setTimeout(function () {
+                    $("#addEmployeeModal input[name=account_id]").focus();
+                }, 500);
+            });
+
+            //Multiple Delete Focus to Cancel Button
+            $(".table-title #multipledelete").click(function(){
+                setTimeout(function(){
+                    $("#deleteEmployeeModal .modal-footer #cancel").focus();
+                },500);
+            });
+
+            //Edit Modal Focus
             //Edit Modal Value Changes
             $('table tbody .edit').click(function () {
+                setTimeout(function(){
+                    $("#editEmployeeModal input[name=account_id]").focus();
+                },500);
                 var li_id = this.id;
                 var account_name = $("#" + li_id + " td:nth-child(3)").text();
                 var account_type = $("#" + li_id + " td:nth-child(4)").text(); var village_id = $("#" + li_id + " td:nth-child(5)").text(); var is_society = $("#" + li_id + " td:nth-child(6)").text();
@@ -64,8 +72,32 @@
                 $("#editEmployeeModal select[name=account_type]").val(account_type).change();
                 $("#editEmployeeModal select[name=village_id]").val(village_id).change();
                 $("#editEmployeeModal select[name=account_type]").val(account_type).change();
-                $("#editEmployeeModal input[name=is_society][value="+is_society+"]").prop('checked',true);
+                $("#editEmployeeModal input[name=is_society][value=" + is_society + "]").prop('checked', true);
             });
+
+            //Delete One Entry
+            $('table tbody .delete').click(function () {
+                setTimeout(function(){
+                    $("#deleteEmployeeModal .modal-footer #cancel").focus();
+                },500);
+                var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
+                $("#deleteEmployeeModal form").append(inputhtml);
+            });
+
+            //Delete Multiple Entry
+            $(".table-title #multipledelete").click(function () {
+                var checkbox = $('table tbody input[type="checkbox"]');
+                checkbox.each(function () {
+                    if (this.checked) {
+                        var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
+                        $("#deleteEmployeeModal form").append(inputhtml);
+                    }
+                });
+            });
+
+        });
+        $(function () {
+            $('.selectpicker').selectpicker();
         });
     </script>
 </head>
@@ -81,9 +113,9 @@
                         <h2>Master - <b>Account Head</b></h2>
                     </div>
                     <div class="col-sm-6">
-                        <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal"><i
+                        <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal" id="addnew"><i
                                 class="material-icons">&#xE147;</i> <span><b>Add New</b></span></a>
-                        <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal"><i
+                        <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal" id="multipledelete"><i
                                 class="material-icons">&#xE15C;</i> <span><b>Delete</b></span></a>
                     </div>
                 </div>
@@ -110,8 +142,8 @@
                     <tr id="<%= item.account_id%>">
                         <td>
                             <span class="custom-checkbox">
-                                <input type="checkbox" id="checkbox1" name="options[]" value="1">
-                                <label for="checkbox1"></label>
+                                <input type="checkbox" id="<%= item.account_id %>">
+                                <label for="<%= item.account_id %>"></label>
                             </span>
                         </td>
                         <td><%= item.account_id %></td>
@@ -129,7 +161,7 @@
                             <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="<%= item.account_id%>"><i
                                     class="material-icons" data-toggle="tooltip">&#xE254;</i></a>
                             <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
-                                data-id="<%= item.account_id%>"><i class="material-icons" data-toggle="tooltip"
+                                id="<%= item.account_id%>"><i class="material-icons" data-toggle="tooltip"
                                     title="Delete">&#xE872;</i></a>
                         </td>
                     </tr>
@@ -162,13 +194,11 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label><i>Account Head ID</i></label>
-                            <input type="text" class="form-control" name="account_id" maxlength="10"
-                                placeholder="Enter Account Head ID" required>
+                            <input type="text" class="form-control" name="account_id" maxlength="10" placeholder="Enter Account Head ID" required>
                         </div>
                         <div class="form-group">
                             <label><i>Account Head Name</i></label>
-                            <input type="text" class="form-control" name="account_name"
-                                placeholder="Enter Account Head Name" required>
+                            <input type="text" class="form-control" name="account_name" placeholder="Enter Account Head Name" required>
                         </div>
                         <div class="form-group">
                             <label><i>Account Head Type</i></label>
@@ -264,7 +294,7 @@
     <div id="deleteEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/accounthead">
+                <form action="/accounthead/delete" method="POST">
                     <div class="modal-header">
                         <h4 class="modal-title">Delete Employee</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -274,7 +304,7 @@
                         <p class="text-warning"><small>This action cannot be undone.</small></p>
                     </div>
                     <div class="modal-footer">
-                        <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+                        <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel" id="cancel">
                         <input type="submit" class="btn btn-danger" value="Delete">
                     </div>
                 </form>
