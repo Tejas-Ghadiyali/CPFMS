@@ -9,6 +9,10 @@ body {
     font-size: 16px !important;
 }
 
+#searchEmployeeModal {
+    font-size: 16px !important;
+}
+
 .table-wrapper {
     background: #fff;
     padding: 20px 25px;
@@ -102,42 +106,63 @@ table.table .avatar {
     vertical-align: middle;
     margin-right: 10px;
 }
+
 .pagination {
     float: right;
     margin: 0 0 5px;
 }
-.pagination li a {
+
+.pagination li .a {
     border: none;
-    font-size: 13px;
+    font-size: 16px;
     min-width: 30px;
     min-height: 30px;
     color: #999;
-    margin: 0 2px;
     line-height: 30px;
     border-radius: 2px !important;
-    text-align: center;
-    padding: 0 6px;
+    text-align: right;
 }
-.pagination li a:hover {
+
+.pagination li .a input[type="text"] {
+    width: 10%;
+    text-align: center;
+}
+
+.pagination li span .a:hover {
     color: #666;
+    cursor: pointer;
 }	
-.pagination li.active a, .pagination li.active a.page-link {
+.pagination li.active .a, .pagination li.active .a .page-link {
     background: #03A9F4;
 }
-.pagination li.active a:hover {        
+.pagination li.active .a:hover {        
     background: #0397d6;
 }
+
+.pagination li.disabled .a:hover {
+    cursor: not-allowed;
+}
+
 .pagination li.disabled i {
     color: #ccc;
 }
 .pagination li i {
-    font-size: 16px;
-    padding-top: 6px
+    vertical-align: middle;
+    font-size: 40px;
 }
+
+.pagination .flip-to-left {
+    transform: rotate(180deg);
+}
+
+.pagination .one-change {
+    font-size: 30px;
+}
+
 .hint-text {
     float: left;
     margin-top: 10px;
-    font-size: 13px;
+    font-size: 16px;
 }    
 /* Custom checkbox */
 .custom-checkbox {

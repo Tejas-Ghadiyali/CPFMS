@@ -14,92 +14,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
         rel="stylesheet" />
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="/css/index.css">
+    <script type="text/javascript" src="/js/account_head.js"></script>
 
-    <script type="text/javascript">
-        $(document).ready(function () {
-            // Activate tooltip
-            $('[data-toggle="tooltip"]').tooltip();
-
-            // Select/Deselect checkboxes
-            var checkbox = $('table tbody input[type="checkbox"]');
-            $("#selectAll").click(function () {
-                if (this.checked) {
-                    checkbox.each(function () {
-                        this.checked = true;
-                    });
-                } else {
-                    checkbox.each(function () {
-                        this.checked = false;
-                    });
-                }
-            });
-            checkbox.click(function () {
-                if (!this.checked) {
-                    $("#selectAll").prop("checked", false);
-                }
-            });
-
-            //Add Modal Focus
-            $(".table-title #addnew").click(function () {
-                setTimeout(function () {
-                    $("#addEmployeeModal input[name=account_id]").focus();
-                }, 500);
-            });
-
-            //Multiple Delete Focus to Cancel Button
-            $(".table-title #multipledelete").click(function(){
-                setTimeout(function(){
-                    $("#deleteEmployeeModal .modal-footer #cancel").focus();
-                },500);
-            });
-
-            //Edit Modal Focus
-            //Edit Modal Value Changes
-            $('table tbody .edit').click(function () {
-                setTimeout(function(){
-                    $("#editEmployeeModal input[name=account_id]").focus();
-                },500);
-                var li_id = this.id;
-                var account_name = $("#" + li_id + " td:nth-child(3)").text();
-                var account_type = $("#" + li_id + " td:nth-child(4)").text(); var village_id = $("#" + li_id + " td:nth-child(5)").text(); var is_society = $("#" + li_id + " td:nth-child(6)").text();
-                if (is_society.trim() == "No")
-                    is_society = "0";
-                else
-                    is_society = "1";
-                $("#editEmployeeModal input[name=account_id]").val(li_id);
-                $("#editEmployeeModal input[name=account_name]").val(account_name);
-                $("#editEmployeeModal select[name=account_type]").val(account_type).change();
-                $("#editEmployeeModal select[name=village_id]").val(village_id).change();
-                $("#editEmployeeModal select[name=account_type]").val(account_type).change();
-                $("#editEmployeeModal input[name=is_society][value=" + is_society + "]").prop('checked', true);
-            });
-
-            //Delete One Entry
-            $('table tbody .delete').click(function () {
-                setTimeout(function(){
-                    $("#deleteEmployeeModal .modal-footer #cancel").focus();
-                },500);
-                var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
-                $("#deleteEmployeeModal form").append(inputhtml);
-            });
-
-            //Delete Multiple Entry
-            $(".table-title #multipledelete").click(function () {
-                var checkbox = $('table tbody input[type="checkbox"]');
-                checkbox.each(function () {
-                    if (this.checked) {
-                        var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
-                        $("#deleteEmployeeModal form").append(inputhtml);
-                    }
-                });
-            });
-
-        });
-        $(function () {
-            $('.selectpicker').selectpicker();
-        });
-    </script>
 </head>
 
 <body>
@@ -117,6 +34,13 @@
                                 class="material-icons">&#xE147;</i> <span><b>Add New</b></span></a>
                         <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal" id="multipledelete"><i
                                 class="material-icons">&#xE15C;</i> <span><b>Delete</b></span></a>
+                        <% if(searchurl) { %>
+                        <a href="/accounthead" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i
+                                class="material-icons">&#xe888;</i> <span><b>Clear</b></span></a>
+                        <% } else { %>
+                        <a href="#searchEmployeeModal" class="btn btn-warning" data-toggle="modal" id="search"><i
+                                class="material-icons">&#xe8b6;</i> <span><b>Search</b></span></a>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -124,10 +48,6 @@
                 <thead>
                     <tr>
                         <th>
-                            <span class="custom-checkbox">
-                                <input type="checkbox" id="selectAll">
-                                <label for="selectAll"></label>
-                            </span>
                         </th>
                         <th>A/c ID</th>
                         <th>Account Head Name</th>
@@ -159,7 +79,7 @@
                         </td>
                         <td>
                             <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="<%= item.account_id%>"><i
-                                    class="material-icons" data-toggle="tooltip">&#xE254;</i></a>
+                                    class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
                             <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
                                 id="<%= item.account_id%>"><i class="material-icons" data-toggle="tooltip"
                                     title="Delete">&#xE872;</i></a>
@@ -171,18 +91,107 @@
             <div class="clearfix">
                 <div class="hint-text">Showing <b>5</b> out of <b>25</b> entries</div>
                 <ul class="pagination">
-                    <li class="page-item disabled"><a href="#">Previous</a></li>
-                    <li class="page-item"><a href="#" class="page-link">1</a></li>
+                    <li class="page-item">
+                        <span class="a page-link">
+                            <span class="a">
+                                <i class="material-icons">&#xe045;</i>
+                            </span>
+                            <span class="a">
+                                <i class="material-icons flip-to-left one-change">&#xe037;</i>
+                            </span>
+                            <input type="text" name="" id="" value="1">
+                            / 5
+                            <span class="a">
+                                <i class="material-icons one-change">&#xe037;</i>
+                            </span>
+                            <span class="a">
+                                <i class="material-icons">&#xe044;</i>
+                            </span>
+                        </span>
+                    </li>
+                    <!--
                     <li class="page-item"><a href="#" class="page-link">2</a></li>
                     <li class="page-item active"><a href="#" class="page-link">3</a></li>
                     <li class="page-item"><a href="#" class="page-link">4</a></li>
                     <li class="page-item"><a href="#" class="page-link">5</a></li>
                     <li class="page-item"><a href="#" class="page-link">Next</a></li>
+                    
+                      -->
                 </ul>
             </div>
         </div>
     </div>
-    <!-- Edit Modal HTML -->
+    <!-- Search Modal HTML -->
+    <div id="searchEmployeeModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/accounthead/search" class="form-horizontal" method="GET">
+                    <div class="modal-header">
+                        <h3 class="modal-title"><b><u>Search Account Head</u></b></h3>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <input type="text" name="searchtext" id="search-text" placeholder="Search Text...">
+                        </div>
+                        <div class="form-group">
+                            <h4><b><i>Search For :</i></b></h4>
+                            <div>
+                                <span class="custom-checkbox">
+                                    <input type="checkbox" id="account_id" name="account_id" value="account_id" checked>
+                                    <label for="account_id">Account Head ID</label>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="custom-checkbox">
+                                    <input type="checkbox" id="account_name" name="account_name" value="account_name">
+                                    <label for="account_name"> Account Head Name </label>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="custom-checkbox">
+                                    <input type="checkbox" id="village_id" name="village_id" value="village_id">
+                                    <label for="village_id"> Village ID </label>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i>Account Head Type</i></label>
+                            <select class="form-control selectpicker" id="select-account_type_search"
+                                data-live-search="true" name="account_type">
+                                <option data-tokens="All" value="false">All</option>
+                                <option data-tokens="Balance Sheet" value="B/S">Balance Sheet (B/S)</option>
+                                <option data-tokens="Profit & Loss" value="P&L">Profit & Loss Account (P&L)</option>
+                                <option data-tokens="Trading Account" value="T/A">Trading Account (T/A)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <h4 style="text-align: left; padding: 0px !important;"><b><i>Society? :</i></b></h4>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="radio">
+                                    <label class="radio-inline"><input type="radio" name="is_society" value="false"
+                                            checked>Both</label>
+                                    <label class="radio-inline"><input type="radio" name="is_society"
+                                            value="1">Yes</label>
+                                    <label class="radio-inline"><input type="radio" name="is_society"
+                                            value="0">No</label>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+                        <input type="submit" class="btn btn-warning" value="Search">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Add Modal HTML -->
     <div id="addEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -194,11 +203,13 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label><i>Account Head ID</i></label>
-                            <input type="text" class="form-control" name="account_id" maxlength="10" placeholder="Enter Account Head ID" required>
+                            <input type="text" class="form-control" name="account_id" maxlength="10"
+                                placeholder="Enter Account Head ID" required>
                         </div>
                         <div class="form-group">
                             <label><i>Account Head Name</i></label>
-                            <input type="text" class="form-control" name="account_name" placeholder="Enter Account Head Name" required>
+                            <input type="text" class="form-control" name="account_name"
+                                placeholder="Enter Account Head Name" required>
                         </div>
                         <div class="form-group">
                             <label><i>Account Head Type</i></label>
@@ -296,11 +307,11 @@
             <div class="modal-content">
                 <form action="/accounthead/delete" method="POST">
                     <div class="modal-header">
-                        <h4 class="modal-title">Delete Employee</h4>
+                        <h4 class="modal-title">Delete Account Head</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <p>Are you sure you want to delete these Records?</p>
+                        <p>Are you sure ...?<br>Do want to delete these Records ?</p>
                         <p class="text-warning"><small>This action cannot be undone.</small></p>
                     </div>
                     <div class="modal-footer">

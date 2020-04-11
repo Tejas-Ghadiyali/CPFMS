@@ -13,7 +13,7 @@ db.connect((err) => {
         throw err;
     }
     console.log("Database connected...");
-    const createdb = "CREATE DATABASE " + process.env.DBNAME;
+    const createdb = "CREATE DATABASE IF NOT EXISTS " + process.env.DBNAME;
     db.query(createdb, (err, result) => {
         if (err)
         {
