@@ -117,7 +117,7 @@ table.table .avatar {
     font-size: 16px;
     min-width: 30px;
     min-height: 30px;
-    color: #999;
+    color: #000000;
     line-height: 30px;
     border-radius: 2px !important;
     text-align: right;
@@ -139,16 +139,21 @@ table.table .avatar {
     background: #0397d6;
 }
 
-.pagination li.disabled .a:hover {
+.pagination li .a-disabled i:hover {
     cursor: not-allowed;
 }
 
-.pagination li.disabled i {
+.pagination li .a-disabled i {
     color: #ccc;
 }
 .pagination li i {
     vertical-align: middle;
     font-size: 40px;
+}
+
+.pagination #pageno {
+    width: 57px;
+    height: 36px;
 }
 
 .pagination .flip-to-left {
@@ -157,6 +162,18 @@ table.table .avatar {
 
 .pagination .one-change {
     font-size: 30px;
+}
+
+.entries select option {
+    margin: 40px;
+}
+
+.entries {
+    width: 70px !important;
+}
+
+.entries option {
+    font-size: 20px;
 }
 
 .hint-text {

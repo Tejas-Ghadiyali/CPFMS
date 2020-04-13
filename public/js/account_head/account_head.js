@@ -23,11 +23,14 @@ $(document).ready(function () {
     // Edit Modal Value Changes
     $('table tbody .edit').click(function () {
         setTimeout(function () {
-            $("#editEmployeeModal input[name=account_id]").focus();
+            $("#editEmployeeModal input[name=account_name]").focus();
         }, 500);
-        var li_id = this.id;
-        var account_name = $("#" + li_id + " td:nth-child(3)").text();
-        var account_type = $("#" + li_id + " td:nth-child(4)").text(); var village_id = $("#" + li_id + " td:nth-child(5)").text(); var is_society = $("#" + li_id + " td:nth-child(6)").text();
+        var row = $(this).parent().parent();
+        var li_id = $(this).attr("id");
+        var account_name = row.find("td:nth-child(3)").text();
+        var account_type = row.find("td:nth-child(4)").text();
+        var village_id =row.find("td:nth-child(5)").text();
+        var is_society = row.find("td:nth-child(6)").text();
         if (is_society.trim() == "No")
             is_society = "0";
         else

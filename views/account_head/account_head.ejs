@@ -15,13 +15,37 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
         rel="stylesheet" />
     <link rel="stylesheet" href="/css/index.css">
-    <script type="text/javascript" src="/js/account_head.js"></script>
+    <script type="text/javascript" src="/js/account_head/account_head.js"></script>
+
+    <script>
+
+        function submitform(pagenum) {
+            totalpages = parseInt("<%= totalpages%>")
+            if (pagenum > totalpages)
+                return false;
+            if (pagenum <= 0)
+                return false;
+            $("#paginationform #pageno").val(parseInt(pagenum));
+            $("#paginationform").submit();
+        }
+
+        $(document).ready(function () {
+
+            // Pagination Form Submit
+            $(".entries #entryid").change(function () {
+                $(".entries").submit();
+            });
+
+        });
+
+    </script>
 
 </head>
 
 <body>
 
-    <%- include('partials/navbar.ejs') %>
+    <%- include('../partials/navbar.ejs') %>
+    <%- include('../partials/err.ejs') %>
     <div class="container">
         <div class="table-wrapper">
             <div class="table-title">
@@ -34,13 +58,8 @@
                                 class="material-icons">&#xE147;</i> <span><b>Add New</b></span></a>
                         <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal" id="multipledelete"><i
                                 class="material-icons">&#xE15C;</i> <span><b>Delete</b></span></a>
-                        <% if(searchurl) { %>
-                        <a href="/accounthead" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i
-                                class="material-icons">&#xe888;</i> <span><b>Clear</b></span></a>
-                        <% } else { %>
                         <a href="#searchEmployeeModal" class="btn btn-warning" data-toggle="modal" id="search"><i
                                 class="material-icons">&#xe8b6;</i> <span><b>Search</b></span></a>
-                        <% } %>
                     </div>
                 </div>
             </div>
@@ -48,6 +67,27 @@
                 <thead>
                     <tr>
                         <th>
+                            <form action="/accounthead" class="entries">
+                                <span>
+                                    <select id="entryid" name="entries_per_page">
+                                        <% if(entries_per_page==25) { %>
+                                        <option selected>25</option>
+                                        <% } else { %>
+                                        <option>25</option>
+                                        <% } %>
+                                        <% if(entries_per_page==50) { %>
+                                        <option selected>50</option>
+                                        <% } else { %>
+                                        <option>50</option>
+                                        <% } %>
+                                        <% if(entries_per_page==100) { %>
+                                        <option selected>100</option>
+                                        <% } else { %>
+                                        <option>100</option>
+                                        <% } %>
+                                    </select>
+                                </span>
+                            </form>
                         </th>
                         <th>A/c ID</th>
                         <th>Account Head Name</th>
@@ -89,35 +129,60 @@
                 </tbody>
             </table>
             <div class="clearfix">
-                <div class="hint-text">Showing <b>5</b> out of <b>25</b> entries</div>
-                <ul class="pagination">
-                    <li class="page-item">
-                        <span class="a page-link">
-                            <span class="a">
-                                <i class="material-icons">&#xe045;</i>
+                <% var starting = (pagenum-1)*entries_per_page + 1 %>
+                <% var ending = starting + data.length - 1 %>
+                <div class="hint-text">Showing entries from <b><%= starting %></b> to <b><%= ending %></b> out of
+                    <b><%= totalentries %></b> entries
+                </div>
+                <form action="/accounthead" id="paginationform" method="GET">
+                    <ul class="pagination">
+                        <li class="page-item">
+                            <span class="a page-link">
+                                <% if(pagenum==1) { %>
+                                <span class="a a-disabled" id="first">
+                                    <i class="material-icons">&#xe045;</i>
+                                </span>
+                                <span class="a a-disabled" id="previous">
+                                    <i class="material-icons flip-to-left one-change">&#xe037;</i>
+                                </span>
+                                <% } else { %>
+                                <span class="a" id="first" onclick="submitform(1)">
+                                    <i class="material-icons">&#xe045;</i>
+                                </span>
+                                <span class="a" id="previous" onclick="submitform('<%= pagenum-1 %>')">
+                                    <i class="material-icons flip-to-left one-change">&#xe037;</i>
+                                </span>
+                                <% } %>
+                                <input type="number" name="pagenum" id="pageno" value="<%= pagenum %>"
+                                    max="<%= totalpages %>" min="1" style="text-align: center;">
+                                <input type="hidden" name="entries_per_page" value="<%= entries_per_page %>">
+                                / <%= totalpages %>
+                                <% if(pagenum==totalpages) { %>
+                                <span class="a a-disabled">
+                                    <i class="material-icons one-change" id="next">&#xe037;</i>
+                                </span>
+                                <span class="a a-disabled" id="last">
+                                    <i class="material-icons">&#xe044;</i>
+                                </span>
+                                <% } else { %>
+                                <span class="a" id="next" onclick="submitform('<%= pagenum+1 %>')">
+                                    <i class="material-icons one-change">&#xe037;</i>
+                                </span>
+                                <span class="a" id="last" onclick="submitform('<%= totalpages %>')">
+                                    <i class="material-icons">&#xe044;</i>
+                                </span>
+                                <% } %>
                             </span>
-                            <span class="a">
-                                <i class="material-icons flip-to-left one-change">&#xe037;</i>
-                            </span>
-                            <input type="text" name="" id="" value="1">
-                            / 5
-                            <span class="a">
-                                <i class="material-icons one-change">&#xe037;</i>
-                            </span>
-                            <span class="a">
-                                <i class="material-icons">&#xe044;</i>
-                            </span>
-                        </span>
-                    </li>
-                    <!--
-                    <li class="page-item"><a href="#" class="page-link">2</a></li>
-                    <li class="page-item active"><a href="#" class="page-link">3</a></li>
-                    <li class="page-item"><a href="#" class="page-link">4</a></li>
-                    <li class="page-item"><a href="#" class="page-link">5</a></li>
-                    <li class="page-item"><a href="#" class="page-link">Next</a></li>
-                    
-                      -->
-                </ul>
+                        </li>
+                        <!--
+                                    <li class="page-item"><a href="#" class="page-link">2</a></li>
+                                    <li class="page-item active"><a href="#" class="page-link">3</a></li>
+                                    <li class="page-item"><a href="#" class="page-link">4</a></li>
+                                    <li class="page-item"><a href="#" class="page-link">5</a></li>
+                                    <li class="page-item"><a href="#" class="page-link">Next</a></li>
+                                      -->
+                    </ul>
+                </form>
             </div>
         </div>
     </div>
@@ -179,8 +244,6 @@
                                             value="0">No</label>
                                 </div>
                             </div>
-
-
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -259,7 +322,7 @@
                         <div class="form-group">
                             <label><i>Account Head ID</i></label>
                             <input type="text" class="form-control" name="account_id" maxlength="10"
-                                placeholder="Enter Account Head ID" value="" required>
+                                placeholder="Enter Account Head ID" value="" required disabled>
                         </div>
                         <div class="form-group">
                             <label><i>Account Head Name</i></label>

@@ -2,26 +2,101 @@ const express = require('express');
 const router = express.Router();
 const getConnection = require('../connection');
 
-var pageno = 1;
-var limit = 20;
-
 router.get('/', (req, res) => {
+    var entries_per_page, pagenum, totalentries, totalpages;
+    if (!req.query.entries_per_page)
+        entries_per_page = 25;
+    else
+        entries_per_page = parseInt(req.query.entries_per_page);
+    if (!req.query.pagenum)
+        pagenum = 1;
+    else
+        pagenum = parseInt(req.query.pagenum);
+    getConnection((err, connection) => {
+        if (err) {
+            connection.release();
+            console.log(err);
+        }
+        else {
+            var sql1 = 'SELECT COUNT(*) as ahcount FROM `Account_Head`';
+            connection.query(sql1, (err, results) => {
+                if (err) {
+                    connection.release();
+                    console.log(err);
+                }
+                else {
+                    totalentries = results[0].ahcount;
+                    totalpages = Math.ceil(totalentries / entries_per_page);
+                    if (pagenum > totalpages) {
+                        pagenum = totalpages;
+                    }
+                    else if (pagenum <= 0) {
+                        pagenum = 1;
+                    }
+                    var sql2 = "SELECT * FROM `Account_Head` LIMIT ? , ?";
+                    var offset = (pagenum - 1) * entries_per_page;
+                    connection.query(sql2, [offset, entries_per_page], (err, results) => {
+                        connection.release();
+                        if (err) {
+                            console.log(err);
+                        }
+                        else {
+                            res.render('account_head/account_head', {
+                                data: results,
+                                totalpages,
+                                pagenum,
+                                entries_per_page,
+                                totalentries
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/search', (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
         }
         else {
-            var sql = 'SELECT * from `Account_Head`'
+            var ob = req.query;
+            var searcht = '%' + ob['searchtext'] + '%';
+            var sql = "SELECT * FROM Account_Head";
+            var flag = false;
+            var arr = ['searchtext', 'account_type', 'is_society'];
+            for (key in ob) {
+                if (ob[key] !== "false" && key !== "searchtext") {
+                    if (arr.includes(key)) {
+                        if (!flag) {
+                            flag = true;
+                            sql = sql + " WHERE " + key + "='" + ob[key] + "'";
+                        }
+                        else
+                            sql = sql + " AND " + key + "='" + ob[key] + "'";
+                    }
+                    else {
+                        if (!flag) {
+                            flag = true;
+                            sql = sql + " WHERE " + ob[key] + " LIKE '" + searcht + "'";
+                        }
+                        else
+                            sql = sql + " OR " + ob[key] + " LIKE '" + searcht + "'";
+                    }
+                }
+            }
             connection.query(sql, (err, results) => {
                 connection.release();
                 if (err) {
                     console.log(err);
+                    res.redirect('/accounthead');
                 }
                 else {
-                    console.log(results.length);
-                    res.render('account_head', {
+                    res.render('account_head/account_head_search', {
                         data: results,
-                        searchurl: false
+                        searchtext: req.query.searchtext
                     });
                 }
             });
@@ -91,65 +166,6 @@ router.post('/delete', (req, res) => {
             });
         }
     });
-});
-
-router.get('/search', (req, res) => {
-    getConnection((err, connection) => {
-        if (err) {
-            console.log(err);
-        }
-        else {
-            var ob = req.query;
-            var searcht = '%' + ob['searchtext'] + '%';
-            var sql = "SELECT * FROM Account_Head";
-            var flag = false;
-            var arr = ['searchtext', 'account_type', 'is_society'];
-            for (key in ob)
-            {
-                console.log(key, arr.includes(key));
-                if (ob[key] !== "false" && key !== "searchtext")
-                {
-                    if (arr.includes(key))
-                    {
-                        if (!flag)
-                        {
-                            flag = true;
-                            sql = sql + " WHERE " + key + "='" + ob[key] + "'";
-                        }
-                        else
-                            sql = sql + " AND " + key + "='" + ob[key] + "'";
-                    }
-                    else
-                    {
-                        if (!flag)
-                        {
-                            flag = true;
-                            sql = sql + " WHERE " + ob[key] + " LIKE '" + searcht + "'";
-                        }
-                        else
-                            sql = sql + " OR " + ob[key] + " LIKE '" + searcht + "'";
-                    }
-                }
-            }
-            connection.query(sql, (err, results) => {
-                connection.release();
-                if (err) {
-                    console.log(err);
-                    res.redirect('/accounthead');
-                }
-                else {
-                    res.render('account_head', {
-                        data: results,
-                        searchurl: true
-                    });
-                }
-            });
-        }
-    });
-});
-
-router.post('/changepage', (req, res) => {
-    
 });
 
 module.exports = router;
