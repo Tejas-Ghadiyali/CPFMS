@@ -4,7 +4,7 @@ const db = mysql.createConnection({
     host: process.env.DBHOST,
     user: process.env.DBUSER,
     password: process.env.DBPASS
-})
+});
 
 db.connect((err) => {
     if (err)
@@ -26,8 +26,8 @@ db.connect((err) => {
                 console.log("Database not found!!!");
                 throw err;
             }
-            require('./models/Account_Head')(db);
-            require('./models/Sub_Account')(db);
+            require('./models/masters/Account_Head')(db);
+            require('./models/masters/Sub_Account')(db);
             db.end();
         });
     });

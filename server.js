@@ -33,7 +33,8 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
-app.use('/accounthead',require('./controllers/account_head'));
+// Masters Route
+app.use('/accounthead',require('./controllers/masters/account_head'));
 
 app.listen(PORT, () => {
     console.log("Server is running on port : ", PORT);

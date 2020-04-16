@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const getConnection = require('../connection');
+const getConnection = require('../../connection');
 
 router.get('/', (req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
@@ -41,7 +41,7 @@ router.get('/', (req, res) => {
                             console.log(err);
                         }
                         else {
-                            res.render('account_head/account_head', {
+                            res.render('masters/account_head/account_head', {
                                 data: results,
                                 totalpages,
                                 pagenum,
@@ -94,7 +94,7 @@ router.get('/search', (req, res) => {
                     res.redirect('/accounthead');
                 }
                 else {
-                    res.render('account_head/account_head_search', {
+                    res.render('masters/account_head/account_head_search', {
                         data: results,
                         searchtext: req.query.searchtext
                     });
@@ -147,7 +147,6 @@ router.post('/edit', (req, res) => {
 });
 
 router.post('/delete', (req, res) => {
-    console.log(req.body.ids);
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
