@@ -5,9 +5,22 @@ const PORT = process.env.PORT || 4000;
 const path = require('path');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
+const session = require('express-session');
+const flash = require('flash');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+// Session Declaration
+app.use(session({
+    secret: process.env.SESSIONPASS,
+    resave: false,
+    saveUninitialized: false
+}));
+
+// Flash messages package
+app.use(flash());
+
 
 // EJS Engine Setting
 app.set('views', path.join(__dirname, 'views'));

@@ -16,6 +16,15 @@ router.get('/', (req, res) => {
         if (err) {
             connection.release();
             console.log(err);
+            req.flash('danger', 'Error while getting data from Master-Account Head!');
+            res.render('masters/account_head/account_head', {
+                data: [],
+                totalpages: 0,
+                pagenum: 0,
+                entries_per_page,
+                totalentries: 0,
+                flash: res.locals.flash
+            });
         }
         else {
             var sql1 = 'SELECT COUNT(*) as ahcount FROM `Account_Head`';
@@ -46,7 +55,8 @@ router.get('/', (req, res) => {
                                 totalpages,
                                 pagenum,
                                 entries_per_page,
-                                totalentries
+                                totalentries,
+                                flash: res.locals.flash
                             });
                         }
                     });
@@ -60,6 +70,8 @@ router.get('/search', (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
+            req.flash('danger','Error in searching Master-Account Head!');
+            res.redirect('/accounthead');
         }
         else {
             var ob = req.query;
@@ -91,6 +103,7 @@ router.get('/search', (req, res) => {
                 connection.release();
                 if (err) {
                     console.log(err);
+                    req.flash('danger','Error in searching Master-Account Head!');
                     res.redirect('/accounthead');
                 }
                 else {
@@ -107,17 +120,26 @@ router.get('/search', (req, res) => {
 router.post('/', (req, res) => {
     getConnection((err, connection) => {
         if (err) {
+            req.flash('danger','Error in Adding Master-Account Head!');
             console.log(err);
+            res.redirect('/accounthead');
         }
         else {
             var { account_id, account_name, account_type, is_society, village_id } = req.body;
+            account_id = account_id.trim();
             var sql = 'INSERT INTO `Account_Head` (`account_id`, `account_name`, `account_type`, `is_society`, `village_id`) VALUES (?, ?, ?, ?, ?)'
             connection.query(sql, [account_id, account_name, account_type, is_society, village_id], (err, result) => {
                 connection.release();
                 if (err) {
                     console.log(err);
+                    if (err.code == 'ER_DUP_ENTRY')
+                        req.flash('danger', 'Account with A/c Id ' + account_id + ' already exists!');
+                    else
+                        req.flash('danger', 'Error while adding account in Master-Account Head!');
+                    res.redirect('/accounthead');
                 }
                 else {
+                    req.flash('success', 'Account with A/c Id ' + account_id + ' added.');
                     res.redirect('/accounthead');
                 }
             });
@@ -159,7 +181,6 @@ router.post('/delete', (req, res) => {
                     console.log(err);
                 }
                 else {
-                    console.log(results);
                     res.redirect('/accounthead');
                 }
             });

@@ -45,15 +45,15 @@
 <body>
 
     <%- include('../../partials/navbar.ejs') %>
-    <%- include('../../partials/err.ejs') %>
     <div class="container">
+        <%- include('../../partials/err.ejs') %>
         <div class="table-wrapper">
             <div class="table-title">
                 <div class="row">
                     <div class="col-sm-6">
                         <h2>Master - <b>Account Head</b></h2>
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-sm-6" id="shortcut">
                         <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal" id="addnew"><i
                                 class="material-icons">&#xE147;</i> <span><b>Add New</b></span></a>
                         <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal" id="multipledelete"><i
@@ -131,14 +131,16 @@
             <div class="clearfix">
                 <% var starting = (pagenum-1)*entries_per_page + 1 %>
                 <% var ending = starting + data.length - 1 %>
-                <div class="hint-text">Showing entries from <b><%= starting %></b> to <b><%= ending %></b> out of
-                    <b><%= totalentries %></b> entries
-                </div>
+                <% if(totalentries>0) { %>
+                    <div class="hint-text">Showing entries from <b><%= starting %></b> to <b><%= ending %></b> out of
+                        <b><%= totalentries %></b> entries
+                    </div>
+                <% } %>
                 <form action="/accounthead" id="paginationform" method="GET">
                     <ul class="pagination">
                         <li class="page-item">
                             <span class="a page-link">
-                                <% if(pagenum==1) { %>
+                                <% if(pagenum <= 1) { %>
                                 <span class="a a-disabled" id="first">
                                     <i class="material-icons">&#xe045;</i>
                                 </span>
@@ -157,7 +159,7 @@
                                     max="<%= totalpages %>" min="1" style="text-align: center;">
                                 <input type="hidden" name="entries_per_page" value="<%= entries_per_page %>">
                                 / <%= totalpages %>
-                                <% if(pagenum==totalpages) { %>
+                                <% if(pagenum >= totalpages) { %>
                                 <span class="a a-disabled">
                                     <i class="material-icons one-change" id="next">&#xe037;</i>
                                 </span>
@@ -174,14 +176,6 @@
                                 <% } %>
                             </span>
                         </li>
-                        <!--
-                                    <li class="page-item"><a href="#" class="page-link">2</a></li>
-                                    <li class="page-item active"><a href="#" class="page-link">3</a></li>
-                                    <li class="page-item"><a href="#" class="page-link">4</a></li>
-                                    <li class="page-item"><a href="#" class="page-link">5</a></li>
-                                    <li class="page-item"><a href="#" class="page-link">Next</a></li>
-                                      -->
-                    </ul>
                 </form>
             </div>
         </div>
