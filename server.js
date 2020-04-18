@@ -21,7 +21,6 @@ app.use(session({
 // Flash messages package
 app.use(flash());
 
-
 // EJS Engine Setting
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -39,6 +38,7 @@ const db = mysql.createConnection({
 db.connect((err) => {
     if (err) throw err;
     console.log('Connected to Database...');
+    db.end();
 });
 
 // Routes

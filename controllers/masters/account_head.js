@@ -14,7 +14,6 @@ router.get('/', (req, res) => {
         pagenum = parseInt(req.query.pagenum);
     getConnection((err, connection) => {
         if (err) {
-            connection.release();
             console.log(err);
             req.flash('danger', 'Error while getting data from Master-Account Head!');
             res.render('masters/account_head/account_head', {
@@ -31,7 +30,16 @@ router.get('/', (req, res) => {
             connection.query(sql1, (err, results) => {
                 if (err) {
                     connection.release();
+                    req.flash('danger', 'Error while getting count of Account Head!');
                     console.log(err);
+                    res.render('masters/account_head/account_head', {
+                        data: [],
+                        totalpages: 0,
+                        pagenum: 0,
+                        entries_per_page,
+                        totalentries: 0,
+                        flash: res.locals.flash
+                    });
                 }
                 else {
                     totalentries = results[0].ahcount;
@@ -47,7 +55,16 @@ router.get('/', (req, res) => {
                     connection.query(sql2, [offset, entries_per_page], (err, results) => {
                         connection.release();
                         if (err) {
+                            req.flash('danger', 'Error while getting data from Master-Account Head!');
                             console.log(err);
+                            res.render('masters/account_head/account_head', {
+                                data: [],
+                                totalpages: 0,
+                                pagenum: 0,
+                                entries_per_page,
+                                totalentries: 0,
+                                flash: res.locals.flash
+                            });
                         }
                         else {
                             res.render('masters/account_head/account_head', {
@@ -75,7 +92,7 @@ router.get('/search', (req, res) => {
         }
         else {
             var ob = req.query;
-            var searcht = '%' + ob['searchtext'] + '%';
+            var searcht = '%' + ob['searchtext'].trim() + '%';
             var sql = "SELECT * FROM Account_Head";
             var flag = false;
             var arr = ['searchtext', 'account_type', 'is_society'];
@@ -103,13 +120,14 @@ router.get('/search', (req, res) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger','Error in searching Master-Account Head!');
+                    req.flash('danger','Error in searching Master-Account Head with given parameters!');
                     res.redirect('/accounthead');
                 }
                 else {
                     res.render('masters/account_head/account_head_search', {
                         data: results,
-                        searchtext: req.query.searchtext
+                        searchtext: req.query.searchtext,
+                        flash: res.locals.flash
                     });
                 }
             });
@@ -151,16 +169,22 @@ router.post('/edit', (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
+            req.flash('danger', 'Error while editing record !');
+            res.redirect('/accounthead');
         }
         else {
             var { account_id, account_name, account_type, is_society, village_id } = req.body;
+            account_id = account_id.trim();
             var sql = " UPDATE `Account_Head` SET `account_name` = ?, `account_type` = ?, `is_society` = ?, `village_id` = ? WHERE `Account_Head`.`account_id` = ? ";
             connection.query(sql, [account_name, account_type, is_society, village_id, account_id], (err, results) => {
                 connection.release();
                 if (err) {
+                    req.flash('danger', 'Error while editing record with id ' + account_id);
                     console.log(err);
+                    res.redirect('/accounthead');
                 }
                 else {
+                    req.flash('success', 'Successfully edited record with id ' + account_id);
                     res.redirect('/accounthead');
                 }
             });
@@ -172,15 +196,25 @@ router.post('/delete', (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
+            req.flash('danger', 'Error while deleting the record!');
+            res.redirect('/accounthead');
         }
         else {
             var sql = "DELETE FROM `Account_Head` WHERE account_id IN (?)";
             connection.query(sql, [req.body.ids], (err, results) => {
                 connection.release();
                 if (err) {
+                    req.flash('danger', 'Error while deleting the record!');
                     console.log(err);
+                    res.redirect('/accounthead');
                 }
                 else {
+                    if (req.body.ids.length === 1) {
+                        req.flash('success', 'Successfully deleted record with id ' + req.body.ids[0]);
+                    }
+                    else {
+                        req.flash('success', 'Successfully deleted selected records!');
+                    }
                     res.redirect('/accounthead');
                 }
             });
