@@ -7,6 +7,7 @@ const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const flash = require('flash');
+const passport = require('passport');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -18,6 +19,10 @@ app.use(session({
     saveUninitialized: false
 }));
 
+// Passport Setup
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Flash messages package
 app.use(flash());
 
@@ -27,7 +32,7 @@ app.set('view engine', 'ejs');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Database connection
+// Database connection Test
 const db = mysql.createConnection({
     host: process.env.DBHOST,
     user: process.env.DBUSER,
@@ -46,7 +51,14 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
-// Masters Route
+// Auth passport configuration
+require('./controllers/auth/auth_passport');
+
+// Auth Routes
+app.use('/auth', require('./controllers/auth/auth_routes'));
+app.use('/', require('./controllers/auth/auth_view'));
+
+// Masters Routes
 app.use('/accounthead',require('./controllers/masters/account_head'));
 
 app.listen(PORT, () => {

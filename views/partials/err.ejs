@@ -1,11 +1,12 @@
 <% if(flash) { %>
     <% var len = flash.length,message; %>
-    <% for(var i=0; i < len; ++i ) { %>
-        <% console.log(i,flash); %>
-        <% message = flash.shift(); %>
-        <div class="alert alert-<%= message.type %>">
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-            <strong><%= message.message %></strong>
-        </div>
-    <% } %>
+    <div style="text-align: center;">
+        <% for(var i=0; i < len; ++i ) { %>
+            <% message = flash.shift(); %>
+            <div class="alert alert-<%= message.type %>">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <strong><%= message.message %></strong>
+            </div>
+        <% } %>
+    </div>
 <% } %>

@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const getConnection = require('../../connection');
+const middleware = require('../auth/auth_middleware');
 
-router.get('/', (req, res) => {
+router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
         entries_per_page = 25;
@@ -22,10 +23,12 @@ router.get('/', (req, res) => {
                 pagenum: 0,
                 entries_per_page,
                 totalentries: 0,
-                flash: res.locals.flash
+                flash: res.locals.flash,
+                user_type: req.user.user_type
             });
         }
         else {
+            console.log(req.user);
             var sql1 = 'SELECT COUNT(*) as ahcount FROM `Account_Head`';
             connection.query(sql1, (err, results) => {
                 if (err) {
@@ -38,7 +41,8 @@ router.get('/', (req, res) => {
                         pagenum: 0,
                         entries_per_page,
                         totalentries: 0,
-                        flash: res.locals.flash
+                        flash: res.locals.flash,
+                        user_type: req.user.user_type
                     });
                 }
                 else {
@@ -63,7 +67,8 @@ router.get('/', (req, res) => {
                                 pagenum: 0,
                                 entries_per_page,
                                 totalentries: 0,
-                                flash: res.locals.flash
+                                flash: res.locals.flash,
+                                user_type: req.user.user_type
                             });
                         }
                         else {
@@ -73,7 +78,8 @@ router.get('/', (req, res) => {
                                 pagenum,
                                 entries_per_page,
                                 totalentries,
-                                flash: res.locals.flash
+                                flash: res.locals.flash,
+                                user_type: req.user.user_type
                             });
                         }
                     });
@@ -83,7 +89,7 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/search', (req, res) => {
+router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -127,7 +133,8 @@ router.get('/search', (req, res) => {
                     res.render('masters/account_head/account_head_search', {
                         data: results,
                         searchtext: req.query.searchtext,
-                        flash: res.locals.flash
+                        flash: res.locals.flash,
+                        user_type: req.user.user_type
                     });
                 }
             });
@@ -135,7 +142,7 @@ router.get('/search', (req, res) => {
     });
 });
 
-router.post('/', (req, res) => {
+router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
     getConnection((err, connection) => {
         if (err) {
             req.flash('danger','Error in Adding Master-Account Head!');
@@ -165,7 +172,7 @@ router.post('/', (req, res) => {
     });
 });
 
-router.post('/edit', (req, res) => {
+router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -192,7 +199,7 @@ router.post('/edit', (req, res) => {
     })
 });
 
-router.post('/delete', (req, res) => {
+router.post('/delete', middleware.loggedin_as_admin ,(req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
