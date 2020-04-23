@@ -3,7 +3,7 @@ const router = express.Router();
 const getConnection = require('../../connection');
 const middleware = require('../auth/auth_middleware');
 
-router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/', (req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
         entries_per_page = 25;
@@ -16,36 +16,34 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error while getting data from Master-Account Head!');
-            res.render('masters/account_head/account_head', {
+            req.flash('danger', 'Error while getting data from Master-User!');
+            res.render('masters/user/user', {
                 data: [],
                 totalpages: 0,
                 pagenum: 0,
                 entries_per_page,
                 totalentries: 0,
-                flash: res.locals.flash,
-                user_type: req.user.user_type
+                flash: res.locals.flash
             });
         }
         else {
-            var sql1 = 'SELECT COUNT(*) as ahcount FROM `Account_Head`';
+            var sql1 = "SELECT COUNT(*) as count FROM `User` WHERE user_type='SUPERUSER' or user_type='ADMIN'";
             connection.query(sql1, (err, results) => {
                 if (err) {
                     connection.release();
-                    req.flash('danger', 'Error while getting count of Account Head!');
+                    req.flash('danger', 'Error while getting count of User!');
                     console.log(err);
-                    res.render('masters/account_head/account_head', {
+                    res.render('masters/user/user', {
                         data: [],
                         totalpages: 0,
                         pagenum: 0,
                         entries_per_page,
                         totalentries: 0,
-                        flash: res.locals.flash,
-                        user_type: req.user.user_type
+                        flash: res.locals.flash
                     });
                 }
                 else {
-                    totalentries = results[0].ahcount;
+                    totalentries = results[0].count;
                     totalpages = Math.ceil(totalentries / entries_per_page);
                     if (pagenum > totalpages) {
                         pagenum = totalpages;
@@ -53,32 +51,30 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
                     else if (pagenum <= 0) {
                         pagenum = 1;
                     }
-                    var sql2 = "SELECT * FROM `Account_Head` LIMIT ? , ?";
+                    var sql2 = "SELECT * FROM `User` WHERE user_type='SUPERUSER' or user_type='ADMIN' LIMIT ? , ?";
                     var offset = (pagenum - 1) * entries_per_page;
                     connection.query(sql2, [offset, entries_per_page], (err, results) => {
                         connection.release();
                         if (err) {
-                            req.flash('danger', 'Error while getting data from Master-Account Head!');
+                            req.flash('danger', 'Error while getting data from User!');
                             console.log(err);
-                            res.render('masters/account_head/account_head', {
+                            res.render('masters/user/user', {
                                 data: [],
                                 totalpages: 0,
                                 pagenum: 0,
                                 entries_per_page,
                                 totalentries: 0,
-                                flash: res.locals.flash,
-                                user_type: req.user.user_type
+                                flash: res.locals.flash
                             });
                         }
                         else {
-                            res.render('masters/account_head/account_head', {
+                            res.render('masters/user/user', {
                                 data: results,
                                 totalpages,
                                 pagenum,
                                 entries_per_page,
                                 totalentries,
-                                flash: res.locals.flash,
-                                user_type: req.user.user_type
+                                flash: res.locals.flash
                             });
                         }
                     });
@@ -88,11 +84,11 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/search', (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger','Error in searching Master-Account Head!');
+            req.flash('danger', 'Error in searching Master-Account Head!');
             res.redirect('/accounthead');
         }
         else {
@@ -125,7 +121,7 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger','Error in searching Master-Account Head with given parameters!');
+                    req.flash('danger', 'Error in searching Master-Account Head with given parameters!');
                     res.redirect('/accounthead');
                 }
                 else {
@@ -141,64 +137,71 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
-    getConnection((err, connection) => {
-        if (err) {
-            req.flash('danger','Error in Adding Master-Account Head!');
-            console.log(err);
-            res.redirect('/accounthead');
-        }
-        else {
-            var { account_id, account_name, account_type, is_society, village_id } = req.body;
-            account_id = account_id.trim();
-            var sql = 'INSERT INTO `Account_Head` (`account_id`, `account_name`, `account_type`, `is_society`, `village_id`) VALUES (?, ?, ?, ?, ?)'
-            connection.query(sql, [account_id, account_name, account_type, is_society, village_id], (err, result) => {
-                connection.release();
-                if (err) {
-                    console.log(err);
-                    if (err.code == 'ER_DUP_ENTRY')
-                        req.flash('danger', 'Account with A/c Id ' + account_id + ' already exists!');
-                    else
-                        req.flash('danger', 'Error while adding account in Master-Account Head!');
-                    res.redirect('/accounthead');
-                }
-                else {
-                    req.flash('success', 'Account with A/c Id ' + account_id + ' added.');
-                    res.redirect('/accounthead');
-                }
-            });
-        }
-    });
+router.post('/', (req, res) => {
+    if (req.body.password != req.body.confirm_password) {
+        req.flash('danger', 'Password and Confirm Password is not same !');
+        res.redirect('/user');
+    }
+    else {
+        getConnection((err, connection) => {
+            if (err) {
+                req.flash('danger', 'Error in Adding Master-User!');
+                console.log(err);
+                res.redirect('/user');
+            }
+            else {
+                var { user_id, user_name, user_type, active, password } = req.body;
+                user_id = user_id.trim();
+                var sql = 'INSERT INTO `User` (`user_id`, `user_name`, `user_type`, `active`, `password`) VALUES (?, ?, ?, ?, ?)'
+                connection.query(sql, [user_id, user_name, user_type, 1, password], (err, result) => {
+                    connection.release();
+                    if (err) {
+                        console.log(err);
+                        if (err.code == 'ER_DUP_ENTRY')
+                            req.flash('danger', 'User with User Id ' + user_id + ' already exists!');
+                        else
+                            req.flash('danger', 'Error while adding user in Master-User!');
+                        res.redirect('/user');
+                    }
+                    else {
+                        req.flash('success', 'User with User Id ' + user_id + ' added.');
+                        res.redirect('/user');
+                    }
+                });
+            }
+        });
+    }
 });
 
-router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/edit', (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error while editing record !');
-            res.redirect('/accounthead');
+            req.flash('danger', 'Error while editing user record !');
+            res.redirect('/user');
         }
         else {
-            var { account_id, account_name, account_type, is_society, village_id } = req.body;
-            account_id = account_id.trim();
-            var sql = " UPDATE `Account_Head` SET `account_name` = ?, `account_type` = ?, `is_society` = ?, `village_id` = ? WHERE `Account_Head`.`account_id` = ? ";
-            connection.query(sql, [account_name, account_type, is_society, village_id, account_id], (err, results) => {
+            console.log(req.body);
+            var { user_id, user_name, user_type, active } = req.body;
+            console.log(user_id);
+            var sql = " UPDATE `User` SET `user_name` = ?, `user_type` = ?, `active` = ? WHERE `User`.`user_id` = ? ";
+            connection.query(sql, [user_name, user_type, active, user_id], (err, results) => {
                 connection.release();
                 if (err) {
-                    req.flash('danger', 'Error while editing record with id ' + account_id);
+                    req.flash('danger', 'Error while editing user record with id ' + user_id);
                     console.log(err);
-                    res.redirect('/accounthead');
+                    res.redirect('/user');
                 }
                 else {
-                    req.flash('success', 'Successfully edited record with id ' + account_id);
-                    res.redirect('/accounthead');
+                    req.flash('success', 'Successfully edited user record with id ' + user_id);
+                    res.redirect('/user');
                 }
             });
         }
     })
 });
 
-router.post('/delete', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/delete', (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);

@@ -16,12 +16,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
         rel="stylesheet" />
-    
-        <link rel="stylesheet" href="/css/master-index.css">
-    
-    <script type="text/javascript" src="/js/masters/account_head/account_head.js"></script>
+
+    <link rel="stylesheet" href="/css/master-index.css">
+    <script type="text/javascript" src="/js/masters/user/user.js"></script>
     <script type="text/javascript" src="/js/master-index.js"></script>
-    
     <link rel="stylesheet" href="/css/navbar/navbar.css">
 
     <script>
@@ -59,16 +57,14 @@
                 <div class="table-title">
                     <div class="row">
                         <div class="col-sm-6">
-                            <h2>Master - <b>Account Head</b></h2>
+                            <h2>Master - <b>User</b></h2>
                         </div>
                         <div class="col-sm-6" id="shortcut">
                             <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal" id="addnew"><i
                                     class="material-icons">&#xE147;</i> <span><b>Add New</b></span></a>
-                            <% if(user_type === 'ADMIN') { %>
                             <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal"
                                 id="multipledelete"><i class="material-icons">&#xE15C;</i>
                                 <span><b>Delete</b></span></a>
-                            <% } %>
                             <a href="#searchEmployeeModal" class="btn btn-warning" data-toggle="modal" id="search"><i
                                     class="material-icons">&#xe8b6;</i> <span><b>Search</b></span></a>
                         </div>
@@ -78,7 +74,7 @@
                     <thead>
                         <tr>
                             <th>
-                                <form action="/accounthead" class="entries">
+                                <form action="/user" class="entries">
                                     <span>
                                         <select id="entryid" name="entries_per_page">
                                             <% if(entries_per_page==25) { %>
@@ -100,48 +96,42 @@
                                     </span>
                                 </form>
                             </th>
-                            <th>A/c ID</th>
-                            <th>Account Head Name</th>
-                            <th>A/c Type</th>
-                            <th>Village ID</th>
-                            <th>Society</th>
-                            <% if(user_type === 'ADMIN') { %>
-                            <th>Actions</th>
-                            <% } %>
+                            <th>User ID</th>
+                            <th>User Name</th>
+                            <th>User Type</th>
+                            <th>Active</th>
+                            <th style="width: 135px !important; text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% for(var item of data) { %>
-                        <tr id="<%= item.account_id%>">
+                        <tr id="<%= item.user_id%>">
                             <td>
-                                <% if(user_type === 'ADMIN') { %>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="<%= item.account_id %>">
-                                    <label for="<%= item.account_id %>"></label>
+                                    <input type="checkbox" id="<%= item.user_id %>">
+                                    <label for="<%= item.user_id %>"></label>
                                 </span>
-                                <% } %>
                             </td>
-                            <td><%= item.account_id %></td>
-                            <td><%= item.account_name %></td>
-                            <td><%= item.account_type %></td>
-                            <td><%= item.village_id %></td>
+                            <td><%= item.user_id %></td>
+                            <td><%= item.user_name %></td>
+                            <td><%= item.user_type %></td>
                             <td>
-                                <% if(item.is_society) { %>
+                                <% if(item.active) { %>
                                 Yes
                                 <% } else{ %>
                                 No
                                 <% } %>
                             </td>
-                            <% if(user_type === 'ADMIN' ) { %>
                             <td>
-                                <a href="#editEmployeeModal" class="edit" data-toggle="modal"
-                                    id="<%= item.account_id%>"><i class="material-icons" data-toggle="tooltip"
-                                        title="Edit">&#xE254;</i></a>
+                                <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="<%= item.user_id%>"><i
+                                        class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
                                 <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
-                                    id="<%= item.account_id%>"><i class="material-icons" data-toggle="tooltip"
+                                    id="<%= item.user_id%>"><i class="material-icons" data-toggle="tooltip"
                                         title="Delete">&#xE872;</i></a>
+                                <a href="#resetEmployeeModal" class="reset" data-toggle="modal"
+                                    id="<%= item.user_id%>"><i class="material-icons" data-toggle="tooltip"
+                                        title="Reset Password" style="color: darkblue;">&#xe8ba;</i></a>
                             </td>
-                            <% } %>
                         </tr>
                         <% } %>
                     </tbody>
@@ -154,7 +144,7 @@
                         <b><%= totalentries %></b> entries
                     </div>
                     <% } %>
-                    <form action="/accounthead" id="paginationform" method="GET">
+                    <form action="/user" id="paginationform" method="GET">
                         <ul class="pagination">
                             <li class="page-item">
                                 <span class="a page-link">
@@ -271,108 +261,91 @@
     <div id="addEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/accounthead" class="form-horizontal" method="POST">
+                <form action="/user" class="form-horizontal" method="POST">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Add Account Head</u></b></h3>
+                        <h3 class="modal-title"><b><u>Add User</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label><i>Account Head ID</i></label>
-                            <input type="text" class="form-control" name="account_id" maxlength="10"
-                                placeholder="Enter Account Head ID" required>
+                            <label><i>User ID</i></label>
+                            <input type="text" class="form-control" name="user_id" maxlength="10"
+                                placeholder="Enter User ID" required>
                         </div>
                         <div class="form-group">
-                            <label><i>Account Head Name</i></label>
-                            <input type="text" class="form-control" name="account_name"
-                                placeholder="Enter Account Head Name" required>
+                            <label><i>User Name</i></label>
+                            <input type="text" class="form-control" name="user_name" placeholder="Enter User Name"
+                                required>
                         </div>
                         <div class="form-group">
-                            <label><i>Account Head Type</i></label>
-                            <select class="form-control selectpicker" id="select-account_type-add"
-                                data-live-search="true" name="account_type">
-                                <option data-tokens="Balance Sheet" value="B/S">Balance Sheet (B/S)</option>
-                                <option data-tokens="Profit & Loss" value="P&L">Profit & Loss Account (P&L)</option>
-                                <option data-tokens="Trading Account" value="T/A">Trading Account (T/A)</option>
+                            <label><i>User Type</i></label>
+                            <select class="form-control selectpicker" id="select-user_type-add" data-live-search="true"
+                                name="user_type">
+                                <option data-tokens="MEMBER" value="MEMBER">MEMBER</option>
+                                <option data-tokens="SUPER USER" value="SUPERUSER">SUPER USER</option>
+                                <option data-tokens="ADMIN" value="ADMIN">ADMIN</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label><i>Village</i></label>
-                            <select class="form-control selectpicker" id="select-village_id-add" data-live-search="true"
-                                name="village_id">
-                                <option data-tokens="china">China</option>
-                                <option data-tokens="malayasia">Malayasia</option>
-                                <option data-tokens="singapore">Singapore</option>
-                            </select>
+                            <label><i>Password</i></label>
+                            <input type="password" class="form-control" name="password" placeholder="Enter Password"
+                                required>
                         </div>
                         <div class="form-group">
-                            <label><i>Is Society ?</i></label>
-                            <div class="radio">
-                                <label class="radio-inline"><input type="radio" name="is_society" value="1"
-                                        checked>Yes</label>
-                                <label class="radio-inline"><input type="radio" name="is_society" value="0">No</label>
-                            </div>
-                        </div>
-                    </div>
-            </div>
-            <div class="modal-footer">
-                <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
-                <input type="submit" class="btn btn-success" value="Add">
-            </div>
-            </form>
-        </div>
-    </div>
-    <% if(user_type === 'ADMIN') { %>
-    <!-- Edit Modal HTML -->
-    <div id="editEmployeeModal" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="/accounthead/edit" method="POST">
-                    <div class="modal-header">
-                        <h3 class="modal-title">Edit Account Head</h3>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label><i>Account Head ID</i></label>
-                            <input type="text" class="form-control" name="account_id" maxlength="10"
-                                placeholder="Enter Account Head ID" value="" required disabled>
-                        </div>
-                        <div class="form-group">
-                            <label><i>Account Head Name</i></label>
-                            <input type="text" class="form-control" name="account_name"
-                                placeholder="Enter Account Head Name" value="" required>
-                        </div>
-                        <div class="form-group">
-                            <label><i>Account Head Type</i></label>
-                            <select class="form-control selectpicker" id="select-account_type-edit"
-                                data-live-search="true" name="account_type">
-                                <option data-tokens="Balance Sheet" value="B/S">Balance Sheet (B/S)</option>
-                                <option data-tokens="Profit & Loss" value="P&L">Profit & Loss Account (P&L)</option>
-                                <option data-tokens="Trading Account" value="T/A">Trading Account (T/A)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label><i>Village</i></label>
-                            <select class="form-control selectpicker" id="select-village_id-edit"
-                                data-live-search="true" name="village_id">
-                                <option data-tokens="china">China</option>
-                                <option data-tokens="malayasia">Malayasia</option>
-                                <option data-tokens="singapore">Singapore</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label><i>Is Society ?</i></label>
-                            <div class="radio">
-                                <label class="radio-inline"><input type="radio" name="is_society" value="1"
-                                        checked>Yes</label>
-                                <label class="radio-inline"><input type="radio" name="is_society" value="0">No</label>
-                            </div>
+                            <label><i>Confirm Password</i></label>
+                            <input type="password" class="form-control" name="confirm_password"
+                                placeholder="Enter Password Again" required>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
-                        <input type="submit" class="btn btn-info" value="Save">
+                        <input type="submit" class="btn btn-success" value="Add">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Edit Modal HTML -->
+    <div id="editEmployeeModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/user/edit" class="form-horizontal" method="POST">
+                    <div class="modal-header">
+                        <h3 class="modal-title"><b><u>Edit User</u></b></h3>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label><i>User ID</i></label>
+                            <input type="text" class="form-control" name="user_id" maxlength="10"
+                                placeholder="Enter User ID" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label><i>User Name</i></label>
+                            <input type="text" class="form-control" name="user_name" placeholder="Enter User Name"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label><i>User Type</i></label>
+                            <select class="form-control selectpicker" id="select-user_type-edit" data-live-search="true"
+                                name="user_type">
+                                <option data-tokens="MEMBER" value="MEMBER">MEMBER</option>
+                                <option data-tokens="SUPER USER" value="SUPERUSER">SUPER USER</option>
+                                <option data-tokens="ADMIN" value="ADMIN">ADMIN</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i>Active </i></label>
+                            <div class="radio">
+                                <label class="radio-inline"><input type="radio" name="active" value="1">Yes</label>
+                                <label class="radio-inline"><input type="radio" name="active" value="0">No</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel"
+                            id="edit-cancel">
+                        <input type="submit" class="btn btn-success" value="Edit">
                     </div>
                 </form>
             </div>
@@ -384,7 +357,7 @@
             <div class="modal-content">
                 <form action="/accounthead/delete" method="POST">
                     <div class="modal-header">
-                        <h4 class="modal-title">Delete Account Head</h4>
+                        <h4 class="modal-title">Delete User</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
@@ -399,7 +372,28 @@
             </div>
         </div>
     </div>
-    <% } %>
+    <!-- Reset Modal HTML -->
+    <div id="resetEmployeeModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/accounthead/reset" method="POST">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Reset User Password</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure ...?<br>Do want to RESET PASSWORD for this user?</p>
+                        <p class="text-warning"><small>Current Password will be removed and Default Password will be
+                                set.</small></p>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel" id="cancel">
+                        <input type="submit" class="btn btn-danger" value="Reset">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -5,6 +5,10 @@ body {
     font-size: 18px;
 }
 
+input:read-only :hover{
+    cursor: pointer;
+}
+
 #addEmployeeModal {
     font-size: 16px !important;
 }

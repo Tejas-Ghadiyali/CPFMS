@@ -59,7 +59,8 @@ app.use('/auth', require('./controllers/auth/auth_routes'));
 app.use('/', require('./controllers/auth/auth_view'));
 
 // Masters Routes
-app.use('/accounthead',require('./controllers/masters/account_head'));
+app.use('/accounthead', require('./controllers/masters/account_head'));
+app.use('/user', require('./controllers/masters/user'));
 
 app.listen(PORT, () => {
     console.log("Server is running on port : ", PORT);
