@@ -6,7 +6,7 @@ const middleware = require('./auth_middleware');
 router.post('/login', passport.authenticate('local', {
     failureRedirect: '/auth/loginfailed'
 }), (req, res) => {
-        res.redirect('/district');
+        res.redirect('/');
 });
 
 router.get('/logout', middleware.loggedin ,(req, res) => {

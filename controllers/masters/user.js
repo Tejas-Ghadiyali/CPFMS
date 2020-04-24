@@ -205,7 +205,7 @@ router.post('/delete', (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error while deleting the user record!');
+            req.flash('danger', 'Error while deleting the record!');
             res.redirect('/user');
         }
         else {
@@ -213,18 +213,24 @@ router.post('/delete', (req, res) => {
             connection.query(sql, [req.body.ids], (err, results) => {
                 connection.release();
                 if (err) {
-                    req.flash('danger', 'Error while deleting the user record!');
+                    req.flash('danger', 'Error while deleting the record!');
                     console.log(err);
                     res.redirect('/user');
                 }
                 else {
-                    if (req.body.ids.length === 1) {
-                        req.flash('success', 'Successfully deleted user with id ' + req.body.ids[0]);
+                    if (results.affectedRows > 0) {
+                        if (results.affectedRows === 1) {
+                            req.flash('success', 'Successfully deleted record with id ' + req.body.ids[0]);
+                        }
+                        else {
+                            req.flash('success', 'Successfully deleted selected records!');
+                        }
+                        res.redirect('/user');
                     }
                     else {
-                        req.flash('success', 'Successfully deleted selected user records!');
+                        req.flash('danger', 'Error while deleting the record!');
+                        res.redirect('/user');
                     }
-                    res.redirect('/user');
                 }
             });
         }

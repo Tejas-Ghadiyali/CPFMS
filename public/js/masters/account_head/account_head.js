@@ -20,10 +20,8 @@ $(document).ready(function () {
         setTimeout(function () {
             $("#editEmployeeModal input[name=account_name]").focus();
         }, 500);
-        alert('Edti clicked');
         var row = $(this).parent().parent();
         var li_id = row.find("td:nth-child(2)").text();
-        console.log(li_id);
         var account_name = row.find("td:nth-child(3)").text();
         var account_type = row.find("td:nth-child(4)").text();
         var village_id = row.find("td:nth-child(5)").text();

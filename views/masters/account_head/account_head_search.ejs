@@ -239,38 +239,7 @@
 
         $(document).ready(function () {
 
-            for (var i = 0; i < entries_per_page && i < totalentries; ++i) {
-                item = data[i];
-                inhtml = `
-                        <tr id="`+ item.account_id + `">
-                            <td>
-                                <% if(user_type === 'ADMIN') { %>
-                                <span class="custom-checkbox">
-                                    <input type="checkbox" id="`+ item.account_id + `">
-                                    <label for="`+ item.account_id + `"></label>
-                                </span>
-                                <% } %>
-                            </td>
-                            <td>`+ item.account_id + `</td>
-                            <td>`+ item.account_name + `</td>
-                            <td>`+ item.account_type + `</td>
-                            <td>`+ item.village_id + `</td>
-                            <td>
-                                `+ (item.is_society ? "Yes" : "No") + `
-                            </td>
-                            <% if(user_type === 'ADMIN') { %>
-                            <td>
-                                <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="`+ item.account_id + `" onclick="editentry(this.parentElement.parentElement)"><i
-                                        class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
-                                <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
-                                    id="`+ item.account_id + `" onclick="deleteentry(this.parentElement.parentElement)"><i class="material-icons" data-toggle="tooltip"
-                                        title="Delete">&#xE872;</i></a>
-                            </td>
-                            <% } %>
-                        </tr>
-                        `;
-                $("table #search-rows").append(inhtml);
-            }
+            fillrow(0,entries_per_page);
 
             // Hint-text in clearfix
             if (totalentries == 0) {
@@ -329,40 +298,8 @@
             // Entry Per Page Handler
             $("table #entryid").change(function () {
                 entries_per_page = parseInt($(this).children("option:selected").val());
-                var ending = Math.min(entries_per_page, totalentries);
-                $("table #search-rows").empty();
-                for (var i = 0; i < ending; ++i) {
-                    item = data[i];
-                    inhtml = `
-                            <tr id="`+ item.account_id + `">
-                                <td>
-                                    <% if(user_type === 'ADMIN') { %>
-                                    <span class="custom-checkbox">
-                                        <input type="checkbox" id="`+ item.account_id + `">
-                                        <label for="`+ item.account_id + `"></label>
-                                    </span>
-                                    <% } %>
-                                </td>
-                                <td>`+ item.account_id + `</td>
-                                <td>`+ item.account_name + `</td>
-                                <td>`+ item.account_type + `</td>
-                                <td>`+ item.village_id + `</td>
-                                <td>
-                                    `+ (item.is_society ? "Yes" : "No") + `
-                                </td>
-                                <% if(user_type === 'ADMIN') { %>
-                                <td>
-                                    <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="`+ item.account_id + `" onclick="editentry(this.parentElement.parentElement)"><i
-                                            class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
-                                    <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
-                                        id="`+ item.account_id + `"><i class="material-icons" data-toggle="tooltip"
-                                            title="Delete">&#xE872;</i></a>
-                                </td>
-                                <% } %>
-                            </tr>
-                            `;
-                    $("table #search-rows").append(inhtml);
-                }
+                var ending = Math.min(entries_per_page,totalentries);
+                fillrow(0,entries_per_page);
                 if (totalentries == 0) {
                     inhtml = `<b>No entry found.</b>`;
                 }
@@ -448,39 +385,7 @@
             }
             var starting = (pagenum - 1) * entries_per_page;
             var ending = starting + Math.min(entries_per_page, totalentries - starting);
-            $("table #search-rows").empty();
-            for (var i = starting; i < ending; ++i) {
-                item = data[i];
-                inhtml = `
-                        <tr id="`+ item.account_id + `">
-                            <td>
-                                <% if(user_type === 'ADMIN') { %>
-                                <span class="custom-checkbox">
-                                    <input type="checkbox" id="`+ item.account_id + `">
-                                    <label for="`+ item.account_id + `"></label>
-                                </span>
-                                <% } %>
-                            </td>
-                            <td>`+ item.account_id + `</td>
-                            <td>`+ item.account_name + `</td>
-                            <td>`+ item.account_type + `</td>
-                            <td>`+ item.village_id + `</td>
-                            <td>
-                                `+ (item.is_society ? "Yes" : "No") + `
-                            </td>
-                            <% if(user_type === 'ADMIN') { %>
-                            <td>
-                                <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="`+ item.account_id + `" onclick="editentry(this.parentElement.parentElement)"><i
-                                        class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
-                                <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
-                                    id="`+ item.account_id + `"><i class="material-icons" data-toggle="tooltip"
-                                        title="Delete">&#xE872;</i></a>
-                            </td>
-                            <% } %>
-                        </tr>
-                        `;
-                $("table #search-rows").append(inhtml);
-            }
+            fillrow(starting,ending);
             $(".clearfix .page-link").empty();
             if (totalentries !== 0) {
                 if (pagenum == 1) {
@@ -542,7 +447,6 @@
             $(".clearfix .hint-text").empty();
             $(".clearfix .hint-text").append(inhtml);
         }
-
         function formsubmit(e) {
             e.preventDefault();
             var value = parseInt($(".pagination #pagination-form #pageno").val());
@@ -551,6 +455,7 @@
             changepage(5, value);
         }
 
+        // Edit Entry Filler
         function editentry(e) {
             var account_id = e.id.trim();
             var account_name = e.cells.item(2).textContent;
@@ -572,9 +477,47 @@
             $("#editEmployeeModal input[name=is_society][value=" + is_society + "]").prop('checked', true);
         }
 
+        // Delete Entry Filler
         function deleteentry(e) {
             var inputhtml = '<input type="hidden" name="ids[]" value="' + e.id + '">';
             $("#deleteEmployeeModal form").append(inputhtml);
+        }
+
+        // Data row filler
+        function fillrow(starting, ending) {
+            $("table #search-rows").empty();
+            for (var i = starting; i < ending && i < totalentries; ++i) {
+                item = data[i];
+                inhtml = `
+                    <tr id="`+ item.account_id + `">
+                        <td>
+                            <% if(user_type === 'ADMIN') { %>
+                            <span class="custom-checkbox">
+                                <input type="checkbox" id="`+ item.account_id + `">
+                                <label for="`+ item.account_id + `"></label>
+                            </span>
+                            <% } %>
+                        </td>
+                        <td>`+ item.account_id + `</td>
+                        <td>`+ item.account_name + `</td>
+                        <td>`+ item.account_type + `</td>
+                        <td>`+ item.village_id + `</td>
+                        <td>
+                            `+ (item.is_society ? "Yes" : "No") + `
+                        </td>
+                        <% if(user_type === 'ADMIN') { %>
+                        <td>
+                            <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="`+ item.account_id + `" onclick="editentry(this.parentElement.parentElement)"><i
+                                    class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
+                            <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
+                                id="`+ item.account_id + `" onclick="deleteentry(this.parentElement.parentElement)"><i class="material-icons" data-toggle="tooltip"
+                                    title="Delete">&#xE872;</i></a>
+                        </td>
+                        <% } %>
+                    </tr>
+                    `;
+                $("table #search-rows").append(inhtml);
+            }
         }
 
     </script>
