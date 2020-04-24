@@ -108,8 +108,8 @@
                         </div>
                         <div class="form-group">
                             <label><i>Account Head Type</i></label>
-                            <select class="form-control selectpicker" id="select-account_type-add" data-live-search="true"
-                                name="account_type">
+                            <select class="form-control selectpicker" id="select-account_type-add"
+                                data-live-search="true" name="account_type">
                                 <option data-tokens="Balance Sheet" value="B/S">Balance Sheet (B/S)
                                 </option>
                                 <option data-tokens="Profit & Loss" value="P&L">Profit & Loss Account
@@ -167,8 +167,8 @@
                         </div>
                         <div class="form-group">
                             <label><i>Account Head Type</i></label>
-                            <select class="form-control selectpicker" id="select-account_type-edit" data-live-search="true"
-                                name="account_type">
+                            <select class="form-control selectpicker" id="select-account_type-edit"
+                                data-live-search="true" name="account_type">
                                 <option data-tokens="Balance Sheet" value="B/S">Balance Sheet (B/S)
                                 </option>
                                 <option data-tokens="Profit & Loss" value="P&L">Profit & Loss Account
@@ -179,8 +179,8 @@
                         </div>
                         <div class="form-group">
                             <label><i>Village</i></label>
-                            <select class="form-control selectpicker" id="select-village_id-edit" data-live-search="true"
-                                name="village_id">
+                            <select class="form-control selectpicker" id="select-village_id-edit"
+                                data-live-search="true" name="village_id">
                                 <option data-tokens="china">China</option>
                                 <option data-tokens="malayasia">Malayasia</option>
                                 <option data-tokens="singapore">Singapore</option>
@@ -375,6 +375,14 @@
                 initial_pagination_setup();
             });
 
+            // Add Modal Focus
+            $(".table-title #addnew").click(function () {
+                setTimeout(function () {
+                    $("#addEmployeeModal input[name=account_id]").focus();
+                }, 500);
+            });
+
+            // Multiple Delete Focus to Cancel Button
             $(".table-title #multipledelete").click(function (e) {
                 e.preventDefault();
                 var checkbox = $('table tbody input[type="checkbox"]');
@@ -396,6 +404,8 @@
                     $("#deleteEmployeeModal .modal-footer #cancel").focus();
                 }, 500);
             });
+
+
 
         });
 
