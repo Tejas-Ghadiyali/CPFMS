@@ -3,7 +3,7 @@ const router = express.Router();
 const getConnection = require('../../connection');
 const middleware = require('../auth/auth_middleware');
 
-router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/', middleware.loggedin_as_superuser, (req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
         entries_per_page = 25;
@@ -88,11 +88,11 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger','Error in searching Master-Account Head!');
+            req.flash('danger', 'Error in searching Master-Account Head!');
             res.redirect('/accounthead');
         }
         else {
@@ -125,7 +125,7 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger','Error in searching Master-Account Head with given parameters!');
+                    req.flash('danger', 'Error in searching Master-Account Head with given parameters!');
                     res.redirect('/accounthead');
                 }
                 else {
@@ -141,10 +141,10 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.post('/', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
-            req.flash('danger','Error in Adding Master-Account Head!');
+            req.flash('danger', 'Error in Adding Master-Account Head!');
             console.log(err);
             res.redirect('/accounthead');
         }
@@ -171,7 +171,7 @@ router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -198,7 +198,7 @@ router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
     })
 });
 
-router.post('/delete', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -215,13 +215,20 @@ router.post('/delete', middleware.loggedin_as_admin ,(req, res) => {
                     res.redirect('/accounthead');
                 }
                 else {
-                    if (req.body.ids.length === 1) {
-                        req.flash('success', 'Successfully deleted record with id ' + req.body.ids[0]);
+                    if (results.affectedRows > 0) {
+                        if (results.affectedRows === 1) {
+                            req.flash('success', 'Successfully deleted record with id ' + req.body.ids[0]);
+                        }
+                        else {
+                            req.flash('success', 'Successfully deleted selected records!');
+                        }
+                        res.redirect('/accounthead');
                     }
                     else {
-                        req.flash('success', 'Successfully deleted selected records!');
+                        req.flash('danger', 'Error while deleting the record!');
+                        console.log(results);
+                        res.redirect('/accounthead');
                     }
-                    res.redirect('/accounthead');
                 }
             });
         }
