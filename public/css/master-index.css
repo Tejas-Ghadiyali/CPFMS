@@ -5,8 +5,8 @@ body {
     font-size: 18px;
 }
 
-input:read-only :hover{
-    cursor: pointer;
+#input-disabled {
+    cursor: not-allowed;
 }
 
 #addEmployeeModal {
