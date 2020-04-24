@@ -205,26 +205,26 @@ router.post('/delete', (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error while deleting the record!');
-            res.redirect('/accounthead');
+            req.flash('danger', 'Error while deleting the user record!');
+            res.redirect('/user');
         }
         else {
-            var sql = "DELETE FROM `Account_Head` WHERE account_id IN (?)";
+            var sql = "DELETE FROM `User` WHERE user_id IN (?)";
             connection.query(sql, [req.body.ids], (err, results) => {
                 connection.release();
                 if (err) {
-                    req.flash('danger', 'Error while deleting the record!');
+                    req.flash('danger', 'Error while deleting the user record!');
                     console.log(err);
-                    res.redirect('/accounthead');
+                    res.redirect('/user');
                 }
                 else {
                     if (req.body.ids.length === 1) {
-                        req.flash('success', 'Successfully deleted record with id ' + req.body.ids[0]);
+                        req.flash('success', 'Successfully deleted user with id ' + req.body.ids[0]);
                     }
                     else {
-                        req.flash('success', 'Successfully deleted selected records!');
+                        req.flash('success', 'Successfully deleted selected user records!');
                     }
-                    res.redirect('/accounthead');
+                    res.redirect('/user');
                 }
             });
         }
