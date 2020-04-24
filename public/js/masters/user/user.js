@@ -33,7 +33,6 @@ $(document).ready(function () {
         }, 500);
         var row = $(this).parent().parent();
         var user_id = row.find("td:nth-child(2)").text();
-        console.log(user_id);
         var user_name = row.find("td:nth-child(3)").text();
         var user_type = row.find("td:nth-child(4)").text();
         var active = row.find("td:nth-child(5)").text();
