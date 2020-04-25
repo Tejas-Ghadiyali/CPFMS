@@ -1,5 +1,8 @@
 $(document).ready(function () {
 
+    // Empty Entry on load
+    $("#deleteEmployeeModal form #hidden-input").empty();
+
     // Add Modal Focus
     $(".table-title #addnew").click(function () {
         setTimeout(function () {
@@ -44,7 +47,12 @@ $(document).ready(function () {
             $("#deleteEmployeeModal .modal-footer #cancel").focus();
         }, 500);
         var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
-        $("#deleteEmployeeModal form").append(inputhtml);
+        $("#deleteEmployeeModal form #hidden-input").append(inputhtml);
+    });
+
+    //Cancel event of delete modal
+    $("#deleteEmployeeModal").on("hidden.bs.modal", function () {
+        $("#deleteEmployeeModal form #hidden-input").empty();
     });
 
     // Delete Multiple Entry
@@ -56,7 +64,7 @@ $(document).ready(function () {
             if (this.checked) {
                 ++count;
                 var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
-                $("#deleteEmployeeModal form").append(inputhtml);
+                $("#deleteEmployeeModal form #hidden-input").append(inputhtml);
             }
         });
         if (count == 0)

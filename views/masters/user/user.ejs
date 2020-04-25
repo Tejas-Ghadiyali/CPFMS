@@ -296,6 +296,8 @@
                             <input type="password" class="form-control" name="confirm_password"
                                 placeholder="Enter Password Again" required>
                         </div>
+                        <div id="pass_error">
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
@@ -365,6 +367,7 @@
                         <p class="text-warning"><small>This action cannot be undone.</small></p>
                     </div>
                     <div class="modal-footer">
+                        <div id="hidden-input"></div>
                         <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel" id="cancel">
                         <input type="submit" class="btn btn-danger" value="Delete">
                     </div>
@@ -378,17 +381,17 @@
             <div class="modal-content">
                 <form action="/accounthead/reset" method="POST">
                     <div class="modal-header">
-                        <h4 class="modal-title">Reset User Password</h4>
+                        <h4 class="modal-title"><b>Reset User Password</b></h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <p>Are you sure ...?<br>Do want to RESET PASSWORD for this user?</p>
-                        <p class="text-warning"><small>Current Password will be removed and Default Password will be
+                        <p class="text-info"><small>Current Password will be removed and Default Password will be
                                 set.</small></p>
                     </div>
                     <div class="modal-footer">
                         <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel" id="cancel">
-                        <input type="submit" class="btn btn-danger" value="Reset">
+                        <input type="submit" class="btn btn-info" value="Reset">
                     </div>
                 </form>
             </div>

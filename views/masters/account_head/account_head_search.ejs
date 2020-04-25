@@ -217,6 +217,7 @@
                         <p class="text-warning"><small>This action cannot be undone.</small></p>
                     </div>
                     <div class="modal-footer">
+                        <div id="hidden-input"></div>
                         <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel" id="cancel">
                         <input type="submit" class="btn btn-danger" value="Delete">
                     </div>
@@ -239,7 +240,10 @@
 
         $(document).ready(function () {
 
-            fillrow(0,entries_per_page);
+            // Empty Entry
+            $("#deleteEmployeeModal form #hidden-input").empty();
+
+            fillrow(0, entries_per_page);
 
             // Hint-text in clearfix
             if (totalentries == 0) {
@@ -298,8 +302,8 @@
             // Entry Per Page Handler
             $("table #entryid").change(function () {
                 entries_per_page = parseInt($(this).children("option:selected").val());
-                var ending = Math.min(entries_per_page,totalentries);
-                fillrow(0,entries_per_page);
+                var ending = Math.min(entries_per_page, totalentries);
+                fillrow(0, entries_per_page);
                 if (totalentries == 0) {
                     inhtml = `<b>No entry found.</b>`;
                 }
@@ -342,7 +346,10 @@
                 }, 500);
             });
 
-
+            //Cancel event of delete modal
+            $("#deleteEmployeeModal").on("hidden.bs.modal", function () {
+                $("#deleteEmployeeModal form #hidden-input").empty();
+            });
 
         });
 
@@ -385,7 +392,7 @@
             }
             var starting = (pagenum - 1) * entries_per_page;
             var ending = starting + Math.min(entries_per_page, totalentries - starting);
-            fillrow(starting,ending);
+            fillrow(starting, ending);
             $(".clearfix .page-link").empty();
             if (totalentries !== 0) {
                 if (pagenum == 1) {
@@ -480,7 +487,7 @@
         // Delete Entry Filler
         function deleteentry(e) {
             var inputhtml = '<input type="hidden" name="ids[]" value="' + e.id + '">';
-            $("#deleteEmployeeModal form").append(inputhtml);
+            $("#deleteEmployeeModal form #hidden-input").append(inputhtml);
         }
 
         // Data row filler

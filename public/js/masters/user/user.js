@@ -1,5 +1,7 @@
 $(document).ready(function () {
 
+    $("#deleteEmployeeModal form #hidden-input").empty();
+
     // Add Modal Focus
     $(".table-title #addnew").click(function () {
         setTimeout(function () {
@@ -20,7 +22,7 @@ $(document).ready(function () {
                         Password and Confirm Password should be same !
                     </div>
                     `;
-                $("#addEmployeeModal form").append(inhtml);
+                $("#addEmployeeModal form #pass_error").append(inhtml);
             }
         }
     });
@@ -52,7 +54,7 @@ $(document).ready(function () {
             $("#deleteEmployeeModal .modal-footer #cancel").focus();
         }, 500);
         var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
-        $("#deleteEmployeeModal form").append(inputhtml);
+        $("#deleteEmployeeModal form #hidden-input").append(inputhtml);
     });
 
     // Delete Multiple Entry
@@ -64,11 +66,20 @@ $(document).ready(function () {
             if (this.checked) {
                 ++count;
                 var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
-                $("#deleteEmployeeModal form").append(inputhtml);
+                $("#deleteEmployeeModal form #hidden-input").append(inputhtml);
             }
         });
         if (count == 0)
             return false;
+    });
+
+    // Reset Password
+    $(".table tbody .reset").click(function (e) {
+        setTimeout(function () {
+            $("#resetEmployeeModal .modal-footer #cancel").focus();
+        }, 500);
+        var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
+        $("#resetEmployeeModal form").append(inputhtml);
     });
 
     // Search Modal
