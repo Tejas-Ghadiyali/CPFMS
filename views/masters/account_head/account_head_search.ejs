@@ -467,7 +467,6 @@
             var account_id = e.id.trim();
             var account_name = e.cells.item(2).textContent;
             var account_type = e.cells.item(3).textContent;
-            account_type = e.cells.item(3).textContent;
             var village_id = e.cells.item(4).textContent;
             var is_society = e.cells.item(5).textContent.trim();
             if (is_society === 'NO') {
@@ -482,6 +481,9 @@
             $("#editEmployeeModal select[name=village_id]").val(village_id).change();
             $("#editEmployeeModal select[name=account_type]").val(account_type).change();
             $("#editEmployeeModal input[name=is_society][value=" + is_society + "]").prop('checked', true);
+            setTimeout(function(){
+                $("#editEmployeeModal input[name=account_name]").focus();
+            },500);
         }
 
         // Delete Entry Filler
