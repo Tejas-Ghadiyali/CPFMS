@@ -16,7 +16,10 @@ app.use(bodyParser.json());
 app.use(session({
     secret: process.env.SESSIONPASS,
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 12 * 3600 * 1000
+    }
 }));
 
 // Passport Setup

@@ -100,8 +100,8 @@
                                     </span>
                                 </form>
                             </th>
-                            <th>District ID</th>
-                            <th>District Name</th>
+                            <th style="width: auto !important;">District ID</th>
+                            <th style="width: auto !important;">District Name</th>
                             <% if(user_type === 'ADMIN') { %>
                             <th>Actions</th>
                             <% } %>
@@ -109,24 +109,24 @@
                     </thead>
                     <tbody>
                         <% for(var item of data) { %>
-                        <tr id="<%= item.dist_id%>">
+                        <tr id="<%= item.district_id%>">
                             <td>
                                 <% if(user_type === 'ADMIN') { %>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="<%= item.dist_id %>">
-                                    <label for="<%= item.dist_id %>"></label>
+                                    <input type="checkbox" id="<%= item.district_id %>">
+                                    <label for="<%= item.district_id %>"></label>
                                 </span>
                                 <% } %>
                             </td>
-                            <td><%= item.dist_id %></td>
-                            <td><%= item.dist_name %></td>
+                            <td><%= item.district_id %></td>
+                            <td><%= item.district_name %></td>
                             <% if(user_type === 'ADMIN' ) { %>
                             <td>
                                 <a href="#editEmployeeModal" class="edit" data-toggle="modal"
-                                    id="<%= item.dist_id%>"><i class="material-icons" data-toggle="tooltip"
+                                    id="<%= item.district_id %>"><i class="material-icons" data-toggle="tooltip"
                                         title="Edit">&#xE254;</i></a>
                                 <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
-                                    id="<%= item.dist_id%>"><i class="material-icons" data-toggle="tooltip"
+                                    id="<%= item.district_id %>"><i class="material-icons" data-toggle="tooltip"
                                         title="Delete">&#xE872;</i></a>
                             </td>
                             <% } %>
@@ -204,14 +204,14 @@
                             <h4><b><i>Search For :</i></b></h4>
                             <div>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="dist_id" name="dist_id" value="dist_id" checked>
-                                    <label for="dist_id">District ID</label>
+                                    <input type="checkbox" id="district_id" name="district_id" value="district_id" checked>
+                                    <label for="district_id">District ID</label>
                                 </span>
                             </div>
                             <div>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="dist_name" name="dist_name" value="dist_name">
-                                    <label for="dist_name"> District Name </label>
+                                    <input type="checkbox" id="district_name" name="district_name" value="district_name">
+                                    <label for="district_name"> District Name </label>
                                 </span>
                             </div>
                         </div>
@@ -236,12 +236,12 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label><i>District ID</i></label>
-                            <input type="text" class="form-control" name="dist_id" maxlength="10"
+                            <input type="text" class="form-control" name="district_id" maxlength="10"
                                 placeholder="Enter District ID" required>
                         </div>
                         <div class="form-group">
                             <label><i>District Name</i></label>
-                            <input type="text" class="form-control" name="dist_name"
+                            <input type="text" class="form-control" name="district_name"
                                 placeholder="Enter District Name" required>
                         </div>
                     </div>
@@ -266,12 +266,12 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label><i>District ID</i></label>
-                            <input type="text" class="form-control" name="dist_id" maxlength="10"
+                            <input type="text" class="form-control" name="district_id" maxlength="10"
                                 placeholder="Enter District ID" id="input-disabled" required readonly>
                         </div>
                         <div class="form-group">
                             <label><i>District Name</i></label>
-                            <input type="text" class="form-control" name="dist_name"
+                            <input type="text" class="form-control" name="district_name"
                                 placeholder="Enter District Name" value="" required>
                         </div>
                     </div>
@@ -297,6 +297,7 @@
                         <p class="text-warning"><small>This action cannot be undone.</small></p>
                     </div>
                     <div class="modal-footer">
+                        <div id="hidden-input"></div>
                         <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel" id="cancel">
                         <input type="submit" class="btn btn-danger" value="Delete">
                     </div>

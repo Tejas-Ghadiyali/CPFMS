@@ -332,7 +332,7 @@
                     if (this.checked) {
                         ++count;
                         var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
-                        $("#deleteEmployeeModal form").append(inputhtml);
+                        $("#deleteEmployeeModal form #hidden-input").append(inputhtml);
                     }
                 });
                 if (count == 0)
@@ -469,7 +469,7 @@
             var account_type = e.cells.item(3).textContent;
             var village_id = e.cells.item(4).textContent;
             var is_society = e.cells.item(5).textContent.trim();
-            if (is_society === 'NO') {
+            if (is_society === 'No') {
                 is_society = 0;
             }
             else {

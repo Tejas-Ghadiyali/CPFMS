@@ -28,6 +28,8 @@ db.connect((err) => {
             }
             require('./models/masters/Account_Head')(db);
             require('./models/masters/Sub_Account')(db);
+            require('./models/masters/User')(db);
+            require('./models/masters/District')(db);
             db.end();
         });
     });

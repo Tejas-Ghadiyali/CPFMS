@@ -193,9 +193,9 @@
     <div id="searchEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/accounthead/search" class="form-horizontal" method="GET">
+                <form action="/user/search" class="form-horizontal" method="GET">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Search Account Head</u></b></h3>
+                        <h3 class="modal-title"><b><u>Search User</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
@@ -206,44 +206,38 @@
                             <h4><b><i>Search For :</i></b></h4>
                             <div>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="account_id" name="account_id" value="account_id" checked>
-                                    <label for="account_id">Account Head ID</label>
+                                    <input type="checkbox" id="account_id" name="account_id" value="user_id" checked>
+                                    <label for="user_id">User ID</label>
                                 </span>
                             </div>
                             <div>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="account_name" name="account_name" value="account_name">
-                                    <label for="account_name"> Account Head Name </label>
-                                </span>
-                            </div>
-                            <div>
-                                <span class="custom-checkbox">
-                                    <input type="checkbox" id="village_id" name="village_id" value="village_id">
-                                    <label for="village_id"> Village ID </label>
+                                    <input type="checkbox" id="account_name" name="account_name" value="user_name">
+                                    <label for="user_name">User Name</label>
                                 </span>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label><i>Account Head Type</i></label>
+                            <label><i>User Type</i></label>
                             <select class="form-control selectpicker" id="select-account_type_search"
-                                data-live-search="true" name="account_type">
+                                data-live-search="true" name="user_type">
                                 <option data-tokens="All" value="false">All</option>
-                                <option data-tokens="Balance Sheet" value="B/S">Balance Sheet (B/S)</option>
-                                <option data-tokens="Profit & Loss" value="P&L">Profit & Loss Account (P&L)</option>
-                                <option data-tokens="Trading Account" value="T/A">Trading Account (T/A)</option>
+                                <option data-tokens="Member" value="MEMBER">MEMBER</option>
+                                <option data-tokens="Super User" value="SUPERUSER">SUPER USER</option>
+                                <option data-tokens="Admin" value="ADMIN">ADMIN</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <div class="col-md-4">
-                                <h4 style="text-align: left; padding: 0px !important;"><b><i>Society? :</i></b></h4>
+                                <h4 style="text-align: left; padding: 0px !important;"><b><i>Active? :</i></b></h4>
                             </div>
                             <div class="col-md-8">
                                 <div class="radio">
-                                    <label class="radio-inline"><input type="radio" name="is_society" value="false"
+                                    <label class="radio-inline"><input type="radio" name="active" value="false"
                                             checked>Both</label>
-                                    <label class="radio-inline"><input type="radio" name="is_society"
+                                    <label class="radio-inline"><input type="radio" name="active"
                                             value="1">Yes</label>
-                                    <label class="radio-inline"><input type="radio" name="is_society"
+                                    <label class="radio-inline"><input type="radio" name="active"
                                             value="0">No</label>
                                 </div>
                             </div>
@@ -379,7 +373,7 @@
     <div id="resetEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/accounthead/reset" method="POST">
+                <form action="/user/reset" method="POST">
                     <div class="modal-header">
                         <h4 class="modal-title"><b>Reset User Password</b></h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -390,6 +384,7 @@
                                 set.</small></p>
                     </div>
                     <div class="modal-footer">
+                        <div id="hidden-input"></div>
                         <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel" id="cancel">
                         <input type="submit" class="btn btn-info" value="Reset">
                     </div>

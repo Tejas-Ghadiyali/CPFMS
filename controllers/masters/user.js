@@ -3,7 +3,7 @@ const router = express.Router();
 const getConnection = require('../../connection');
 const middleware = require('../auth/auth_middleware');
 
-router.get('/', (req, res) => {
+router.get('/', middleware.loggedin_as_admin, (req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
         entries_per_page = 25;
@@ -84,19 +84,19 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/search', (req, res) => {
+router.get('/search', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error in searching Master-Account Head!');
-            res.redirect('/accounthead');
+            req.flash('danger', 'Error in searching Master-User!');
+            res.redirect('/user');
         }
         else {
             var ob = req.query;
             var searcht = '%' + ob['searchtext'].trim() + '%';
-            var sql = "SELECT * FROM Account_Head";
+            var sql = "SELECT * FROM User";
             var flag = false;
-            var arr = ['searchtext', 'account_type', 'is_society'];
+            var arr = ['searchtext', 'user_type', 'active'];
             for (key in ob) {
                 if (ob[key] !== "false" && key !== "searchtext") {
                     if (arr.includes(key)) {
@@ -121,15 +121,14 @@ router.get('/search', (req, res) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger', 'Error in searching Master-Account Head with given parameters!');
-                    res.redirect('/accounthead');
+                    req.flash('danger', 'Error in searching Master-User with given parameters!');
+                    res.redirect('/user');
                 }
                 else {
-                    res.render('masters/account_head/account_head_search', {
+                    res.render('masters/user/user_search', {
                         data: results,
                         searchtext: req.query.searchtext,
-                        flash: res.locals.flash,
-                        user_type: req.user.user_type
+                        flash: res.locals.flash
                     });
                 }
             });
@@ -137,7 +136,7 @@ router.get('/search', (req, res) => {
     });
 });
 
-router.post('/', (req, res) => {
+router.post('/', middleware.loggedin_as_admin, (req, res) => {
     if (req.body.password != req.body.confirm_password) {
         req.flash('danger', 'Password and Confirm Password is not same !');
         res.redirect('/user');
@@ -173,7 +172,7 @@ router.post('/', (req, res) => {
     }
 });
 
-router.post('/edit', (req, res) => {
+router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -181,9 +180,7 @@ router.post('/edit', (req, res) => {
             res.redirect('/user');
         }
         else {
-            console.log(req.body);
             var { user_id, user_name, user_type, active } = req.body;
-            console.log(user_id);
             var sql = " UPDATE `User` SET `user_name` = ?, `user_type` = ?, `active` = ? WHERE `User`.`user_id` = ? ";
             connection.query(sql, [user_name, user_type, active, user_id], (err, results) => {
                 connection.release();
@@ -201,7 +198,7 @@ router.post('/edit', (req, res) => {
     })
 });
 
-router.post('/delete', (req, res) => {
+router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -235,6 +232,33 @@ router.post('/delete', (req, res) => {
             });
         }
     });
+});
+
+router.post('/reset', middleware.loggedin_as_admin, (req, res) => {
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            req.flash('danger', 'Error while reseting password !');
+            res.redirect('/user');
+        }
+        else {
+            var { user_id } = req.body;
+            var password = user_id;
+            var sql = "UPDATE `User` SET `password` = ? WHERE `User`.`user_id` = ?";
+            connection.query(sql, [password, user_id], (err, results) => {
+                connection.release();
+                if (err || results.affectedRows == 0) {
+                    console.log(err);
+                    req.flash('danger', 'Error while reseting password !');
+                    res.redirect('/user');
+                }
+                else {
+                    req.flash('success', 'Password reseted for user with user id : ' + user_id + '!');
+                    res.redirect('/user');
+                }
+            });
+        }
+    }); 
 });
 
 module.exports = router;

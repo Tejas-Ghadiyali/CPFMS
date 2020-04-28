@@ -1,6 +1,7 @@
 $(document).ready(function () {
 
     $("#deleteEmployeeModal form #hidden-input").empty();
+    $("#resetEmployeeModal form #hidden-input").empty();
 
     // Add Modal Focus
     $(".table-title #addnew").click(function () {
@@ -78,8 +79,18 @@ $(document).ready(function () {
         setTimeout(function () {
             $("#resetEmployeeModal .modal-footer #cancel").focus();
         }, 500);
-        var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
-        $("#resetEmployeeModal form").append(inputhtml);
+        var inputhtml = '<input type="hidden" name="user_id" value="' + this.id + '">';
+        $("#resetEmployeeModal form #hidden-input").append(inputhtml);
+    });
+
+    //Cancel event of delete modal
+    $("#deleteEmployeeModal").on("hidden.bs.modal", function () {
+        $("#deleteEmployeeModal form #hidden-input").empty();
+    });
+
+    //Cancel event of reset modal
+    $("#resetEmployeeModal").on("hidden.bs.modal", function () {
+        $("#resetEmployeeModal form #hidden-input").empty();
     });
 
     // Search Modal

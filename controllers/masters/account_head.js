@@ -226,7 +226,6 @@ router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
                     }
                     else {
                         req.flash('danger', 'Error while deleting the record!');
-                        console.log(results);
                         res.redirect('/accounthead');
                     }
                 }

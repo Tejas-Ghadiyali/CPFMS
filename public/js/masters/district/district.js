@@ -1,9 +1,12 @@
 $(document).ready(function () {
 
+    // Clearing Hidden Delete input
+    $("#deleteEmployeeModal form #hidden-input").empty();
+
     // Add Modal Focus
     $(".table-title #addnew").click(function () {
         setTimeout(function () {
-            $("#addEmployeeModal input[name=dist_id]").focus();
+            $("#addEmployeeModal input[name=district_id]").focus();
         }, 500);
     });
 
@@ -18,13 +21,13 @@ $(document).ready(function () {
     // Edit Modal Value Changes
     $('table tbody .edit').click(function () {
         setTimeout(function () {
-            $("#editEmployeeModal input[name=dist_name]").focus();
+            $("#editEmployeeModal input[name=district_name]").focus();
         }, 500);
         var row = $(this).parent().parent();
         var li_id = $(this).attr("id");
-        var dist_name = row.find("td:nth-child(3)").text();
-        $("#editEmployeeModal input[name=dist_id]").val(li_id);
-        $("#editEmployeeModal input[name=dist_name]").val(dist_name);
+        var district_name = row.find("td:nth-child(3)").text();
+        $("#editEmployeeModal input[name=district_id]").val(li_id);
+        $("#editEmployeeModal input[name=district_name]").val(district_name);
     });
 
     // Delete One Entry
@@ -33,7 +36,7 @@ $(document).ready(function () {
             $("#deleteEmployeeModal .modal-footer #cancel").focus();
         }, 500);
         var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
-        $("#deleteEmployeeModal form").append(inputhtml);
+        $("#deleteEmployeeModal form #hidden-input").append(inputhtml);
     });
 
     // Delete Multiple Entry
@@ -45,11 +48,16 @@ $(document).ready(function () {
             if (this.checked) {
                 ++count;
                 var inputhtml = '<input type="hidden" name="ids[]" value="' + this.id + '">';
-                $("#deleteEmployeeModal form").append(inputhtml);
+                $("#deleteEmployeeModal form #hidden-input").append(inputhtml);
             }
         });
         if (count == 0)
             return false;
+    });
+
+    //Cancel event of delete modal
+    $("#deleteEmployeeModal").on("hidden.bs.modal", function () {
+        $("#deleteEmployeeModal form #hidden-input").empty();
     });
 
     // Search Modal
