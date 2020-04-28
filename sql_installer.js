@@ -30,6 +30,7 @@ db.connect((err) => {
             require('./models/masters/Sub_Account')(db);
             require('./models/masters/User')(db);
             require('./models/masters/District')(db);
+            require('./models/masters/Taluka')(db);
             db.end();
         });
     });
