@@ -31,6 +31,8 @@ db.connect((err) => {
             require('./models/masters/User')(db);
             require('./models/masters/District')(db);
             require('./models/masters/Taluka')(db);
+            require('./models/masters/Village')(db);
+            require('./models/masters/Organization')(db);
             db.end();
         });
     });

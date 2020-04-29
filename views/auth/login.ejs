@@ -24,9 +24,10 @@
     <link rel="stylesheet" type="text/css" href="/css/login/util.css">
     <link rel="stylesheet" type="text/css" href="/css/login/main.css">
 <!--===============================================================================================-->
+
 </head>
 <body style="background-color: #666666;">
-    
+
     <%- include('../partials/err.ejs') %>
 
 	<div class="limiter">
@@ -39,7 +40,7 @@
 					
 					
 					<div class="wrap-input100 validate-input" data-validate = "Valid username required">
-						<input class="input100" type="text" name="username">
+						<input class="input100" type="text" name="username" id="user-focus">
 						<span class="focus-input100"></span>
 						<span class="label-input100">User Name</span>
 					</div>
@@ -73,7 +74,11 @@
 			</div>
 		</div>
 	</div>
-	
+    
+    <script>
+        document.getElementById("user-focus").focus();
+    </script>
+
 <!--===============================================================================================-->
 	<script src="/vendor/jquery/jquery-3.2.1.min.js"></script>
 <!--===============================================================================================-->

@@ -19,7 +19,7 @@
 
     <link rel="stylesheet" href="/css/master-index.css">
 
-    <script type="text/javascript" src="/js/masters/taluka/taluka.js"></script>
+    <script type="text/javascript" src="/js/masters/village/village.js"></script>
     <script type="text/javascript" src="/js/master-index.js"></script>
 
     <link rel="stylesheet" href="/css/navbar/navbar.css">
@@ -59,7 +59,7 @@
                 <div class="table-title">
                     <div class="row">
                         <div class="col-sm-6">
-                            <h2>Master - <b>Taluka</b></h2>
+                            <h2>Master - <b>Village</b></h2>
                         </div>
                         <div class="col-sm-6" id="shortcut">
                             <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal" id="addnew"><i
@@ -78,7 +78,7 @@
                     <thead>
                         <tr>
                             <th>
-                                <form action="/taluka" class="entries">
+                                <form action="/village" class="entries">
                                     <span>
                                         <select id="entryid" name="entries_per_page">
                                             <% if(entries_per_page==25) { %>
@@ -100,9 +100,11 @@
                                     </span>
                                 </form>
                             </th>
+                            <th>Village ID</th>
+                            <th>Village Name</th>
                             <th>Taluka ID</th>
                             <th>Taluka Name</th>
-                            <th style="width: auto !important;">District ID</th>
+                            <th style="width: auto;">District ID</th>
                             <% if(user_type === 'ADMIN') { %>
                             <th>Actions</th>
                             <% } %>
@@ -110,25 +112,27 @@
                     </thead>
                     <tbody>
                         <% for(var item of data) { %>
-                        <tr id="<%= item.taluka_id%>">
+                        <tr id="<%= item.village_id%>">
                             <td>
                                 <% if(user_type === 'ADMIN') { %>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="<%= item.taluka_id %>">
-                                    <label for="<%= item.taluka_id %>"></label>
+                                    <input type="checkbox" id="<%= item.village_id %>">
+                                    <label for="<%= item.village_id %>"></label>
                                 </span>
                                 <% } %>
                             </td>
+                            <td><%= item.village_id %></td>
+                            <td><%= item.village_name %></td>
                             <td><%= item.taluka_id %></td>
                             <td><%= item.taluka_name %></td>
                             <td><%= item.district_id %></td>
                             <% if(user_type === 'ADMIN' ) { %>
                             <td>
                                 <a href="#editEmployeeModal" class="edit" data-toggle="modal"
-                                    id="<%= item.taluka_id%>"><i class="material-icons" data-toggle="tooltip"
+                                    id="<%= item.village_id%>"><i class="material-icons" data-toggle="tooltip"
                                         title="Edit">&#xE254;</i></a>
                                 <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
-                                    id="<%= item.taluka_id%>"><i class="material-icons" data-toggle="tooltip"
+                                    id="<%= item.village_id%>"><i class="material-icons" data-toggle="tooltip"
                                         title="Delete">&#xE872;</i></a>
                             </td>
                             <% } %>
@@ -144,7 +148,7 @@
                         <b><%= totalentries %></b> entries
                     </div>
                     <% } %>
-                    <form action="/taluka" id="paginationform" method="GET">
+                    <form action="/village" id="paginationform" method="GET">
                         <ul class="pagination">
                             <li class="page-item">
                                 <span class="a page-link">
@@ -193,9 +197,9 @@
     <div id="searchEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/taluka/search" class="form-horizontal" method="GET">
+                <form action="/village/search" class="form-horizontal" method="GET">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Search Taluka</u></b></h3>
+                        <h3 class="modal-title"><b><u>Search Village</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
@@ -206,20 +210,20 @@
                             <h4><b><i>Search For :</i></b></h4>
                             <div>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="taluka_id" name="taluka_id" value="taluka_id" checked>
-                                    <label for="taluka_id">Taluka ID</label>
+                                    <input type="checkbox" id="village_id" name="village_id" value="village_id" checked>
+                                    <label for="village_id">Village ID</label>
                                 </span>
                             </div>
                             <div>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="taluka_name" name="taluka_name" value="taluka_name">
-                                    <label for="taluka_name"> Taluka Name </label>
+                                    <input type="checkbox" id="village_name" name="village_name" value="village_name">
+                                    <label for="village_name"> Village Name </label>
                                 </span>
                             </div>
                             <div>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="district_id" name="district_id" value="district_id">
-                                    <label for="district_id"> District ID </label>
+                                    <input type="checkbox" id="taluka_id" name="taluka_id" value="taluka_id">
+                                    <label for="taluka_id"> Taluka ID </label>
                                 </span>
                             </div>
                         </div>
@@ -236,40 +240,42 @@
     <div id="addEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/taluka" class="form-horizontal" method="POST">
+                <form action="/village" class="form-horizontal" method="POST">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Add Taluka</u></b></h3>
+                        <h3 class="modal-title"><b><u>Add Village</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label><i>Taluka ID</i></label>
-                            <input type="text" class="form-control" name="taluka_id" maxlength="10"
+                            <label><i>Village ID</i></label>
+                            <input type="text" class="form-control" name="village_id" maxlength="10"
                                 placeholder="Enter Taluka ID" required>
                         </div>
                         <div class="form-group">
-                            <label><i>Taluka Name</i></label>
-                            <input type="text" class="form-control" name="taluka_name" placeholder="Enter Taluka Name"
+                            <label><i>Village Name</i></label>
+                            <input type="text" class="form-control" name="village_name" placeholder="Enter Taluka Name"
                                 required>
                         </div>
                         <div class="form-group">
-                            <label><i>District ID</i></label>
-                            <select class="form-control selectpicker" id="select-district-add" data-live-search="true"
-                                name="district_id" required>
-                                <% for(var dist of district) { %>
-                                <option data-tokens="<%= dist.district_name %> <%= dist.district_id %>"
-                                    value="<%= dist.district_id %>" data-val="<%= dist.district_name%>">
-                                    <%= dist.district_id %></option>
+                            <label><i>Taluka ID</i></label>
+                            <select class="form-control selectpicker" id="select-village-add" data-live-search="true"
+                                name="taluka_id" required>
+                                <% for(var t of taluka) { %>
+                                <option data-tokens="<%= t.taluka_name %> <%= t.taluka_id %>" value="<%= t.taluka_id %>" data-val-name="<%= t.taluka_name %>" data-val-id="<%= t.district_id %>">
+                                <%= t.taluka_id %></option>
                                 <% } %>
                             </select>
                         </div>
+                        <% if(taluka.length > 0) { %>
                         <div class="form-group">
-                            <label><i>District Name</i></label>
-                            <% if(district.length > 0) { %>
-                            <input type="text" id="dist-name-add" class="form-control" name="taluka_name" disabled
-                                value="<%= district[0].district_name %>">
-                            <% } %>
+                            <label><i>Taluka Name</i></label>
+                            <input type="text" class="form-control" name="taluka_name" required disabled value="<%= taluka[0].taluka_name %>">
                         </div>
+                        <div class="form-group">
+                            <label><i>District ID</i></label>
+                            <input type="text" class="form-control" name="district_id" required disabled value="<%= taluka[0].district_id %>">
+                        </div>
+                        <% } %>
                     </div>
                     <div class="modal-footer">
                         <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
@@ -284,40 +290,42 @@
     <div id="editEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/taluka/edit" method="POST">
+                <form action="/village/edit" class="form-horizontal" method="POST">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Edit Taluka</u></b></h3>
+                        <h3 class="modal-title"><b><u>Edit Village</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label><i>Taluka ID</i></label>
-                            <input type="text" class="form-control" name="taluka_id" maxlength="10"
-                                id="input-disabled" required readonly>
+                            <label><i>Village ID</i></label>
+                            <input type="text" class="form-control" name="village_id" maxlength="10"
+                                placeholder="Enter Taluka ID" required>
                         </div>
                         <div class="form-group">
-                            <label><i>Taluka Name</i></label>
-                            <input type="text" class="form-control" name="taluka_name" placeholder="Enter Taluka Name"
+                            <label><i>Village Name</i></label>
+                            <input type="text" class="form-control" name="village_name" placeholder="Enter Taluka Name"
                                 required>
                         </div>
                         <div class="form-group">
-                            <label><i>District ID</i></label>
-                            <select class="form-control selectpicker" id="select-district-edit" data-live-search="true"
-                                name="district_id" required>
-                                <% for(var dist of district) { %>
-                                <option data-tokens="<%= dist.district_name %> <%= dist.district_id %>"
-                                    value="<%= dist.district_id %>" data-val="<%= dist.district_name%>">
-                                    <%= dist.district_id %></option>
+                            <label><i>Taluka ID</i></label>
+                            <select class="form-control selectpicker" id="select-village-edit" data-live-search="true"
+                                name="taluka_id" required>
+                                <% for(var t of taluka) { %>
+                                <option data-tokens="<%= t.taluka_name %> <%= t.taluka_id %>" value="<%= t.taluka_id %>" data-val-name="<%= t.taluka_name %>" data-val-id="<%= t.district_id %>">
+                                <%= t.taluka_id %></option>
                                 <% } %>
                             </select>
                         </div>
+                        <% if(taluka.length > 0) { %>
                         <div class="form-group">
-                            <label><i>District Name</i></label>
-                            <% if(district.length > 0) { %>
-                            <input type="text" id="dist-name-edit" class="form-control" name="taluka_name" disabled
-                                value="<%= district[0].district_name %>">
-                            <% } %>
+                            <label><i>Taluka Name</i></label>
+                            <input type="text" class="form-control" name="taluka_name" required disabled value="<%= taluka[0].taluka_name %>">
                         </div>
+                        <div class="form-group">
+                            <label><i>District ID</i></label>
+                            <input type="text" class="form-control" name="district_id" required disabled value="<%= taluka[0].district_id %>">
+                        </div>
+                        <% } %>
                     </div>
                     <div class="modal-footer">
                         <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
@@ -331,7 +339,7 @@
     <div id="deleteEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/taluka/delete" method="POST">
+                <form action="/village/delete" method="POST">
                     <div class="modal-header">
                         <h4 class="modal-title">Delete Account Head</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>

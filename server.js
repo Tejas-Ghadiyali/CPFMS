@@ -66,6 +66,7 @@ app.use('/accounthead', require('./controllers/masters/account_head'));
 app.use('/user', require('./controllers/masters/user'));
 app.use('/district', require('./controllers/masters/district'));
 app.use('/taluka', require('./controllers/masters/taluka'));
+app.use('/village', require('./controllers/masters/village'));
 
 app.listen(PORT, () => {
     console.log("Server is running on port : ", PORT);

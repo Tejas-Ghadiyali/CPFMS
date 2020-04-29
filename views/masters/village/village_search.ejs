@@ -28,7 +28,7 @@
             <div class="table-title">
                 <div class="row">
                     <div class="col-sm-5">
-                        <h2>Master - <b>District</b></h2>
+                        <h2>Master - <b>Village</b></h2>
                     </div>
                     <div class="col-sm-7">
                         <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal" id="addnew"><i
@@ -37,7 +37,7 @@
                         <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal" id="multipledelete"><i
                                 class="material-icons">&#xE15C;</i> <span><b>Delete</b></span></a>
                         <% } %>
-                        <a href="/district" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i
+                        <a href="/village" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i
                                 class="material-icons">&#xe888;</i> <span><b>Clear</b></span></a>
                         <b>Searched Text : </b> <input type="text" value="<%= searchtext %>"
                             style="width: 30%; text-align: center; color: black;" disabled>
@@ -56,8 +56,11 @@
                                 </select>
                             </span>
                         </th>
-                        <th>District ID</th>
-                        <th style="width: auto !important;">District Name</th>
+                        <th>Village ID</th>
+                        <th>Village Name</th>
+                        <th>Taluka ID</th>
+                        <th>Taluka Name</th>
+                        <th style="width: auto;">District ID</th>
                         <% if(user_type === 'ADMIN') { %>
                         <th>Actions</th>
                         <% } %>
@@ -87,29 +90,52 @@
     <div id="addEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/district" class="form-horizontal" method="POST">
+                <form action="/village" class="form-horizontal" method="POST">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Add District</u></b></h3>
+                        <h3 class="modal-title"><b><u>Add Village</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label><i>District ID</i></label>
-                            <input type="text" class="form-control" name="district_id" maxlength="10"
-                                placeholder="Enter District ID" required>
+                            <label><i>Village ID</i></label>
+                            <input type="text" class="form-control" name="village_id" maxlength="10"
+                                placeholder="Enter Taluka ID" required>
                         </div>
                         <div class="form-group">
-                            <label><i>District Name</i></label>
-                            <input type="text" class="form-control" name="district_name"
-                                placeholder="Enter District Name" required>
+                            <label><i>Village Name</i></label>
+                            <input type="text" class="form-control" name="village_name" placeholder="Enter Taluka Name"
+                                required>
                         </div>
+                        <div class="form-group">
+                            <label><i>Taluka ID</i></label>
+                            <select class="form-control selectpicker" id="select-village-add" data-live-search="true"
+                                name="taluka_id" required>
+                                <% for(var t of taluka) { %>
+                                <option data-tokens="<%= t.taluka_name %> <%= t.taluka_id %>" value="<%= t.taluka_id %>"
+                                    data-val-name="<%= t.taluka_name %>" data-val-id="<%= t.district_id %>">
+                                    <%= t.taluka_id %></option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <% if(taluka.length > 0) { %>
+                        <div class="form-group">
+                            <label><i>Taluka Name</i></label>
+                            <input type="text" class="form-control" name="taluka_name" required disabled
+                                value="<%= taluka[0].taluka_name %>">
+                        </div>
+                        <div class="form-group">
+                            <label><i>District ID</i></label>
+                            <input type="text" class="form-control" name="district_id" required disabled
+                                value="<%= taluka[0].district_id %>">
+                        </div>
+                        <% } %>
                     </div>
+                    <div class="modal-footer">
+                        <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+                        <input type="submit" class="btn btn-success" value="Add">
+                    </div>
+                </form>
             </div>
-            <div class="modal-footer">
-                <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
-                <input type="submit" class="btn btn-success" value="Add">
-            </div>
-            </form>
         </div>
     </div>
     <% if(user_type === 'ADMIN') { %>
@@ -117,22 +143,45 @@
     <div id="editEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/district/edit" method="POST">
+                <form action="/village/edit" class="form-horizontal" method="POST">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Edit District</u></b></h3>
+                        <h3 class="modal-title"><b><u>Edit Village</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label><i>District ID</i></label>
-                            <input type="text" class="form-control" name="district_id" maxlength="10"
-                                placeholder="Enter District ID" id="input-disabled" required readonly>
+                            <label><i>Village ID</i></label>
+                            <input type="text" class="form-control" name="village_id" maxlength="10"
+                                placeholder="Enter Taluka ID" required>
                         </div>
                         <div class="form-group">
-                            <label><i>District Name</i></label>
-                            <input type="text" class="form-control" name="district_name"
-                                placeholder="Enter District Name" value="" required>
+                            <label><i>Village Name</i></label>
+                            <input type="text" class="form-control" name="village_name" placeholder="Enter Taluka Name"
+                                required>
                         </div>
+                        <div class="form-group">
+                            <label><i>Taluka ID</i></label>
+                            <select class="form-control selectpicker" id="select-village-edit" data-live-search="true"
+                                name="taluka_id" required>
+                                <% for(var t of taluka) { %>
+                                <option data-tokens="<%= t.taluka_name %> <%= t.taluka_id %>" value="<%= t.taluka_id %>"
+                                    data-val-name="<%= t.taluka_name %>" data-val-id="<%= t.district_id %>">
+                                    <%= t.taluka_id %></option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <% if(taluka.length > 0) { %>
+                        <div class="form-group">
+                            <label><i>Taluka Name</i></label>
+                            <input type="text" class="form-control" name="taluka_name" required disabled
+                                value="<%= taluka[0].taluka_name %>">
+                        </div>
+                        <div class="form-group">
+                            <label><i>District ID</i></label>
+                            <input type="text" class="form-control" name="district_id" required disabled
+                                value="<%= taluka[0].district_id %>">
+                        </div>
+                        <% } %>
                     </div>
                     <div class="modal-footer">
                         <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
@@ -146,13 +195,13 @@
     <div id="deleteEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/district/delete" method="POST">
+                <form action="/village/delete" method="POST">
                     <div class="modal-header">
-                        <h4 class="modal-title">Delete District</h4>
+                        <h4 class="modal-title">Delete Account Head</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <p>Are you sure ...?<br>Do want to delete this Record ?</p>
+                        <p>Are you sure ...?<br>Do want to delete these Records ?</p>
                         <p class="text-warning"><small>This action cannot be undone.</small></p>
                     </div>
                     <div class="modal-footer">
@@ -199,38 +248,38 @@
                 pagenum = 1;
                 if (totalentries !== 0) {
                     inhtml = `
-                            <span id="pagination-pre">                 
-                                <span class="a a-disabled" id="first">
-                                    <i class="material-icons">&#xe045;</i>
-                                </span>
-                                <span class="a a-disabled" id="previous">
-                                    <i class="material-icons flip-to-left one-change">&#xe037;</i>
-                                </span>
+                        <span id="pagination-pre">                 
+                            <span class="a a-disabled" id="first">
+                                <i class="material-icons">&#xe045;</i>
                             </span>
-                            <input type="number" name="pagenum" id="pageno" min="1" max="`+ totalpages + `" style="text-align: center;" value="` + pagenum + `"> / ` + totalpages;
+                            <span class="a a-disabled" id="previous">
+                                <i class="material-icons flip-to-left one-change">&#xe037;</i>
+                            </span>
+                        </span>
+                        <input type="number" name="pagenum" id="pageno" min="1" max="`+ totalpages + `" style="text-align: center;" value="` + pagenum + `"> / ` + totalpages;
                     if (pagenum == totalpages) {
                         inhtml = inhtml + `
-                                <span id="pagination-next">
-                                    <span class="a a-disabled" id="next">
-                                        <i class="material-icons one-change">&#xe037;</i>
-                                    </span>
-                                    <span class="a a-disabled" id="last">
-                                        <i class="material-icons">&#xe044;</i>
-                                    </span>
+                            <span id="pagination-next">
+                                <span class="a a-disabled" id="next">
+                                    <i class="material-icons one-change">&#xe037;</i>
                                 </span>
-                                `;
+                                <span class="a a-disabled" id="last">
+                                    <i class="material-icons">&#xe044;</i>
+                                </span>
+                            </span>
+                            `;
                     }
                     else {
                         inhtml = inhtml + `
-                                <span id="pagination-next">
-                                    <span class="a" id="next" onclick="changepage(3)">
-                                        <i class="material-icons one-change">&#xe037;</i>
-                                    </span>
-                                    <span class="a" id="last" onclick="changepage(4)">
-                                        <i class="material-icons">&#xe044;</i>
-                                    </span>
+                            <span id="pagination-next">
+                                <span class="a" id="next" onclick="changepage(3)">
+                                    <i class="material-icons one-change">&#xe037;</i>
                                 </span>
-                                `;
+                                <span class="a" id="last" onclick="changepage(4)">
+                                    <i class="material-icons">&#xe044;</i>
+                                </span>
+                            </span>
+                            `;
                     }
                     $(".pagination .page-link").append(inhtml);
                 }
@@ -258,7 +307,7 @@
             // Add Modal Focus
             $(".table-title #addnew").click(function () {
                 setTimeout(function () {
-                    $("#addEmployeeModal input[name=district_id]").focus();
+                    $("#addEmployeeModal input[name=village_id]").focus();
                 }, 500);
             });
 
@@ -288,6 +337,22 @@
             //Cancel event of delete modal
             $("#deleteEmployeeModal").on("hidden.bs.modal", function () {
                 $("#deleteEmployeeModal form #hidden-input").empty();
+            });
+
+            // District Name Changer Add
+            $("#addEmployeeModal form select[name=taluka_id]").change(function () {
+                var taluka_name = $("option:selected", this).attr('data-val-name');
+                var district_id = $("option:selected", this).attr('data-val-id');
+                $("#addEmployeeModal form input[name=taluka_name]").val(taluka_name);
+                $("#addEmployeeModal form input[name=district_id]").val(district_id);
+            });
+
+            // District Name Changer Edit
+            $("#editEmployeeModal form select[name=taluka_id]").change(function () {
+                var taluka_name = $("option:selected", this).attr('data-val-name');
+                var district_id = $("option:selected", this).attr('data-val-id');
+                $("#editEmployeeModal form input[name=taluka_name]").val(taluka_name);
+                $("#editEmployeeModal form input[name=district_id]").val(district_id);
             });
 
         });
@@ -336,51 +401,51 @@
             if (totalentries !== 0) {
                 if (pagenum == 1) {
                     inhtml = `
-                        <span id="pagination-pre">                 
-                            <span class="a a-disabled" id="first">
-                                <i class="material-icons">&#xe045;</i>
+                            <span id="pagination-pre">                 
+                                <span class="a a-disabled" id="first">
+                                    <i class="material-icons">&#xe045;</i>
+                                </span>
+                                <span class="a a-disabled" id="previous">
+                                    <i class="material-icons flip-to-left one-change">&#xe037;</i>
+                                </span>
                             </span>
-                            <span class="a a-disabled" id="previous">
-                                <i class="material-icons flip-to-left one-change">&#xe037;</i>
-                            </span>
-                        </span>
-                        <input type="number" name="pagenum" id="pageno" min="1" max="`+ totalpages + `" style="text-align: center;" value="` + pagenum + `"> / ` + totalpages;
+                            <input type="number" name="pagenum" id="pageno" min="1" max="`+ totalpages + `" style="text-align: center;" value="` + pagenum + `"> / ` + totalpages;
                 }
                 else {
                     inhtml = `
-                        <span id="pagination-pre">                 
-                            <span class="a" id="first" onclick="changepage(1)">
-                                <i class="material-icons">&#xe045;</i>
+                            <span id="pagination-pre">                 
+                                <span class="a" id="first" onclick="changepage(1)">
+                                    <i class="material-icons">&#xe045;</i>
+                                </span>
+                                <span class="a" id="previous" onclick="changepage(2)">
+                                    <i class="material-icons flip-to-left one-change">&#xe037;</i>
+                                </span>
                             </span>
-                            <span class="a" id="previous" onclick="changepage(2)">
-                                <i class="material-icons flip-to-left one-change">&#xe037;</i>
-                            </span>
-                        </span>
-                        <input type="number" name="pagenum" id="pageno" min="1" max="`+ totalpages + `" style="text-align: center;" value="` + pagenum + `"> / ` + totalpages;
+                            <input type="number" name="pagenum" id="pageno" min="1" max="`+ totalpages + `" style="text-align: center;" value="` + pagenum + `"> / ` + totalpages;
                 }
                 if (pagenum == totalpages) {
                     inhtml = inhtml + `
-                        <span id="pagination-next">
-                            <span class="a a-disabled" id="next">
-                                <i class="material-icons one-change">&#xe037;</i>
+                            <span id="pagination-next">
+                                <span class="a a-disabled" id="next">
+                                    <i class="material-icons one-change">&#xe037;</i>
+                                </span>
+                                <span class="a a-disabled" id="last">
+                                    <i class="material-icons">&#xe044;</i>
+                                </span>
                             </span>
-                            <span class="a a-disabled" id="last">
-                                <i class="material-icons">&#xe044;</i>
-                            </span>
-                        </span>
-                        `;
+                            `;
                 }
                 else {
                     inhtml = inhtml + `
-                        <span id="pagination-next">
-                            <span class="a" id="next" onclick="changepage(3)">
-                                <i class="material-icons one-change">&#xe037;</i>
+                            <span id="pagination-next">
+                                <span class="a" id="next" onclick="changepage(3)">
+                                    <i class="material-icons one-change">&#xe037;</i>
+                                </span>
+                                <span class="a" id="last" onclick="changepage(4)">
+                                    <i class="material-icons">&#xe044;</i>
+                                </span>
                             </span>
-                            <span class="a" id="last" onclick="changepage(4)">
-                                <i class="material-icons">&#xe044;</i>
-                            </span>
-                        </span>
-                        `;
+                            `;
                 }
                 $(".pagination .page-link").append(inhtml);
             }
@@ -403,12 +468,14 @@
 
         // Edit Entry Filler
         function editentry(e) {
-            var district_id = e.id.trim();
-            var district_name = e.cells.item(2).textContent;
-            $("#editEmployeeModal input[name=district_id]").val(district_id);
-            $("#editEmployeeModal input[name=district_name]").val(district_name);
+            var village_id = e.id.trim();
+            var village_name = e.cells.item(2).textContent;
+            var taluka_id = e.cells.item(3).textContent;
+            $("#editEmployeeModal input[name=village_id]").val(village_id);
+            $("#editEmployeeModal input[name=village_name]").val(village_name);
+            $("#editEmployeeModal select[name=taluka_id]").val(taluka_id).change();
             setTimeout(function () {
-                $("#editEmployeeModal input[name=district_name]").focus();
+                $("#editEmployeeModal input[name=village_name]").focus();
             }, 500);
         }
 
@@ -424,28 +491,31 @@
             for (var i = starting; i < ending && i < totalentries; ++i) {
                 item = data[i];
                 inhtml = `
-                        <tr id="`+ item.district_id + `">
-                            <td>
-                                <% if(user_type === 'ADMIN') { %>
-                                <span class="custom-checkbox">
-                                    <input type="checkbox" id="`+ item.account_id + `">
-                                    <label for="`+ item.account_id + `"></label>
-                                </span>
-                                <% } %>
-                            </td>
-                            <td>`+ item.district_id + `</td>
-                            <td>`+ item.district_name + `</td>
+                    <tr id="`+ item.village_id + `">
+                        <td>
                             <% if(user_type === 'ADMIN') { %>
-                            <td>
-                                <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="`+ item.district_id + `" onclick="editentry(this.parentElement.parentElement)"><i
-                                        class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
-                                <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
-                                    id="`+ item.district_id + `" onclick="deleteentry(this.parentElement.parentElement)"><i class="material-icons" data-toggle="tooltip"
-                                        title="Delete">&#xE872;</i></a>
-                            </td>
+                            <span class="custom-checkbox">
+                                <input type="checkbox" id="`+ item.village_id + `">
+                                <label for="`+ item.village_id + `"></label>
+                            </span>
                             <% } %>
-                        </tr>
-                        `;
+                        </td>
+                        <td>`+ item.village_id + `</td>
+                        <td>`+ item.village_name + `</td>
+                        <td>`+ item.taluka_id + `</td>
+                        <td>`+ item.taluka_name + `</td>
+                        <td>`+ item.district_id + `</td>
+                        <% if(user_type === 'ADMIN') { %>
+                        <td>
+                            <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="`+ item.village_id + `" onclick="editentry(this.parentElement.parentElement)"><i
+                                    class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
+                            <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
+                                id="`+ item.village_id + `" onclick="deleteentry(this.parentElement.parentElement)"><i class="material-icons" data-toggle="tooltip"
+                                    title="Delete">&#xE872;</i></a>
+                        </td>
+                        <% } %>
+                    </tr>
+                    `;
                 $("table #search-rows").append(inhtml);
             }
         }

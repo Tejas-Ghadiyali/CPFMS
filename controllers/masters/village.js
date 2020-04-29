@@ -16,10 +16,10 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error while getting data from Taluka!');
-            res.render('masters/taluka/taluka', {
+            req.flash('danger', 'Error while getting data from Village!');
+            res.render('masters/village/village', {
                 data: [],
-                district: [],
+                taluka: [],
                 totalpages: 0,
                 pagenum: 0,
                 entries_per_page,
@@ -29,15 +29,15 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
             });
         }
         else {
-            var sql1 = 'SELECT COUNT(*) as ahcount FROM `Taluka`';
+            var sql1 = 'SELECT COUNT(*) as ahcount FROM `Village`';
             connection.query(sql1, (err, results) => {
                 if (err) {
                     connection.release();
-                    req.flash('danger', 'Error while getting count of Taluka!');
+                    req.flash('danger', 'Error while getting count of Village!');
                     console.log(err);
-                    res.render('masters/taluka/taluka', {
+                    res.render('masters/village/village', {
                         data: [],
-                        district: [],
+                        taluka: [],
                         totalpages: 0,
                         pagenum: 0,
                         entries_per_page,
@@ -55,18 +55,18 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
                     else if (pagenum <= 0) {
                         pagenum = 1;
                     }
-                    var sql2 = "SELECT * FROM Taluka INNER JOIN District ON Taluka.district_id = District.district_id LIMIT ? , ?;SELECT * FROM District";
+                    var sql2 = "SELECT * FROM Village INNER JOIN Taluka ON Village.taluka_id = Taluka.taluka_id LIMIT ? , ?;SELECT * FROM Taluka";
                     var offset = (pagenum - 1) * entries_per_page;
                     if (offset < 0)
                         offset = 0;
                     connection.query(sql2, [offset, entries_per_page], (err, results) => {
                         connection.release();
                         if (err) {
-                            req.flash('danger', 'Error while getting data from Master-Taluka!');
+                            req.flash('danger', 'Error while getting data from Master-Village!');
                             console.log(err);
-                            res.render('masters/taluka/taluka', {
+                            res.render('masters/village/village ', {
                                 data: [],
-                                district: [],
+                                taluka: [],
                                 totalpages: 0,
                                 pagenum: 0,
                                 entries_per_page,
@@ -76,9 +76,9 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            res.render('masters/taluka/taluka', {
+                            res.render('masters/village/village', {
                                 data: results[0],
-                                district: results[1],
+                                taluka: results[1],
                                 totalpages,
                                 pagenum,
                                 entries_per_page,
@@ -98,17 +98,17 @@ router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error in searching Master-Taluka!');
-            res.redirect('/taluka');
+            req.flash('danger', 'Error in searching Master-Village!');
+            res.redirect('/village');
         }
         else {
             var ob = req.query;
             var searcht = '%' + ob['searchtext'].trim() + '%';
-            var sql = "SELECT * FROM Taluka INNER JOIN District ON Taluka.district_id = District.district_id";
+            var sql = "SELECT * FROM Village INNER JOIN Taluka ON Village.taluka_id = Taluka.taluka_id";
             var flag = false;
             var arr = [];
-            if (ob.district_id) {
-                ob.district_id = 'Taluka.district_id';
+            if (ob.taluka_id) {
+                ob.taluka_id = 'Village.taluka_id';
             }
             for (key in ob) {
                 if (ob[key] !== "false" && key !== "searchtext") {
@@ -130,18 +130,18 @@ router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
                     }
                 }
             }
-            sql = sql + ";SELECT * FROM District"
+            sql = sql + ";SELECT * FROM Taluka";
             connection.query(sql, (err, results) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger', 'Error in searching Master-Taluka with given parameters!');
-                    res.redirect('/taluka');
+                    req.flash('danger', 'Error in searching Master-Village with given parameters!');
+                    res.redirect('/village');
                 }
                 else {
-                    res.render('masters/taluka/taluka_search', {
+                    res.render('masters/village/village_search', {
                         data: results[0],
-                        district: results[1],
+                        taluka: results[1],
                         searchtext: req.query.searchtext,
                         flash: res.locals.flash,
                         user_type: req.user.user_type
@@ -155,27 +155,27 @@ router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
 router.post('/', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
-            req.flash('danger', 'Error in Adding Master-Account Head!');
+            req.flash('danger', 'Error in Adding Master-Village!');
             console.log(err);
-            res.redirect('/taluka');
+            res.redirect('/village');
         }
         else {
-            var { taluka_id, taluka_name, district_id } = req.body;
-            taluka_id = taluka_id.trim();
-            var sql = 'INSERT INTO `Taluka` (`taluka_id`, `taluka_name`, `district_id`) VALUES (?, ?, ?)'
-            connection.query(sql, [taluka_id, taluka_name, district_id], (err, result) => {
+            var { village_id,village_name,taluka_id } = req.body;
+            village_id = village_id.trim();
+            var sql = 'INSERT INTO `Village` (`village_id`, `village_name`, `taluka_id`) VALUES (?, ?, ?)'
+            connection.query(sql, [village_id, village_name, taluka_id], (err, result) => {
                 connection.release();
                 if (err) {
                     console.log(err);
                     if (err.code == 'ER_DUP_ENTRY')
-                        req.flash('danger', 'Taluka with Taluka Id ' + taluka_id + ' already exists!');
+                        req.flash('danger', 'Village with Village Id ' + village_id + ' already exists!');
                     else
-                        req.flash('danger', 'Error while adding account in Master-Taluka!');
-                    res.redirect('/taluka');
+                        req.flash('danger', 'Error while adding account in Master-Village!');
+                    res.redirect('/village');
                 }
                 else {
-                    req.flash('success', 'Taluka with Taluka Id ' + taluka_id + ' added.');
-                    res.redirect('/taluka');
+                    req.flash('success', 'Village with Village Id ' + village_id + ' added.');
+                    res.redirect('/village');
                 }
             });
         }
@@ -187,22 +187,22 @@ router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
         if (err) {
             console.log(err);
             req.flash('danger', 'Error while editing record !');
-            res.redirect('/taluka');
+            res.redirect('/village');
         }
         else {
-            var { taluka_id, taluka_name, district_id } = req.body;
-            taluka_id = taluka_id.trim();
-            var sql = " UPDATE `Taluka` SET `taluka_name` = ?, `district_id` = ? WHERE `Taluka`.`taluka_id` = ? ";
-            connection.query(sql, [taluka_name, district_id , taluka_id], (err, results) => {
+            var { village_id, village_name, taluka_id } = req.body;
+            village_id = village_id.trim();
+            var sql = " UPDATE `Village` SET `village_name` = ?, `taluka_id` = ? WHERE `Village`.`village_id` = ? ";
+            connection.query(sql, [village_name, taluka_id , village_id], (err, results) => {
                 connection.release();
                 if (err) {
-                    req.flash('danger', 'Error while editing record with id ' + taluka_id);
+                    req.flash('danger', 'Error while editing record with id ' + village_id);
                     console.log(err);
-                    res.redirect('/taluka');
+                    res.redirect('/village');
                 }
                 else {
-                    req.flash('success', 'Successfully edited record with id ' + taluka_id);
-                    res.redirect('/taluka');
+                    req.flash('success', 'Successfully edited record with id ' + village_id);
+                    res.redirect('/village');
                 }
             });
         }
@@ -214,16 +214,16 @@ router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
         if (err) {
             console.log(err);
             req.flash('danger', 'Error while deleting the record!');
-            res.redirect('/taluka');
+            res.redirect('/village');
         }
         else {
-            var sql = "DELETE FROM `Taluka` WHERE taluka_id IN (?)";
+            var sql = "DELETE FROM `Village` WHERE village_id IN (?)";
             connection.query(sql, [req.body.ids], (err, results) => {
                 connection.release();
                 if (err) {
                     req.flash('danger', 'Error while deleting the record!');
                     console.log(err);
-                    res.redirect('/taluka');
+                    res.redirect('/village');
                 }
                 else {
                     if (results.affectedRows > 0) {
@@ -233,11 +233,11 @@ router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
                         else {
                             req.flash('success', 'Successfully deleted selected records!');
                         }
-                        res.redirect('/taluka');
+                        res.redirect('/village');
                     }
                     else {
                         req.flash('danger', 'Error while deleting the record!');
-                        res.redirect('/taluka');
+                        res.redirect('/village');
                     }
                 }
             });

@@ -3,7 +3,7 @@ const router = express.Router();
 const getConnection = require('../../connection');
 const middleware = require('../auth/auth_middleware');
 
-router.get('/', middleware.loggedin_as_superuser, (req, res) => {
+router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
         entries_per_page = 25;
@@ -16,10 +16,9 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error while getting data from Taluka!');
-            res.render('masters/taluka/taluka', {
+            req.flash('danger', 'Error while getting data from Master-District!');
+            res.render('masters/district/district', {
                 data: [],
-                district: [],
                 totalpages: 0,
                 pagenum: 0,
                 entries_per_page,
@@ -29,15 +28,14 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
             });
         }
         else {
-            var sql1 = 'SELECT COUNT(*) as ahcount FROM `Taluka`';
+            var sql1 = 'SELECT COUNT(*) as ahcount FROM `District`';
             connection.query(sql1, (err, results) => {
                 if (err) {
                     connection.release();
-                    req.flash('danger', 'Error while getting count of Taluka!');
+                    req.flash('danger', 'Error while getting count of District!');
                     console.log(err);
-                    res.render('masters/taluka/taluka', {
+                    res.render('masters/district/district', {
                         data: [],
-                        district: [],
                         totalpages: 0,
                         pagenum: 0,
                         entries_per_page,
@@ -55,18 +53,15 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
                     else if (pagenum <= 0) {
                         pagenum = 1;
                     }
-                    var sql2 = "SELECT * FROM Taluka INNER JOIN District ON Taluka.district_id = District.district_id LIMIT ? , ?;SELECT * FROM District";
+                    var sql2 = "SELECT * FROM `District` LIMIT ? , ?";
                     var offset = (pagenum - 1) * entries_per_page;
-                    if (offset < 0)
-                        offset = 0;
                     connection.query(sql2, [offset, entries_per_page], (err, results) => {
                         connection.release();
                         if (err) {
-                            req.flash('danger', 'Error while getting data from Master-Taluka!');
+                            req.flash('danger', 'Error while getting data from Master-District!');
                             console.log(err);
-                            res.render('masters/taluka/taluka', {
+                            res.render('masters/district/district', {
                                 data: [],
-                                district: [],
                                 totalpages: 0,
                                 pagenum: 0,
                                 entries_per_page,
@@ -76,9 +71,8 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            res.render('masters/taluka/taluka', {
-                                data: results[0],
-                                district: results[1],
+                            res.render('masters/district/district', {
+                                data: results,
                                 totalpages,
                                 pagenum,
                                 entries_per_page,
@@ -94,22 +88,19 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
     });
 });
 
-router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
+router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error in searching Master-Taluka!');
-            res.redirect('/taluka');
+            req.flash('danger','Error in searching Master-District!');
+            res.redirect('/district');
         }
         else {
             var ob = req.query;
             var searcht = '%' + ob['searchtext'].trim() + '%';
-            var sql = "SELECT * FROM Taluka INNER JOIN District ON Taluka.district_id = District.district_id";
+            var sql = "SELECT * FROM District";
             var flag = false;
-            var arr = [];
-            if (ob.district_id) {
-                ob.district_id = 'Taluka.district_id';
-            }
+            var arr = ['searchtext'];
             for (key in ob) {
                 if (ob[key] !== "false" && key !== "searchtext") {
                     if (arr.includes(key)) {
@@ -130,18 +121,16 @@ router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
                     }
                 }
             }
-            sql = sql + ";SELECT * FROM District"
             connection.query(sql, (err, results) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger', 'Error in searching Master-Taluka with given parameters!');
-                    res.redirect('/taluka');
+                    req.flash('danger','Error in searching Master-district with given parameters!');
+                    res.redirect('/district');
                 }
                 else {
-                    res.render('masters/taluka/taluka_search', {
-                        data: results[0],
-                        district: results[1],
+                    res.render('masters/district/district_search', {
+                        data: results,
                         searchtext: req.query.searchtext,
                         flash: res.locals.flash,
                         user_type: req.user.user_type
@@ -152,93 +141,91 @@ router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
     });
 });
 
-router.post('/', middleware.loggedin_as_superuser, (req, res) => {
+router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
     getConnection((err, connection) => {
         if (err) {
-            req.flash('danger', 'Error in Adding Master-Account Head!');
+            req.flash('danger','Error in Adding Master-District!');
             console.log(err);
-            res.redirect('/taluka');
+            res.redirect('/district');
         }
         else {
-            var { taluka_id, taluka_name, district_id } = req.body;
-            taluka_id = taluka_id.trim();
-            var sql = 'INSERT INTO `Taluka` (`taluka_id`, `taluka_name`, `district_id`) VALUES (?, ?, ?)'
-            connection.query(sql, [taluka_id, taluka_name, district_id], (err, result) => {
+            var { district_id, district_name } = req.body;
+            district_id = district_id.trim();
+            var sql = 'INSERT INTO `District` (`district_id`, `district_name`) VALUES (?, ?)'
+            connection.query(sql, [district_id, district_name], 
+                (err, result) => {
                 connection.release();
                 if (err) {
                     console.log(err);
                     if (err.code == 'ER_DUP_ENTRY')
-                        req.flash('danger', 'Taluka with Taluka Id ' + taluka_id + ' already exists!');
+                        req.flash('danger', 'Distrcit with District Id ' + district_id + ' already exists!');
                     else
-                        req.flash('danger', 'Error while adding account in Master-Taluka!');
-                    res.redirect('/taluka');
+                        req.flash('danger', 'Error while adding district in Master-Distrit!');
+                    res.redirect('/district');
                 }
                 else {
-                    req.flash('success', 'Taluka with Taluka Id ' + taluka_id + ' added.');
-                    res.redirect('/taluka');
+                    req.flash('success', 'District with District Id ' + district_id + ' Added.');
+                    res.redirect('/district');
                 }
             });
         }
     });
 });
 
-router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
+router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
             req.flash('danger', 'Error while editing record !');
-            res.redirect('/taluka');
+            res.redirect('/district');
         }
         else {
-            var { taluka_id, taluka_name, district_id } = req.body;
-            taluka_id = taluka_id.trim();
-            var sql = " UPDATE `Taluka` SET `taluka_name` = ?, `district_id` = ? WHERE `Taluka`.`taluka_id` = ? ";
-            connection.query(sql, [taluka_name, district_id , taluka_id], (err, results) => {
+            var { district_id, district_name } = req.body;
+            district_id = district_id.trim();
+            var sql = " UPDATE `District` SET `district_name` = ? WHERE `District`.`district_id` = ? ";
+            connection.query(sql, [district_name, district_id], (err, results) => {
                 connection.release();
                 if (err) {
-                    req.flash('danger', 'Error while editing record with id ' + taluka_id);
+                    req.flash('danger', 'Error while editing record with id ' + district_id);
                     console.log(err);
-                    res.redirect('/taluka');
+                    res.redirect('/district');
                 }
                 else {
-                    req.flash('success', 'Successfully edited record with id ' + taluka_id);
-                    res.redirect('/taluka');
+                    req.flash('success', 'Successfully edited record with id ' + district_id);
+                    res.redirect('/district');
                 }
             });
         }
     })
 });
 
-router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
+router.post('/delete', middleware.loggedin_as_admin ,(req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
             req.flash('danger', 'Error while deleting the record!');
-            res.redirect('/taluka');
+            res.redirect('/district');
         }
         else {
-            var sql = "DELETE FROM `Taluka` WHERE taluka_id IN (?)";
+            var sql = "DELETE FROM `District` WHERE district_id IN (?)";
             connection.query(sql, [req.body.ids], (err, results) => {
                 connection.release();
                 if (err) {
                     req.flash('danger', 'Error while deleting the record!');
                     console.log(err);
-                    res.redirect('/taluka');
+                    res.redirect('/district');
                 }
                 else {
-                    if (results.affectedRows > 0) {
-                        if (results.affectedRows === 1) {
-                            req.flash('success', 'Successfully deleted record with id ' + req.body.ids[0]);
-                        }
-                        else {
-                            req.flash('success', 'Successfully deleted selected records!');
-                        }
-                        res.redirect('/taluka');
+                    if (results.affectedRows === 0) {
+                        req.flash('danger', 'Error while deleting the record!');
+                    }
+                    else if (req.body.ids.length === 1) {
+                        req.flash('success', 'Successfully deleted record with id ' + req.body.ids[0]);
                     }
                     else {
-                        req.flash('danger', 'Error while deleting the record!');
-                        res.redirect('/taluka');
+                        req.flash('success', 'Successfully deleted selected records!');
                     }
+                    res.redirect('/district');
                 }
             });
         }
