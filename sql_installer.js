@@ -33,6 +33,7 @@ db.connect((err) => {
             require('./models/masters/Taluka')(db);
             require('./models/masters/Village')(db);
             require('./models/masters/Organization')(db);
+            require('./models/masters/Cow_Cast')(db);
             db.end();
         });
     });

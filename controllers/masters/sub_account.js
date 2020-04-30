@@ -3,7 +3,7 @@ const router = express.Router();
 const getConnection = require('../../connection');
 const middleware = require('../auth/auth_middleware');
 
-router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/', middleware.loggedin_as_superuser, (req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
         entries_per_page = 25;
@@ -16,8 +16,8 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error while getting data from Master-District!');
-            res.render('masters/district/district', {
+            req.flash('danger', 'Error while getting data from Master-Sub Account!');
+            res.render('masters/sub_account/sub_account', {
                 data: [],
                 totalpages: 0,
                 pagenum: 0,
@@ -28,13 +28,13 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
             });
         }
         else {
-            var sql1 = 'SELECT COUNT(*) as ahcount FROM `District`';
+            var sql1 = 'SELECT COUNT(*) as ahcount FROM `Sub_Account`';
             connection.query(sql1, (err, results) => {
                 if (err) {
                     connection.release();
-                    req.flash('danger', 'Error while getting count of District!');
+                    req.flash('danger', 'Error while getting count of Sub Account!');
                     console.log(err);
-                    res.render('masters/district/district', {
+                    res.render('masters/sub_account/sub_account', {
                         data: [],
                         totalpages: 0,
                         pagenum: 0,
@@ -53,14 +53,14 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
                     else if (pagenum <= 0) {
                         pagenum = 1;
                     }
-                    var sql2 = "SELECT * FROM `District` LIMIT ? , ?";
+                    var sql2 = "SELECT * FROM `Sub_Account` LIMIT ? , ?";
                     var offset = (pagenum - 1) * entries_per_page;
                     connection.query(sql2, [offset, entries_per_page], (err, results) => {
                         connection.release();
                         if (err) {
-                            req.flash('danger', 'Error while getting data from Master-District!');
+                            req.flash('danger', 'Error while getting data from Master-Sub Account!');
                             console.log(err);
-                            res.render('masters/district/district', {
+                            res.render('masters/sub_account/sub_account', {
                                 data: [],
                                 totalpages: 0,
                                 pagenum: 0,
@@ -71,7 +71,7 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
                             });
                         }
                         else {
-                            res.render('masters/district/district', {
+                            res.render('masters/sub_account/sub_account', {
                                 data: results,
                                 totalpages,
                                 pagenum,
@@ -88,19 +88,19 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger','Error in searching Master-District!');
-            res.redirect('/district');
+            req.flash('danger', 'Error in searching Master-Sub Account!');
+            res.redirect('/subaccount');
         }
         else {
             var ob = req.query;
             var searcht = '%' + ob['searchtext'].trim() + '%';
-            var sql = "SELECT * FROM District";
+            var sql = "SELECT * FROM Sub_Account";
             var flag = false;
-            var arr = ['searchtext'];
+            var arr = ['searchtext', 'account_type', 'is_society'];
             for (key in ob) {
                 if (ob[key] !== "false" && key !== "searchtext") {
                     if (arr.includes(key)) {
@@ -125,11 +125,11 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger','Error in searching Master-district with given parameters!');
-                    res.redirect('/district');
+                    req.flash('danger', 'Error in searching Master-Sub Account with given parameters!');
+                    res.redirect('/subaccount');
                 }
                 else {
-                    res.render('masters/district/district_search', {
+                    res.render('masters/sub_account/sub_account_search', {
                         data: results,
                         searchtext: req.query.searchtext,
                         flash: res.locals.flash,
@@ -141,91 +141,93 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.post('/', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
-            req.flash('danger','Error in Adding Master-District!');
+            req.flash('danger', 'Error in Adding Master-Sub Account!');
             console.log(err);
-            res.redirect('/district');
+            res.redirect('/subaccount');
         }
         else {
-            var { district_id, district_name } = req.body;
-            district_id = district_id.trim();
-            var sql = 'INSERT INTO `District` (`district_id`, `district_name`) VALUES (?, ?)'
-            connection.query(sql, [district_id, district_name], 
-                (err, result) => {
+            var { account_id, account_name, account_type, is_society, village_id } = req.body;
+            account_id = account_id.trim();
+            var sql = 'INSERT INTO `Sub_Account` (`account_id`, `account_name`, `account_type`, `is_society`, `village_id`) VALUES (?, ?, ?, ?, ?)'
+            connection.query(sql, [account_id, account_name, account_type, is_society, village_id], (err, result) => {
                 connection.release();
                 if (err) {
                     console.log(err);
                     if (err.code == 'ER_DUP_ENTRY')
-                        req.flash('danger', 'District with District Id ' + district_id + ' already exists!');
+                        req.flash('danger', 'Account with A/c Id ' + account_id + ' already exists!');
                     else
-                        req.flash('danger', 'Error while adding district in Master-District!');
-                    res.redirect('/district');
+                        req.flash('danger', 'Error while adding account in Master-Sub Account!');
+                    res.redirect('/subaccount');
                 }
                 else {
-                    req.flash('success', 'District with District Id ' + district_id + ' Added.');
-                    res.redirect('/district');
+                    req.flash('success', 'Account with A/c Id ' + account_id + ' added.');
+                    res.redirect('/subaccount');
                 }
             });
         }
     });
 });
 
-router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
             req.flash('danger', 'Error while editing record !');
-            res.redirect('/district');
+            res.redirect('/subaccount');
         }
         else {
-            var { district_id, district_name } = req.body;
-            district_id = district_id.trim();
-            var sql = " UPDATE `District` SET `district_name` = ? WHERE `District`.`district_id` = ? ";
-            connection.query(sql, [district_name, district_id], (err, results) => {
+            var { account_id, account_name, account_type, is_society, village_id } = req.body;
+            account_id = account_id.trim();
+            var sql = " UPDATE `Sub_Account` SET `account_name` = ?, `account_type` = ?, `is_society` = ?, `village_id` = ? WHERE `Sub_Account`.`account_id` = ? ";
+            connection.query(sql, [account_name, account_type, is_society, village_id, account_id], (err, results) => {
                 connection.release();
                 if (err) {
-                    req.flash('danger', 'Error while editing record with id ' + district_id);
+                    req.flash('danger', 'Error while editing record with id ' + account_id);
                     console.log(err);
-                    res.redirect('/district');
+                    res.redirect('/subaccount');
                 }
                 else {
-                    req.flash('success', 'Successfully edited record with id ' + district_id);
-                    res.redirect('/district');
+                    req.flash('success', 'Successfully edited record with id ' + account_id);
+                    res.redirect('/subaccount');
                 }
             });
         }
     })
 });
 
-router.post('/delete', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
             req.flash('danger', 'Error while deleting the record!');
-            res.redirect('/district');
+            res.redirect('/subaccount');
         }
         else {
-            var sql = "DELETE FROM `District` WHERE district_id IN (?)";
+            var sql = "DELETE FROM `Sub_Account` WHERE account_id IN (?)";
             connection.query(sql, [req.body.ids], (err, results) => {
                 connection.release();
                 if (err) {
                     req.flash('danger', 'Error while deleting the record!');
                     console.log(err);
-                    res.redirect('/district');
+                    res.redirect('/subaccount');
                 }
                 else {
-                    if (results.affectedRows === 0) {
-                        req.flash('danger', 'Error while deleting the record!');
-                    }
-                    else if (req.body.ids.length === 1) {
-                        req.flash('success', 'Successfully deleted record with id ' + req.body.ids[0]);
+                    if (results.affectedRows > 0) {
+                        if (results.affectedRows === 1) {
+                            req.flash('success', 'Successfully deleted record with id ' + req.body.ids[0]);
+                        }
+                        else {
+                            req.flash('success', 'Successfully deleted selected records!');
+                        }
+                        res.redirect('/subaccount');
                     }
                     else {
-                        req.flash('success', 'Successfully deleted selected records!');
+                        req.flash('danger', 'Error while deleting the record!');
+                        res.redirect('/subaccount');
                     }
-                    res.redirect('/district');
                 }
             });
         }

@@ -28,7 +28,7 @@
             <div class="table-title">
                 <div class="row">
                     <div class="col-sm-5">
-                        <h2>Master - <b>District</b></h2>
+                        <h2>Master - <b>Organization</b></h2>
                     </div>
                     <div class="col-sm-7">
                         <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal" id="addnew"><i
@@ -37,7 +37,7 @@
                         <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal" id="multipledelete"><i
                                 class="material-icons">&#xE15C;</i> <span><b>Delete</b></span></a>
                         <% } %>
-                        <a href="/district" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i
+                        <a href="/organization" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i
                                 class="material-icons">&#xe888;</i> <span><b>Clear</b></span></a>
                         <b>Searched Text : </b> <input type="text" value="<%= searchtext %>"
                             style="width: 30%; text-align: center; color: black;" disabled>
@@ -56,8 +56,8 @@
                                 </select>
                             </span>
                         </th>
-                        <th>District ID</th>
-                        <th style="width: auto !important;">District Name</th>
+                        <th>Organization ID</th>
+                        <th style="width: auto !important;">Organization Name</th>
                         <% if(user_type === 'ADMIN') { %>
                         <th>Actions</th>
                         <% } %>
@@ -87,21 +87,21 @@
     <div id="addEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/district" class="form-horizontal" method="POST">
+                <form action="/organization" class="form-horizontal" method="POST">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Add District</u></b></h3>
+                        <h3 class="modal-title"><b><u>Add Organization</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label><i>District ID</i></label>
-                            <input type="text" class="form-control" name="district_id" maxlength="10"
-                                placeholder="Enter District ID" required>
+                            <label><i>Organization ID</i></label>
+                            <input type="text" class="form-control" name="organization_id" maxlength="10"
+                                placeholder="Enter Organization ID" required>
                         </div>
                         <div class="form-group">
-                            <label><i>District Name</i></label>
-                            <input type="text" class="form-control" name="district_name"
-                                placeholder="Enter District Name" required>
+                            <label><i>Organization Name</i></label>
+                            <input type="text" class="form-control" name="organization_name"
+                                placeholder="Enter Organization Name" required>
                         </div>
                     </div>
             </div>
@@ -117,21 +117,21 @@
     <div id="editEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/district/edit" method="POST">
+                <form action="/organization/edit" method="POST">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Edit District</u></b></h3>
+                        <h3 class="modal-title"><b><u>Edit Organization</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label><i>District ID</i></label>
-                            <input type="text" class="form-control" name="district_id" maxlength="10"
-                                placeholder="Enter District ID" id="input-disabled" required readonly>
+                            <label><i>Organization ID</i></label>
+                            <input type="text" class="form-control" name="organization_id" maxlength="10"
+                                placeholder="Enter Organization ID" id="input-disabled" required readonly>
                         </div>
                         <div class="form-group">
-                            <label><i>District Name</i></label>
-                            <input type="text" class="form-control" name="district_name"
-                                placeholder="Enter District Name" value="" required>
+                            <label><i>Organization Name</i></label>
+                            <input type="text" class="form-control" name="organization_name"
+                                placeholder="Enter Organization Name" value="" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -146,9 +146,9 @@
     <div id="deleteEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/district/delete" method="POST">
+                <form action="/organization/delete" method="POST">
                     <div class="modal-header">
-                        <h4 class="modal-title">Delete District</h4>
+                        <h4 class="modal-title">Delete Organization</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
@@ -258,7 +258,7 @@
             // Add Modal Focus
             $(".table-title #addnew").click(function () {
                 setTimeout(function () {
-                    $("#addEmployeeModal input[name=district_id]").focus();
+                    $("#addEmployeeModal input[name=organization_id]").focus();
                 }, 500);
             });
 
@@ -403,12 +403,12 @@
 
         // Edit Entry Filler
         function editentry(e) {
-            var district_id = e.id.trim();
-            var district_name = e.cells.item(2).textContent;
-            $("#editEmployeeModal input[name=district_id]").val(district_id);
-            $("#editEmployeeModal input[name=district_name]").val(district_name);
+            var organization_id = e.id.trim();
+            var organization_name = e.cells.item(2).textContent;
+            $("#editEmployeeModal input[name=organization_id]").val(organization_id);
+            $("#editEmployeeModal input[name=organization_name]").val(organization_name);
             setTimeout(function () {
-                $("#editEmployeeModal input[name=district_name]").focus();
+                $("#editEmployeeModal input[name=organization_name]").focus();
             }, 500);
         }
 
@@ -424,23 +424,23 @@
             for (var i = starting; i < ending && i < totalentries; ++i) {
                 item = data[i];
                 inhtml = `
-                        <tr id="`+ item.district_id + `">
+                        <tr id="`+ item.organization_id + `">
                             <td>
                                 <% if(user_type === 'ADMIN') { %>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="`+ item.district_id + `">
-                                    <label for="`+ item.district_id + `"></label>
+                                    <input type="checkbox" id="`+ item.organization_id + `">
+                                    <label for="`+ item.organization_id + `"></label>
                                 </span>
                                 <% } %>
                             </td>
-                            <td>`+ item.district_id + `</td>
-                            <td>`+ item.district_name + `</td>
+                            <td>`+ item.organization_id + `</td>
+                            <td>`+ item.organization_name + `</td>
                             <% if(user_type === 'ADMIN') { %>
                             <td>
-                                <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="`+ item.district_id + `" onclick="editentry(this.parentElement.parentElement)"><i
+                                <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="`+ item.organization_id + `" onclick="editentry(this.parentElement.parentElement)"><i
                                         class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
                                 <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
-                                    id="`+ item.district_id + `" onclick="deleteentry(this.parentElement.parentElement)"><i class="material-icons" data-toggle="tooltip"
+                                    id="`+ item.organization_id + `" onclick="deleteentry(this.parentElement.parentElement)"><i class="material-icons" data-toggle="tooltip"
                                         title="Delete">&#xE872;</i></a>
                             </td>
                             <% } %>
