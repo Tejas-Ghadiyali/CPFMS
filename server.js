@@ -69,6 +69,7 @@ app.use('/taluka', require('./controllers/masters/taluka'));
 app.use('/village', require('./controllers/masters/village'));
 app.use('/organization', require('./controllers/masters/organization'));
 app.use('/cowcast', require('./controllers/masters/cow_cast'));
+app.use('/subaccount', require('./controllers/masters/sub_account'));
 
 app.listen(PORT, () => {
     console.log("Server is running on port : ", PORT);
