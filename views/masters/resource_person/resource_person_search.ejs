@@ -28,7 +28,7 @@
             <div class="table-title">
                 <div class="row">
                     <div class="col-sm-5">
-                        <h2>Master - <b>Sub Account</b></h2>
+                        <h2>Master - <b>Resource Person</b></h2>
                     </div>
                     <div class="col-sm-7">
                         <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal" id="addnew"><i
@@ -37,7 +37,7 @@
                         <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal" id="multipledelete"><i
                                 class="material-icons">&#xE15C;</i> <span><b>Delete</b></span></a>
                         <% } %>
-                        <a href="/subaccount" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i
+                        <a href="/resourceperson" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i
                                 class="material-icons">&#xe888;</i> <span><b>Clear</b></span></a>
                         <b>Searched Text : </b> <input type="text" value="<%= searchtext %>"
                             style="width: 30%; text-align: center; color: black;" disabled>
@@ -56,10 +56,12 @@
                                 </select>
                             </span>
                         </th>
-                        <th>Sub A/c ID</th>
-                        <th>Sub Account Name</th>
-                        <th style="width: auto;">Sub Account Address</th>
-                        <th style="width: auto;">Sub Account Remark</th>
+                        <th>R.P.ID</th>
+                        <th>Resource Person Name</th>
+                        <th>Address</th>
+                        <th>Contact</th>
+                        <th>Village</th>
+                        <th>Remark</th>
                         <% if(user_type === 'ADMIN') { %>
                         <th>Actions</th>
                         <% } %>
@@ -89,31 +91,55 @@
     <div id="addEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/subaccount" class="form-horizontal" method="POST">
+                <form action="/resourceperson" class="form-horizontal" method="POST">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Add Sub Account</u></b></h3>
+                        <h3 class="modal-title"><b><u>Add Resource Person</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label><i>Sub Account ID</i></label>
-                            <input type="text" class="form-control" name="sub_account_id" maxlength="10"
-                                placeholder="Enter Sub Account ID" required>
+                            <label><i>Reource Person ID</i></label>
+                            <input type="text" class="form-control" name="resource_person_id" maxlength="10"
+                                placeholder="Enter Resource Person ID" required>
                         </div>
                         <div class="form-group">
-                            <label><i>Sub Account Name</i></label>
-                            <input type="text" class="form-control" name="sub_account_name"
-                                placeholder="Enter Sub Account Name" required>
+                            <label><i>Resource Person Name</i></label>
+                            <input type="text" class="form-control" name="resource_person_name"
+                                placeholder="Enter Resource Person Name" required>
                         </div>
                         <div class="form-group">
-                            <label><i>Sub Account Address</i></label>
-                            <textarea name="sub_account_address" cols="30" rows="4" class="form-control"
-                             maxlength="100" placeholder="Enter Sub Account Address"></textarea>
+                            <label><i>Address</i></label>
+                            <textarea name="resource_person_address" cols="30" rows="3" class="form-control"
+                                maxlength="100" placeholder="Enter Resource Person Address"></textarea>
                         </div>
                         <div class="form-group">
-                            <label><i>Sub Account Remark</i></label>
-                            <textarea name="sub_account_remark" cols="30" rows="4" class="form-control"
-                                 maxlength="200" placeholder="Enter Remark"></textarea>
+                            <label><i>Resource Person Contact</i></label>
+                            <input type="text" class="form-control" name="resource_person_contact"
+                                placeholder="Enter Resource Person Contact">
+                        </div>
+                        <div class="form-group">
+                            <label><i>Village</i></label>
+                            <select class="form-control selectpicker" id="select-village_id-add" data-live-search="true"
+                                name="resource_person_village_id">
+                                <% for(v of village) { %>
+                                <option data-tokens="<%= v.village_id %> <%= v.vilage_name %>"
+                                    data-name="<%= v.village_name %>" vlaue="<%= v.village_id %>">
+                                    <%= v.village_id %>
+                                </option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <% if(village.length > 0) { %>
+                        <div class="form-group">
+                            <label><i>Village Name</i></label>
+                            <input class="form-control" type="text" name="village_name"
+                                value="<%= village[0].village_name %>" disabled>
+                        </div>
+                        <% } %>
+                        <div class="form-group">
+                            <label><i>Remark</i></label>
+                            <textarea name="resource_person_remark" cols="30" rows="4" class="form-control"
+                                maxlength="200" placeholder="Enter Remark"></textarea>
                         </div>
                     </div>
             </div>
@@ -129,30 +155,55 @@
     <div id="editEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/subaccount/edit" method="POST">
+                <form action="/resourceperson/edit" method="POST">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Edit Sub Account</u></b></h3>
+                        <h3 class="modal-title">Edit Resource Person</h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label><i>Sub Account ID</i></label>
-                            <input type="text" class="form-control" name="sub_account_id" maxlength="10"
-                                placeholder="Account Head ID" id="input-disabled" required readonly>
+                            <label><i>Resource Person ID</i></label>
+                            <input type="text" class="form-control" name="resource_person_id" maxlength="10"
+                                placeholder="Resource Person ID" id="input-disabled" required readonly>
                         </div>
                         <div class="form-group">
-                            <label><i>Sub Account Name</i></label>
-                            <input type="text" class="form-control" name="sub_account_name"
-                                placeholder="Enter Sub Account Name" value="" required>
+                            <label><i>Resource Person Name</i></label>
+                            <input type="text" class="form-control" name="resource_person_name"
+                                placeholder="Enter Resource Person Name" value="" required>
                         </div>
                         <div class="form-group">
-                            <label><i>Sub Account Address</i></label>
-                            <textarea name="sub_account_address" cols="30" rows="4" class="form-control" 
-                                maxlength="100" placeholder="Enter Sub Account Address"></textarea>
+                            <label><i>Address</i></label>
+                            <textarea name="resource_person_address" cols="30" rows="3" class="form-control"
+                                maxlength="100" placeholder="Enter Resource Person Address"></textarea>
                         </div>
                         <div class="form-group">
-                            <label><i>Sub Account Remark</i></label>
-                            <textarea name="sub_account_remark" cols="30" rows="4" class="form-control" 
+                            <label><i>Resource Person Contact</i></label>
+                            <input type="text" class="form-control" name="resource_person_contact"
+                                placeholder="Enter Resource Person Contact">
+                        </div>
+                        <div class="form-group">
+                            <label><i>Village</i></label>
+                            <select class="form-control selectpicker" id="select-village_id-edit" data-live-search="true"
+                                name="resource_person_village_id">
+                                <% for(v of village) { %>
+                                    <option 
+                                    data-tokens = "<%= v.village_id %> <%= v.vilage_name %>"
+                                    data-name = "<%= v.village_name %>" 
+                                    vlaue = "<%= v.village_id %>">
+                                    <%= v.village_id %>
+                                    </option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <% if(village.length > 0) { %>
+                        <div class="form-group">
+                            <label><i>Village Name</i></label>
+                            <input class="form-control" type="text" name="village_name" value="<%= village[0].village_name %>" disabled>
+                        </div>
+                        <% } %>
+                        <div class="form-group">
+                            <label><i>Remark</i></label>
+                            <textarea name="resource_person_remark" cols="30" rows="3" class="form-control"
                                 maxlength="200" placeholder="Enter Remark"></textarea>
                         </div>
                     </div>
@@ -168,9 +219,9 @@
     <div id="deleteEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/subaccount/delete" method="POST">
+                <form action="/resourceperson/delete" method="POST">
                     <div class="modal-header">
-                        <h4 class="modal-title">Delete Sub Account</h4>
+                        <h4 class="modal-title">Delete Resource Person</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
@@ -203,6 +254,18 @@
 
             // Empty Entry
             $("#deleteEmployeeModal form #hidden-input").empty();
+
+            // Add Modal Village Name Changer
+            $("#addEmployeeModal form select[name=resource_person_village_id]").change(function () {
+                var v_name = $("option:selected", this).attr("data-name");
+                $("#addEmployeeModal form input[name=village_name]").val(v_name);
+            });
+
+            // Edit Modal Village Name Changer
+            $("#editEmployeeModal form select[name=resource_person_village_id]").change(function () {
+                var v_name = $("option:selected", this).attr("data-name");
+                $("#editEmployeeModal form input[name=village_name]").val(v_name);
+            });
 
             fillrow(0, entries_per_page);
 
@@ -280,7 +343,7 @@
             // Add Modal Focus
             $(".table-title #addnew").click(function () {
                 setTimeout(function () {
-                    $("#addEmployeeModal input[name=sub_account_id]").focus();
+                    $("#addEmployeeModal input[name=resource_person_id]").focus();
                 }, 500);
             });
 
@@ -425,14 +488,21 @@
 
         // Edit Entry Filler
         function editentry(e) {
-            var sub_account_id = e.id.trim();
-            var sub_account_name = e.cells.item(2).textContent;
-            var sub_account_address = e.cells.item(3).textContent;
-            var sub_account_remark = e.cells.item(4).textContent;
-            $("#editEmployeeModal input[name=sub_account_id]").val(sub_account_id);
-            $("#editEmployeeModal input[name=sub_account_name]").val(sub_account_name);
-            $("#editEmployeeModal textarea[name=sub_account_address]").val(sub_account_address);
-            $("#editEmployeeModal textarea[name=sub_account_remark]").val(sub_account_remark);
+            var resource_person_id = e.id.trim();
+            var resource_person_name = e.cells.item(2).textContent;
+            var resource_person_address = e.cells.item(3).textContent;
+            var resource_person_contact = e.cells.item(4).textContent;
+            var resource_person_village_id = e.cells.item(5).textContent;
+            var resource_person_remark = e.cells.item(6).textContent;
+            $("#editEmployeeModal input[name=resource_person_id]").val(resource_person_id);
+            $("#editEmployeeModal input[name=resource_person_name]").val(resource_person_name);
+            $("#editEmployeeModal textarea[name=resource_person_address]").val(resource_person_address);
+            $("#editEmployeeModal input[name=resource_person_contact]").val(resource_person_contact);
+            $("#editEmployeeModal select[name=resource_person_village_id]").val(resource_person_village_id).change();
+            $("#editEmployeeModal textarea[name=resource_person_remark]").val(resource_person_remark);
+            setTimeout(function(){
+                $("#editEmployeeModal input[name=resource_person_name]").focus();
+            },500);
         }
 
         // Delete Entry Filler
@@ -447,25 +517,27 @@
             for (var i = starting; i < ending && i < totalentries; ++i) {
                 item = data[i];
                 inhtml = `
-                    <tr id="`+ item.sub_account_id + `">
+                    <tr id="`+ item.resource_person_id + `">
                         <td>
                             <% if(user_type === 'ADMIN') { %>
                             <span class="custom-checkbox">
-                                <input type="checkbox" id="`+ item.sub_account_id + `">
-                                <label for="`+ item.sub_account_id + `"></label>
+                                <input type="checkbox" id="`+ item.resource_person_id + `">
+                                <label for="`+ item.resource_person_id + `"></label>
                             </span>
                             <% } %>
                         </td>
-                        <td>`+ item.sub_account_id + `</td>
-                        <td>`+ item.sub_account_name + `</td>
-                        <td style="white-space: pre-wrap;">`+ item.sub_account_address + `</td>
-                        <td style="white-space: pre-wrap;">`+ item.sub_account_remark + `</td>
+                        <td>`+ item.resource_person_id + `</td>
+                        <td>`+ item.resource_person_name + `</td>
+                        <td style="white-space : pre-wrap;">`+ item.resource_person_address + `</td>
+                        <td>`+ item.resource_person_contact + `</td>
+                        <td>`+ item.resource_person_village_id + `</td>
+                        <td style="white-space : pre-wrap;">`+ item.resource_person_remark + `</td>
                         <% if(user_type === 'ADMIN') { %>
                         <td>
-                            <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="`+ item.sub_account_id + `" onclick="editentry(this.parentElement.parentElement)"><i
+                            <a href="#editEmployeeModal" class="edit" data-toggle="modal" id="`+ item.resource_person_id + `" onclick="editentry(this.parentElement.parentElement)"><i
                                     class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
                             <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
-                                id="`+ item.sub_account_id + `" onclick="deleteentry(this.parentElement.parentElement)"><i class="material-icons" data-toggle="tooltip"
+                                id="`+ item.resource_person_id + `" onclick="deleteentry(this.parentElement.parentElement)"><i class="material-icons" data-toggle="tooltip"
                                     title="Delete">&#xE872;</i></a>
                         </td>
                         <% } %>
