@@ -1,0 +1,58 @@
+#viewEmployeeModal .modal-dialog {
+    max-width: none !important;
+    width: 90% !important;
+    margin-top: 0px;
+}
+
+#viewEmployeeModal .modal-content {
+    width: 100% !important;
+}
+
+#viewEmployeeModal .modal-header {
+    padding: 10px 30px !important;
+}
+
+#viewEmployeeModal .modal-body {
+    padding-top: 0px !important;
+}
+
+.row .ele {
+    border: double;
+}
+
+.multi-lines {
+    white-space: pre-wrap;
+}
+
+.vtop {
+    vertical-align: top !important;
+}
+
+#viewEmployeeModal .modal-body table td {
+    margin: 0 !important;
+    padding: 0 5px 0 0 !important;
+}
+
+.label-text {
+    font-style: italic;
+    font-weight: bold;
+    width: 26%;
+    padding: 0px !important;
+}
+
+.label-text-down {
+    font-style: italic;
+    font-weight: bold;
+    width: 10%;
+    padding: 0px !important;
+}
+
+.disable-input {
+    background: lightgray;
+    cursor: not-allowed;
+}
+
+.heading-text {
+    text-align: center;
+    font-weight: bold;
+}

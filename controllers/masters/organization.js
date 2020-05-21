@@ -3,7 +3,7 @@ const router = express.Router();
 const getConnection = require('../../connection');
 const middleware = require('../auth/auth_middleware');
 
-router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/', middleware.loggedin_as_superuser, (req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
         entries_per_page = 25;
@@ -14,26 +14,18 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
     else
         pagenum = parseInt(req.query.pagenum);
     getConnection((err, connection) => {
-        if (err) {
-            console.log(err);
-            req.flash('danger', 'Error while getting data from Master-Organization!');
-            res.render('masters/organization/organization', {
-                data: [],
-                totalpages: 0,
-                pagenum: 0,
-                entries_per_page,
-                totalentries: 0,
-                flash: res.locals.flash,
-                user_type: req.user.user_type
-            });
-        }
-        else {
-            var sql1 = 'SELECT COUNT(*) as ahcount FROM `Organization`';
-            connection.query(sql1, (err, results) => {
+        connection.beginTransaction((err) => {
+            if (err) {
+                connection.release();
+                throw err;
+            }
+            else {
                 if (err) {
-                    connection.release();
-                    req.flash('danger', 'Error while getting count of Organization!');
+                    connection.rollback(() => {
+                        throw err;
+                    })
                     console.log(err);
+                    req.flash('danger', 'Error while getting data from Master-Organization!');
                     res.render('masters/organization/organization', {
                         data: [],
                         totalpages: 0,
@@ -45,20 +37,11 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
                     });
                 }
                 else {
-                    totalentries = results[0].ahcount;
-                    totalpages = Math.ceil(totalentries / entries_per_page);
-                    if (pagenum > totalpages) {
-                        pagenum = totalpages;
-                    }
-                    else if (pagenum <= 0) {
-                        pagenum = 1;
-                    }
-                    var sql2 = "SELECT * FROM `Organization` LIMIT ? , ?";
-                    var offset = (pagenum - 1) * entries_per_page;
-                    connection.query(sql2, [offset, entries_per_page], (err, results) => {
-                        connection.release();
+                    var sql1 = 'SELECT COUNT(*) as ahcount FROM `Organization`';
+                    connection.query(sql1, (err, results) => {
                         if (err) {
-                            req.flash('danger', 'Error while getting data from Master-Organization!');
+                            connection.release();
+                            req.flash('danger', 'Error while getting count of Organization!');
                             console.log(err);
                             res.render('masters/organization/organization', {
                                 data: [],
@@ -71,28 +54,57 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
                             });
                         }
                         else {
-                            res.render('masters/organization/organization', {
-                                data: results,
-                                totalpages,
-                                pagenum,
-                                entries_per_page,
-                                totalentries,
-                                flash: res.locals.flash,
-                                user_type: req.user.user_type
+                            totalentries = results[0].ahcount;
+                            totalpages = Math.ceil(totalentries / entries_per_page);
+                            if (pagenum > totalpages) {
+                                pagenum = totalpages;
+                            }
+                            else if (pagenum <= 0) {
+                                pagenum = 1;
+                            }
+                            var sql2 = "SELECT * FROM `Organization` LIMIT ? , ?";
+                            var offset = (pagenum - 1) * entries_per_page;
+                            connection.query(sql2, [offset, entries_per_page], (err, results) => {
+                                connection.release();
+                                if (err) {
+                                    req.flash('danger', 'Error while getting data from Master-Organization!');
+                                    console.log(err);
+                                    res.render('masters/organization/organization', {
+                                        data: [],
+                                        totalpages: 0,
+                                        pagenum: 0,
+                                        entries_per_page,
+                                        totalentries: 0,
+                                        flash: res.locals.flash,
+                                        user_type: req.user.user_type
+                                    });
+                                }
+                                else {
+                                    res.render('masters/organization/organization', {
+                                        data: results,
+                                        totalpages,
+                                        pagenum,
+                                        entries_per_page,
+                                        totalentries,
+                                        flash: res.locals.flash,
+                                        user_type: req.user.user_type
+                                    });
+                                }
                             });
                         }
                     });
                 }
-            });
-        }
+            }
+        });
+
     });
 });
 
-router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger','Error in searching Master-Organization!');
+            req.flash('danger', 'Error in searching Master-Organization!');
             res.redirect('/organization');
         }
         else {
@@ -125,7 +137,7 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger','Error in searching Master-organization with given parameters!');
+                    req.flash('danger', 'Error in searching Master-organization with given parameters!');
                     res.redirect('/organization');
                 }
                 else {
@@ -141,10 +153,10 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.post('/', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
-            req.flash('danger','Error in Adding Master-Organization!');
+            req.flash('danger', 'Error in Adding Master-Organization!');
             console.log(err);
             res.redirect('/organization');
         }
@@ -152,27 +164,27 @@ router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
             var { organization_id, organization_name } = req.body;
             organization_id = organization_id.trim();
             var sql = 'INSERT INTO `Organization` (`organization_id`, `organization_name`) VALUES (?, ?)'
-            connection.query(sql, [organization_id, organization_name], 
+            connection.query(sql, [organization_id, organization_name],
                 (err, result) => {
-                connection.release();
-                if (err) {
-                    console.log(err);
-                    if (err.code == 'ER_DUP_ENTRY')
-                        req.flash('danger', 'Organization with Organization Id ' + organization_id + ' already exists!');
-                    else
-                        req.flash('danger', 'Error while adding organization in Master-Organization!');
-                    res.redirect('/organization');
-                }
-                else {
-                    req.flash('success', 'Organization with Organization Id ' + organization_id + ' Added.');
-                    res.redirect('/organization');
-                }
-            });
+                    connection.release();
+                    if (err) {
+                        console.log(err);
+                        if (err.code == 'ER_DUP_ENTRY')
+                            req.flash('danger', 'Organization with Organization Id ' + organization_id + ' already exists!');
+                        else
+                            req.flash('danger', 'Error while adding organization in Master-Organization!');
+                        res.redirect('/organization');
+                    }
+                    else {
+                        req.flash('success', 'Organization with Organization Id ' + organization_id + ' Added.');
+                        res.redirect('/organization');
+                    }
+                });
         }
     });
 });
 
-router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -199,7 +211,7 @@ router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
     })
 });
 
-router.post('/delete', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);

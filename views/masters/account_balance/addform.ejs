@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>CPFMS</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="/css/master-index.css">
+    <link rel="stylesheet" href="/css/master/account_balance.css">
+    <script src="/js/masters/account_balance/addform.js"></script>
+    <style>
+        table tr td {
+            margin: 0 !important;
+            padding: 3px 5px 5px 0 !important;
+        }
+    </style>
+
+</head>
+
+<body>
+    <%- include('../../partials/navbar.ejs') %>
+
+    <main>
+        <div class="container" style="background-color: #DBFFFB; width: 98%">
+            <%- include('../../partials/err.ejs') %>
+            <h2 class="heading-text">Member Registration</h2>
+            <form class="form-horizontal" action="/accountbalance" method="POST">
+                <div class="row">
+                    <div class="col-md-6 ele">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td class="label-text">Member</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_sub_account_id">
+                                            <select class="form-control selectpicker" data-live-search="true"
+                                                data-size="5" name="sub_account_id" required>
+                                                <option selected disabled>--SELECT--</option>
+                                                <% for(item of sub_account){ %>
+                                                <option><%= item.sub_account_id %></option>
+                                                <% } %>
+                                            </select>
+                                        </td>
+                                        <td class="label-text" style="width: 15% !important;">Group</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_group_id">
+                                            <input type="text" name="group_id" style="width: 100%;" required>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Name</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="4" id="table_sub_account_name">
+                                            <input type="text" name="sub_account_name" style="width: 100%;" disabled class="input-disabled">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="vtop label-text">Address</td>
+                                        <td class="vtop"><b>:</b></td>
+                                        <td colspan="4" align="left" id="table_sub_account_address">
+                                            <textarea name="sub_account_address" cols="30" rows="4" disabled class="input-disabled">
+                                            </textarea>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Organization</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_organization_id">
+                                            <select class="form-control selectpicker" data-live-search="true"
+                                                data-size="5" name="organization_id">
+                                                <option selected disabled>--SELECT--</option>
+                                                <% for(item of organization){ %>
+                                                <option
+                                                    data-tokens="<%= item.organization_id %>;<%= item.organization_name %>">
+                                                    <%= item.organization_id %>
+                                                </option>
+                                                <% } %>
+                                            </select>
+                                        </td>
+                                        <td colspan="3" id="table_organization_name">
+                                            <input type="text" name="organization_name" disabled style="width: 100% !important;" class="input-disabled">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Resource Person</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_resource_person_id">
+                                            <select class="form-control selectpicker" data-live-search="true"
+                                                data-size="5" name="resource_person_id">
+                                                <option selected disabled>--SELECT--</option>
+                                                <% for(item of rp){ %>
+                                                <option
+                                                    data-tokens="<%= item.resource_person_id %>;<%= item.resource_person_name %>">
+                                                    <%= item.resource_person_id %></option>
+                                                <% } %>
+                                            </select>
+                                        </td>
+                                        <td colspan="3" id="table_resource_person_name">
+                                            <input type="text" name="resource_person_name" disabled style="width: 100% !important;" class="input-disabled">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6 ele">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td class="label-text">Society</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="2" id="table_account_id">
+                                            <select class="form-control selectpicker" data-live-search="true"
+                                                data-size="5" name="account_id" required>
+                                                <option selected disabled>--SELECT--</option>
+                                                <% for(item of account_head){ %>
+                                                <option><%= item.account_id %></option>
+                                                <% } %>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Name</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="2" id="table_account_name">
+                                            <input type="text" name="account_name" disabled class="input-disabled" style="width: 100%;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Village</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="2" id="table_village_name">
+                                            <input type="text" name="village_name" disabled class="input-disabled" style="width: 100%;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Taluka</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="2" id="table_taluka_name">
+                                            <input type="text" name="taluka_name" disabled class="input-disabled" style="width: 100%;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">District</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="2" id="table_district_name">
+                                            <input type="text" name="district_name" disabled class="input-disabled" style="width: 100%;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Issue Date</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="2" id="table_issue_date">
+                                            <input type="date" name="issue_date">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Cow Cast</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_cow_cast_id">
+                                            <select class="form-control selectpicker" data-live-search="true"
+                                                data-size="5" name="cow_cast_id" required>
+                                                <option selected disabled>--SELECT--</option>
+                                                <% for(item of cc){ %>
+                                                <option data-tokens="<%= item.cow_cast_id %>;<%= item.cow_cast_name %>"
+                                                    data-size="5"><%= item.cow_cast_id %></option>
+                                                <% } %>
+                                            </select>
+                                        </td>
+                                        <td id="table_cow_cast_name">
+                                            <input type="text" name="cow_cast_name" disabled class="input-disabled">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-md-6 ele">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td class="label-text">Op. Balance</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_op_balance">
+                                            <input type="number" name="op_balance" step="0.01" required
+                                                style="width: 150px; text-align: right;" value="0.00">
+                                        </td>
+                                        <td class="label-text" style="width: 15% !important;">Cr/Dr</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_op_crdr">
+                                            <select class="form-control selectpicker" data-live-search="true"
+                                                name="op_crdr" required>
+                                                <option>CR</option>
+                                                <option selected>DR</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="6"><br></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Cr. Amount</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="4" id="table_cr_ammount">
+                                            <input type="number" value="0.00" name="cr_ammount" class="input-disabled"
+                                                style="width: 150px; text-align: right;" readonly>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="6"><br></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Dr. Amount</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="4" id="table_dr_ammount">
+                                            <input type="number" value="0.00" name="dr_ammount" class="input-disabled"
+                                                style="width: 150px; text-align: right;" readonly>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="6"><br></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Cl. Balance</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_cl_balance">
+                                            <input type="number" value="0.00" name="cl_balance" class="input-disabled"
+                                                style="width: 150px; text-align: right;" readonly>
+                                        </td>
+                                        <td id="table_cl_crdr">
+                                            <select class="form-control selectpicker" data-live-search="true"
+                                                name="cl_crdr" required>
+                                                <option>CR</option>
+                                                <option selected>DR</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6 ele">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td class="label-text" style="width: 150px !important;">Birth Date</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_birth_date">
+                                            <input type="date" name="birth_date" style="width: 160px;">
+                                        </td>
+                                        <td class="label-text">Birth Weight</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_birth_wt">
+                                            <input type="number" step="0.00" name="birth_wt" style="width: 100px;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Member Join Date</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_join_date">
+                                            <input type="date" name="join_date" style="width: 160px;">
+                                        </td>
+                                        <td class="label-text">Join Weight</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_join_wt">
+                                            <input type="number" step="0.00" name="join_wt" style="width: 100px;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Heifer Date</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="4" id="table_heifer_date">
+                                            <input type="date" name="heifer_date" style="width: 160px;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Calwing Date</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_calwing_date">
+                                            <input type="date" name="calwing_date" style="width: 160px;">
+                                        </td>
+                                        <td class="label-text">Litre</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_calwing_ltr">
+                                            <input type="number" step="0.00" name="calwing_ltr" style="width: 100px;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Cancel Date</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="4" id="table_cancel_date">
+                                            <input type="date" name="cancel_date" style="width: 160px;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Death Date</td>
+                                        <td><b>:</b></td>
+                                        <td colspan="4" id="table_death_date">
+                                            <input type="date" name="death_date" style="width: 160px;">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <div class="row">
+                    <div class="col-md-12 ele">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td style="
+                                                width: 15%;
+                                                font-style: italic;
+                                                font-weight: bold;    
+                                                padding: 0px !important;">Insurance Date</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_insurance_date">
+                                            <input type="date" name="insurance_date" style="width: 160px;">
+                                        </td>
+                                        <td class="label-text-down">Next Due On</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_insurance_due_on_date">
+                                            <input type="date" name="insurance_due_on_date" style="width: 160px;">
+                                        </td>
+                                        <td class="label-text-down">Tag Number</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_insurance_tag_no">
+                                            <input type="text" name="insurance_tag_no" style="width: 140px;">
+                                        </td>
+                                        <td class="label-text-down">Ammount</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_insurance_ammount">
+                                            <input type="number" step="0.01" name="insurance_ammount" style="width: 140px;" required>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text-down vtop">Remark</td>
+                                        <td class="vtop"><b>:</b></td>
+                                        <td colspan="10" id="table_insurance_remark" class="multi-lines">
+                                            <textarea name="insurance_remark" cols="30" rows="4"></textarea>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: right;">   
+                    <button class="btn btn-lg btn-success" type="submit">Submit</button>
+                    <a href="/accountbalance"><button class="btn btn-lg btn-danger" type="button">Cancel</button></a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+</body>
+
+</html>

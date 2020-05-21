@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const flash = require('flash');
 const passport = require('passport');
+const minifyHTML = require('express-minify-html');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -21,13 +22,26 @@ app.use(session({
         maxAge: 12 * 3600 * 1000
     }
 }));
-
 // Passport Setup
 app.use(passport.initialize());
 app.use(passport.session());
 
 // Flash messages package
 app.use(flash());
+
+// Minify HTML
+app.use(minifyHTML({
+    override: true,
+    exception_url: false,
+    htmlMinifier: {
+        removeComments: true,
+        collapseWhitespace: true,
+        collapseBooleanAttributes: true,
+        removeAttributeQuotes: true,
+        removeEmptyAttributes: true,
+        minifyJS: true
+    }
+}));
 
 // EJS Engine Setting
 app.set('views', path.join(__dirname, 'views'));
@@ -71,6 +85,8 @@ app.use('/organization', require('./controllers/masters/organization'));
 app.use('/cowcast', require('./controllers/masters/cow_cast'));
 app.use('/subaccount', require('./controllers/masters/sub_account'));
 app.use('/resourceperson', require('./controllers/masters/resource_person'));
+app.use('/accountbalance', require('./controllers/masters/account_balance'));
+app.use('/api/master', require('./controllers/api/master-api'));
 
 app.listen(PORT, () => {
     console.log("Server is running on port : ", PORT);
