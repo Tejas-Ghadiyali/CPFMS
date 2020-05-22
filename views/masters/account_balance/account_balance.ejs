@@ -264,7 +264,7 @@
                             <th>Society ID</th>
                             <th>Society Name</th>
                             <th>Closing Balance</th>
-                            <th>C/D</th>
+                            <th>CR/DR</th>
                             <th style="width: 136px !important;">Actions</th>
                         </tr>
                     </thead>
@@ -359,58 +359,35 @@
             <div class="modal-content">
                 <form action="/accountbalance/search" class="form-horizontal" method="GET">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Search Account Head</u></b></h3>
+                        <h3 class="modal-title"><b><u>Search Account Balance</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <input type="text" name="searchtext" id="search-text" placeholder="Search Text...">
+                            <input type="text" name="searchtext" id="search-text" placeholder="Society Name / Member Name" style="width: 100%;">
                         </div>
                         <div class="form-group">
                             <h4><b><i>Search For :</i></b></h4>
                             <div>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="account_id" name="account_id" value="account_id" checked>
-                                    <label for="account_id">Account Head ID</label>
+                                    <input type="checkbox" id="account_name" name="account_name" value="account_name" checked>
+                                    <label for="account_name">Society Name</label>
                                 </span>
                             </div>
                             <div>
                                 <span class="custom-checkbox">
-                                    <input type="checkbox" id="account_name" name="account_name" value="account_name">
-                                    <label for="account_name"> Account Head Name </label>
-                                </span>
-                            </div>
-                            <div>
-                                <span class="custom-checkbox">
-                                    <input type="checkbox" id="village_id" name="village_id" value="village_id">
-                                    <label for="village_id"> Village ID </label>
+                                    <input type="checkbox" id="sub_account_name" name="sub_account_name" value="sub_account_name">
+                                    <label for="sub_account_name">Member Name</label>
                                 </span>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label><i>Account Head Type</i></label>
-                            <select class="form-control selectpicker" id="select-account_type_search"
-                                data-live-search="true" name="account_type">
-                                <option data-tokens="All" value="false">All</option>
-                                <option data-tokens="Balance Sheet" value="B/S">Balance Sheet (B/S)</option>
-                                <option data-tokens="Profit & Loss" value="P&L">Profit & Loss Account (P&L)</option>
-                                <option data-tokens="Trading Account" value="T/A">Trading Account (T/A)</option>
-                            </select>
+                            <label><i><b>Society ID</b></i></label>
+                            <input type="text" class="form-control" name="account_id" placeholder="Society ID for Search...">
                         </div>
                         <div class="form-group">
-                            <div class="col-md-4">
-                                <h4 style="text-align: left; padding: 0px !important;"><b><i>Society? :</i></b></h4>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="radio">
-                                    <label class="radio-inline"><input type="radio" name="is_society" value="false"
-                                            checked>Both</label>
-                                    <label class="radio-inline"><input type="radio" name="is_society"
-                                            value="1">Yes</label>
-                                    <label class="radio-inline"><input type="radio" name="is_society"
-                                            value="0">No</label>
-                                </div>
-                            </div>
+                            <label><i><b>Member ID</b></i></label>
+                            <input type="text" class="form-control" name="sub_account_id" placeholder="Member ID for Search...">
                         </div>
                     </div>
                     <div class="modal-footer">
