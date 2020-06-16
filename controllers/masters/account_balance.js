@@ -13,6 +13,8 @@ router.get("/", middleware.loggedin_as_superuser, (req, res) => {
 		pagenum = 1;
 	else
 		pagenum = parseInt(req.query.pagenum);
+	if (entries_per_page !== 25 && entries_per_page !== 50 && entries_per_page !== 100)
+		entries_per_page = 25;
 	getConnection((err, connection) => {
 		if (err) {
 			console.log(err);
@@ -227,10 +229,10 @@ router.get("/search", middleware.loggedin_as_superuser, (req, res) => {
 						}
 					}
 					var callbackurl = newarr.join('&');
-					var searched = (req.query.searchtext ? req.query.searchtext : "-")  + "," + (req.query.account_id ? req.query.account_id : "-") + "," + (req.query.sub_account_id ? req.query.sub_account_id : "-");
+					var searched = (req.query.searchtext ? req.query.searchtext : "-") + "," + (req.query.account_id ? req.query.account_id : "-") + "," + (req.query.sub_account_id ? req.query.sub_account_id : "-");
 					res.render("masters/account_balance/account_balance_search", {
 						data: results[0],
-						searchtext : searched,
+						searchtext: searched,
 						totalpages,
 						pagenum,
 						entries_per_page,
@@ -302,7 +304,6 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
 					}
 				}
 			}
-			console.log(req.body);
 			var sql = "INSERT INTO `Account_Balance` SET ?";
 			connection.query(sql, req.body, (err, result) => {
 				connection.release();
@@ -379,7 +380,6 @@ router.get("/edit/:accountid/:subaccountid", middleware.loggedin_as_admin, (req,
 						req.flash("danger", "Error while editing entry!");
 						res.redirect("/accountbalance");
 					} else {
-						console.log(results[3]);
 						res.render("masters/account_balance/editform", {
 							organization: results[0],
 							rp: results[1],

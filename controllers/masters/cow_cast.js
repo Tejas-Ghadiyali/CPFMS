@@ -3,7 +3,7 @@ const router = express.Router();
 const getConnection = require('../../connection');
 const middleware = require('../auth/auth_middleware');
 
-router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/', middleware.loggedin_as_superuser, (req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
         entries_per_page = 25;
@@ -13,6 +13,8 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
         pagenum = 1;
     else
         pagenum = parseInt(req.query.pagenum);
+    if (entries_per_page !== 25 && entries_per_page !== 50 && entries_per_page !== 100)
+        entries_per_page = 25;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -88,11 +90,11 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger','Error in searching Master-Cow Cast!');
+            req.flash('danger', 'Error in searching Master-Cow Cast!');
             res.redirect('/cowcast');
         }
         else {
@@ -125,7 +127,7 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger','Error in searching Master-Cow Cast with given parameters!');
+                    req.flash('danger', 'Error in searching Master-Cow Cast with given parameters!');
                     res.redirect('/cowcast');
                 }
                 else {
@@ -141,10 +143,10 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.post('/', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
-            req.flash('danger','Error in Adding Master-Cow Cast!');
+            req.flash('danger', 'Error in Adding Master-Cow Cast!');
             console.log(err);
             res.redirect('/cowcast');
         }
@@ -152,27 +154,27 @@ router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
             var { cow_cast_id, cow_cast_name } = req.body;
             cow_cast_id = cow_cast_id.trim();
             var sql = 'INSERT INTO `Cow_Cast` (`cow_cast_id`, `cow_cast_name`) VALUES (?, ?)'
-            connection.query(sql, [cow_cast_id, cow_cast_name], 
+            connection.query(sql, [cow_cast_id, cow_cast_name],
                 (err, result) => {
-                connection.release();
-                if (err) {
-                    console.log(err);
-                    if (err.code == 'ER_DUP_ENTRY')
-                        req.flash('danger', 'Cow Cast with Cow Cast Id ' + cow_cast_id + ' already exists!');
-                    else
-                        req.flash('danger', 'Error while adding cow cast in Master-Cow Cast!');
-                    res.redirect('/cowcast');
-                }
-                else {
-                    req.flash('success', 'Cow Cast with Cow Cast Id ' + cow_cast_id + ' Added.');
-                    res.redirect('/cowcast');
-                }
-            });
+                    connection.release();
+                    if (err) {
+                        console.log(err);
+                        if (err.code == 'ER_DUP_ENTRY')
+                            req.flash('danger', 'Cow Cast with Cow Cast Id ' + cow_cast_id + ' already exists!');
+                        else
+                            req.flash('danger', 'Error while adding cow cast in Master-Cow Cast!');
+                        res.redirect('/cowcast');
+                    }
+                    else {
+                        req.flash('success', 'Cow Cast with Cow Cast Id ' + cow_cast_id + ' Added.');
+                        res.redirect('/cowcast');
+                    }
+                });
         }
     });
 });
 
-router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -199,7 +201,7 @@ router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
     })
 });
 
-router.post('/delete', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);

@@ -95,7 +95,7 @@ $(document).ready(function () {
     $('[data-toggle="tooltip"]').tooltip();
 
     // Activate Select Picker 
-    $('.selectpicker').selectpicker();
+    $('.selectpicker').selectpicker({ dropupAuto: false });
 
     // Multiple Delete Focus to Cancel Button
     $(".table-title #multipledelete").click(function () {

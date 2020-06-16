@@ -13,6 +13,8 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
         pagenum = 1;
     else
         pagenum = parseInt(req.query.pagenum);
+    if (entries_per_page !== 25 && entries_per_page !== 50 && entries_per_page !== 100)
+        entries_per_page = 25;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);

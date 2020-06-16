@@ -86,7 +86,17 @@ app.use('/cowcast', require('./controllers/masters/cow_cast'));
 app.use('/subaccount', require('./controllers/masters/sub_account'));
 app.use('/resourceperson', require('./controllers/masters/resource_person'));
 app.use('/accountbalance', require('./controllers/masters/account_balance'));
+
+// API Routes
 app.use('/api/master', require('./controllers/api/master-api'));
+app.use('/api/transaction', require('./controllers/api/transaction-api'));
+app.use('/api/reportmaster', require('./controllers/api/report-api/report_master_api'));
+
+// Transaction Routes
+app.use('/receipt', require('./controllers/transactions/receipt'));
+
+// Reports Routes
+app.use('/report', require('./controllers/reports/report_master'));
 
 app.listen(PORT, () => {
     console.log("Server is running on port : ", PORT);

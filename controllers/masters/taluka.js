@@ -13,6 +13,8 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
         pagenum = 1;
     else
         pagenum = parseInt(req.query.pagenum);
+    if (entries_per_page !== 25 && entries_per_page !== 50 && entries_per_page !== 100)
+        entries_per_page = 25;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -193,7 +195,7 @@ router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
             var { taluka_id, taluka_name, district_id } = req.body;
             taluka_id = taluka_id.trim();
             var sql = " UPDATE `Taluka` SET `taluka_name` = ?, `district_id` = ? WHERE `Taluka`.`taluka_id` = ? ";
-            connection.query(sql, [taluka_name, district_id , taluka_id], (err, results) => {
+            connection.query(sql, [taluka_name, district_id, taluka_id], (err, results) => {
                 connection.release();
                 if (err) {
                     req.flash('danger', 'Error while editing record with id ' + taluka_id);

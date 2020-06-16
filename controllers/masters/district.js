@@ -3,7 +3,7 @@ const router = express.Router();
 const getConnection = require('../../connection');
 const middleware = require('../auth/auth_middleware');
 
-router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/', middleware.loggedin_as_superuser, (req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
         entries_per_page = 25;
@@ -13,6 +13,8 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
         pagenum = 1;
     else
         pagenum = parseInt(req.query.pagenum);
+    if (entries_per_page !== 25 && entries_per_page !== 50 && entries_per_page !== 100)
+        entries_per_page = 25;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -88,11 +90,11 @@ router.get('/', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
+router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger','Error in searching Master-District!');
+            req.flash('danger', 'Error in searching Master-District!');
             res.redirect('/district');
         }
         else {
@@ -125,7 +127,7 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger','Error in searching Master-district with given parameters!');
+                    req.flash('danger', 'Error in searching Master-district with given parameters!');
                     res.redirect('/district');
                 }
                 else {
@@ -141,10 +143,10 @@ router.get('/search', middleware.loggedin_as_superuser ,(req, res) => {
     });
 });
 
-router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
+router.post('/', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
-            req.flash('danger','Error in Adding Master-District!');
+            req.flash('danger', 'Error in Adding Master-District!');
             console.log(err);
             res.redirect('/district');
         }
@@ -152,27 +154,27 @@ router.post('/', middleware.loggedin_as_superuser ,(req, res) => {
             var { district_id, district_name } = req.body;
             district_id = district_id.trim();
             var sql = 'INSERT INTO `District` (`district_id`, `district_name`) VALUES (?, ?)'
-            connection.query(sql, [district_id, district_name], 
+            connection.query(sql, [district_id, district_name],
                 (err, result) => {
-                connection.release();
-                if (err) {
-                    console.log(err);
-                    if (err.code == 'ER_DUP_ENTRY')
-                        req.flash('danger', 'District with District Id ' + district_id + ' already exists!');
-                    else
-                        req.flash('danger', 'Error while adding district in Master-District!');
-                    res.redirect('/district');
-                }
-                else {
-                    req.flash('success', 'District with District Id ' + district_id + ' Added.');
-                    res.redirect('/district');
-                }
-            });
+                    connection.release();
+                    if (err) {
+                        console.log(err);
+                        if (err.code == 'ER_DUP_ENTRY')
+                            req.flash('danger', 'District with District Id ' + district_id + ' already exists!');
+                        else
+                            req.flash('danger', 'Error while adding district in Master-District!');
+                        res.redirect('/district');
+                    }
+                    else {
+                        req.flash('success', 'District with District Id ' + district_id + ' Added.');
+                        res.redirect('/district');
+                    }
+                });
         }
     });
 });
 
-router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -199,7 +201,7 @@ router.post('/edit', middleware.loggedin_as_admin ,(req, res) => {
     })
 });
 
-router.post('/delete', middleware.loggedin_as_admin ,(req, res) => {
+router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);

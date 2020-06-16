@@ -1,0 +1,88 @@
+#viewEmployeeModal {
+    vertical-align: middle;
+}
+
+#viewEmployeeModal .modal-dialog {
+    max-width: none !important;
+    width: 90% !important;
+}
+
+#viewEmployeeModal .modal-content {
+    width: 100% !important;
+}
+
+.receipt-details-table tr:nth-child(even) {
+    background-color: lightgray;
+}
+
+.receipt-details-table {
+    border: 5px double black !important;
+}
+
+.receipt-details-table th , .receipt-details-table td {
+    border: 5px double black !important;
+    text-align: center;
+}
+
+.receipt-details-table td {
+    margin: 10px !important;
+    padding: 10px !important;
+}
+
+.receipt-details-table input,.receipt-details-table select {
+    width: 100%;
+}
+
+.right-align {
+    text-align: right !important;
+}
+
+.left-align {
+    text-align: left !important;
+}
+
+.center-align {
+    text-align: center !important;
+}
+
+.row .ele {
+    border: double;
+}
+
+.multi-lines {
+    white-space: pre-wrap;
+}
+
+.vtop {
+    vertical-align: top !important;
+}
+
+#viewEmployeeModal .modal-body table td {
+    margin: 5px !important;
+    padding: 5px;
+}
+
+.label-text {
+    font-style: italic;
+    font-weight: bold;
+    width: fit-content;
+    padding: 0px !important;
+    text-align: center;
+}
+
+.label-text-down {
+    font-style: italic;
+    font-weight: bold;
+    width: 10%;
+    padding: 0px !important;
+}
+
+.disable-input {
+    background: lightgray;
+    cursor: not-allowed;
+}
+
+.heading-text {
+    text-align: center;
+    font-weight: bold;
+}

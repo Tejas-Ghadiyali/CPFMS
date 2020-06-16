@@ -3,7 +3,7 @@ const router = express.Router();
 const getConnection = require('../../connection');
 const middleware = require('../auth/auth_middleware');
 
-router.get('/accounthead/:id', (req, res) => {
+router.get('/accounthead/:id',middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -47,7 +47,7 @@ router.get('/accounthead/:id', (req, res) => {
     });
 });
 
-router.get('/subaccount/:id', (req, res) => {
+router.get('/subaccount/:id',middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);

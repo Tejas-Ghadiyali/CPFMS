@@ -13,6 +13,8 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
         pagenum = 1;
     else
         pagenum = parseInt(req.query.pagenum);
+    if (entries_per_page !== 25 && entries_per_page !== 50 && entries_per_page !== 100)
+        entries_per_page = 25;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -160,7 +162,7 @@ router.post('/', middleware.loggedin_as_superuser, (req, res) => {
             res.redirect('/village');
         }
         else {
-            var { village_id,village_name,taluka_id } = req.body;
+            var { village_id, village_name, taluka_id } = req.body;
             village_id = village_id.trim();
             var sql = 'INSERT INTO `Village` (`village_id`, `village_name`, `taluka_id`) VALUES (?, ?, ?)'
             connection.query(sql, [village_id, village_name, taluka_id], (err, result) => {
@@ -193,7 +195,7 @@ router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
             var { village_id, village_name, taluka_id } = req.body;
             village_id = village_id.trim();
             var sql = " UPDATE `Village` SET `village_name` = ?, `taluka_id` = ? WHERE `Village`.`village_id` = ? ";
-            connection.query(sql, [village_name, taluka_id , village_id], (err, results) => {
+            connection.query(sql, [village_name, taluka_id, village_id], (err, results) => {
                 connection.release();
                 if (err) {
                     req.flash('danger', 'Error while editing record with id ' + village_id);
