@@ -128,11 +128,9 @@
                     $("#deleteEmployeeModal .modal-footer #cancel").focus();
                 }, 500);
                 var index = this.id;
-                var account_id = data_local[index].account_id;
-                var sub_account_id = data_local[index].sub_account_id;
-                var inputhtml = '<input type="hidden" name="account_ids[]" value="' + account_id +
-                    '">' + '<input type="hidden" name="sub_account_ids[]" value="' + sub_account_id +
-                    '">';
+                var entryob = data_local[index];
+                var document_number_del = data_local[index].document_number;
+                var inputhtml = `<input type="hidden" name="document_numbers[]" value="${document_number_del}">`;
                 $("#deleteEmployeeModal form #hidden-input").append(inputhtml);
             });
 
@@ -150,13 +148,9 @@
                     if (this.checked) {
                         ++count;
                         var index = this.id;
-                        var account_id = data_local[index].account_id;
-                        var sub_account_id = data_local[index].sub_account_id;
-                        console.log(account_id, sub_account_id);
-                        var inputhtml = '<input type="hidden" name="account_ids[]" value="' +
-                            account_id + '">' +
-                            '<input type="hidden" name="sub_account_ids[]" value="' +
-                            sub_account_id + '">';
+                        var entryob = data_local[index];
+                        var document_number_del = data_local[index].document_number;
+                        var inputhtml = `<input type="hidden" name="document_numbers[]" value="${document_number_del}">`;
                         $("#deleteEmployeeModal form #hidden-input").append(inputhtml);
                     }
                 });
@@ -217,7 +211,7 @@
             var documennum = data_local[index].document_number;
             var url = window.location.href;
             var arr = url.split("/");
-            var req_url = arr[0] + "//" + arr[2] + "/accountbalance/edit/" + account_id + '/' + sub_account_id;
+            var req_url = arr[0] + "//" + arr[2] + "/receipt/edit/" + documennum;
             window.location.href = req_url;
         }
     </script>

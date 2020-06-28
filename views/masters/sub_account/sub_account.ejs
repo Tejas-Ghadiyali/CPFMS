@@ -247,8 +247,8 @@
     <!-- Add Modal HTML -->
     <div id="addEmployeeModal" class="modal fade">
         <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="/subaccount" class="form-horizontal" method="POST">
+            <form action="/subaccount" class="form-horizontal" method="POST">
+                <div class="modal-content">
                     <div class="modal-header">
                         <h3 class="modal-title"><b><u>Add Sub Account</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -266,18 +266,20 @@
                         </div>
                         <div class="form-group">
                             <label><i>Sub Account Address</i></label>
-                            <textarea name="sub_account_address" cols="30" rows="4" class="form-control" maxlength="100" placeholder="Enter Sub Account Address"></textarea>
+                            <textarea name="sub_account_address" cols="30" rows="4" class="form-control" maxlength="100"
+                                placeholder="Enter Sub Account Address"></textarea>
                         </div>
                         <div class="form-group">
                             <label><i>Sub Account Remark</i></label>
-                            <textarea name="sub_account_remark" cols="30" rows="4" class="form-control" maxlength="200" placeholder="Enter Remark"></textarea>
+                            <textarea name="sub_account_remark" cols="30" rows="4" class="form-control" maxlength="200"
+                                placeholder="Enter Remark"></textarea>
                         </div>
                     </div>
-            </div>
-            <div class="modal-footer">
-                <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
-                <input type="submit" class="btn btn-success" value="Add">
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+                    <input type="submit" class="btn btn-success" value="Add">
+                </div>
             </form>
         </div>
     </div>
@@ -304,13 +306,13 @@
                         </div>
                         <div class="form-group">
                             <label><i>Sub Account Address</i></label>
-                            <textarea name="sub_account_address" cols="30" rows="4" class="form-control" 
-                            maxlength="100" placeholder="Enter Sub Account Address" value=""></textarea>
+                            <textarea name="sub_account_address" cols="30" rows="4" class="form-control" maxlength="100"
+                                placeholder="Enter Sub Account Address" value=""></textarea>
                         </div>
                         <div class="form-group">
                             <label><i>Sub Account Remark</i></label>
-                            <textarea name="sub_account_remark" cols="30" rows="4" class="form-control" 
-                            maxlength="200" placeholder="Enter Remark" value=""></textarea>
+                            <textarea name="sub_account_remark" cols="30" rows="4" class="form-control" maxlength="200"
+                                placeholder="Enter Remark" value=""></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">

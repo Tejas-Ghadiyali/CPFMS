@@ -80,7 +80,7 @@ router.get("/", middleware.loggedin_as_superuser, (req, res) => {
                         INNER JOIN Taluka
                             ON Village.taluka_id = Taluka.taluka_id
                         INNER JOIN District
-                            ON Taluka.taluka_id = District.district_id
+                            ON Taluka.district_id = District.district_id
                         INNER JOIN Cow_Cast
                             ON Account_Balance.cow_cast_id = Cow_Cast.cow_cast_id
                     LIMIT ? , ?;
@@ -163,7 +163,7 @@ router.get("/search", middleware.loggedin_as_superuser, (req, res) => {
 					INNER JOIN Taluka
 						ON Village.taluka_id = Taluka.taluka_id
 					INNER JOIN District
-						ON Taluka.taluka_id = District.district_id
+						ON Taluka.district_id = District.district_id
 					INNER JOIN Cow_Cast
 						ON Account_Balance.cow_cast_id = Cow_Cast.cow_cast_id
 			`;
@@ -292,10 +292,10 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
 				"birth_wt",
 				"join_wt",
 				"calwing_ltr",
-				"cr_ammount",
-				"dr_ammount",
+				"cr_amount",
+				"dr_amount",
 				"cl_balance",
-				"insurance_ammount",
+				"insurance_amount",
 			];
 			for (key in req.body) {
 				if (key.includes("date") || decimal_val.includes(key)) {
@@ -404,10 +404,10 @@ router.post("/edit", middleware.loggedin_as_admin, (req, res) => {
 				"birth_wt",
 				"join_wt",
 				"calwing_ltr",
-				"cr_ammount",
-				"dr_ammount",
+				"cr_amount",
+				"dr_amount",
 				"cl_balance",
-				"insurance_ammount",
+				"insurance_amount",
 			];
 			for (key in req.body) {
 				if (key.includes("date") || decimal_val.includes(key)) {
@@ -489,14 +489,25 @@ router.post("/delete", middleware.loggedin_as_admin, (req, res) => {
 					console.log(err);
 					res.redirect("/accountbalance");
 				} else {
+					console.log(results);
 					var count = 0;
-					for (result of results) {
-						if (result.affectedRows === 1) {
-							req.flash("success", "Successfully deleted member with society id " + req.body.account_ids[count] + " and member id " + req.body.sub_account_ids[count] + " !");
-						} else {
-							req.flash("danger", "Error while deleting member with society id " + req.body.account_ids[count] + " and member id " + req.body.sub_account_ids[count] + " !");
+					if (req.body.sub_account_ids.length <= 1) {
+						if(results.affectedRows > 0){
+							req.flash("success","Successfully added memeber with society id " + req.body.account_ids[0] + " and member id " + req.body.sub_account_ids[0] + " !");
 						}
-						count++;
+						else{
+							req.flash("danger", "Error while deleting member with society id " + req.body.account_ids[0] + " and member id " + req.body.sub_account_ids[0] + " !");							
+						}
+					}
+					else {
+						for (result of results) {
+							if (result.affectedRows === 1) {
+								req.flash("success","Successfully added memeber with society id " + req.body.account_ids[count] + " and member id " + req.body.sub_account_ids[count] + " !");
+							} else {
+								req.flash("danger", "Error while deleting member with society id " + req.body.account_ids[count] + " and member id " + req.body.sub_account_ids[count] + " !");
+							}
+							count++;
+						}
 					}
 					res.redirect("/accountbalance");
 				}

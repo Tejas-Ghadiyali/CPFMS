@@ -144,6 +144,7 @@ router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
 });
 
 router.post('/', middleware.loggedin_as_superuser, (req, res) => {
+    console.log("Add Sub account!");
     getConnection((err, connection) => {
         if (err) {
             req.flash('danger', 'Error in Adding Master-Sub Account!');

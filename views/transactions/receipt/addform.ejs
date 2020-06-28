@@ -59,7 +59,7 @@
                                     <td class="label-text">Receipt Number</td>
                                     <td><b>:</b></td>
                                     <td id="table_receipt_number">
-                                        <input type="text" name="receipt_number">
+                                        <input type="text" name="receipt_number" required>
                                     </td>
                                     <td></td>
                                     <td class="label-text">Date</td>
@@ -147,17 +147,19 @@
                         </table>
                     </div>
                 </div>
-                <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: left; float: left;">
-                    <button class="btn btn-lg btn-primary" type="button" id="saveentry"><b>Save</b></button>
-                    <button class="btn btn-lg btn-success" type="button" id="restoreentry"><b>Restore Last Saved
-                            Data</b></button>
-                    <button class="btn btn-lg btn-danger" type="button" id="removedata"><b>Remove Saved
-                            Data</b></button>
-                </div>
+                <!-- 
+                    <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: left; float: left;">
+                        <button class="btn btn-lg btn-primary" type="button" id="saveentry"><b>Save</b></button>
+                        <button class="btn btn-lg btn-success" type="button" id="restoreentry"><b>Restore Last Saved
+                                Data</b></button>
+                        <button class="btn btn-lg btn-danger" type="button" id="removedata"><b>Remove Saved
+                                Data</b></button>
+                    </div>
+                 -->
                 <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: right; float: right;">
                     <button class="btn btn-lg btn-warning" type="button" id="clearentry"><b>Clear All</b></button>
                     <button class="btn btn-lg btn-success" type="submit"><b>Submit</b></button>
-                    <a href="/accountbalance"><button class="btn btn-lg btn-danger"
+                    <a href="/receipt"><button class="btn btn-lg btn-danger"
                             type="button"><b>Cancel</b></button></a>
                 </div>
             </form>

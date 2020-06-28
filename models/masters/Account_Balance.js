@@ -16,14 +16,14 @@ CREATE TABLE `Account_Balance` (
 	`death_date` DATE,
 	`op_balance` DECIMAL NOT NULL,
 	`op_crdr` CHAR(2) NOT NULL,
-	`cr_ammount` DECIMAL,
-	`dr_ammount` DECIMAL,
+	`cr_amount` DECIMAL,
+	`dr_amount` DECIMAL,
 	`cl_balance` DECIMAL,
 	`cl_crdr` CHAR(2) NOT NULL,
 	`insurance_date` DATE,
 	`insurance_due_on` DATE,
 	`insurance_tag_no` VARCHAR(25),
-	`insurance_ammount` DECIMAL,
+	`insurance_amount` DECIMAL,
 	`insurance_remark` VARCHAR(50),
 	PRIMARY KEY (`account_id`,`sub_account_id`)
 );
