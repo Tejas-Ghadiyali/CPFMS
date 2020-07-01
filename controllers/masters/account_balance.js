@@ -207,6 +207,7 @@ router.get("/search", middleware.loggedin_as_superuser, (req, res) => {
 			if (offset < 0)
 				offset = 0;
 			connection.query(sql, [offset, entries_per_page], (err, results) => {
+				connection.release();
 				if (err) {
 					console.log(err);
 					req.flash("danger", "Error in searching Master-Account Balance!");
