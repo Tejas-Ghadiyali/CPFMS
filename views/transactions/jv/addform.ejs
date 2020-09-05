@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>CPFMS</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="/css/master-index.css">
+    <link rel="stylesheet" href="/css/master/receipt.css">
+    <script src="/js/transactions/jv/addform.js"></script>
+    <script src="/js/master-index.js"></script>
+
+</head>
+
+<body>
+    <%- include('../../partials/navbar.ejs') %>
+
+    <main>
+        <div class="container" style="background-color: #DBFFFB; width: 98%">
+            <%- include('../../partials/err.ejs') %>
+            <h2 class="heading-text">Journal Voucher</h2>
+            <form class="form-horizontal" id="main-form" action="/jv" method="POST">
+                <div class="row">
+                    <div class="table-responsive">
+                        <table class="table info-table">
+                            <tbody>
+                                <tr>
+                                    <td class="label-text">Document Number</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_document_number">
+                                        <input type="number" name="document_number" class="input-disabled"
+                                            value="<%= document_number %>" readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">JV Number</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_jv_number">
+                                        <input type="text" name="jv_number" value="<%= document_number %>" required>
+                                    </td>
+                                    <td></td>
+                                    <td class="label-text">JV Date</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_jv_date">
+                                        <input type="date" name="jv_date" value="<%= today_date %>">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">Narration</td>
+                                    <td><b>:</b></td>
+                                    <td colspan="2" id="table_narration">
+                                        <textarea name="acc_narration" cols="30" rows="4">
+                                        </textarea>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="table-responsive">
+                        <table class="table receipt-details-table">
+                            <colgroup>
+                                <col style="width: 5%;">
+                                <col style="width: 15%;">
+                                <col style="width: 30%;">
+                                <col style="width: 10%;">
+                                <col style="width: 10%;">
+                                <col style="width: 20%;">
+                                <col style="width: 10%;">
+                            </colgroup>
+                            <thead>
+                                <th>SR.</th>
+                                <th>Society</th>
+                                <th>Member</th>
+                                <th>Credit</th>
+                                <th>Debit</th>
+                                <th>Narration</th>
+                                <th>Actions</th>
+                            </thead>
+                            <tbody id="entries">
+                            </tbody>
+                            <tfoot>
+                                <tr id="addentryform">
+                                    <td></td>
+                                    <td id="addentryform_account_id_select">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="account_id" id="account_id_select" required>
+                                            <% for(item of account_head){ %>
+                                                <option><%= item.account_id %></option>
+                                            <% } %>
+                                        </select><br/><br/>
+                                        <input type="text" style="text-align: center;" name="account_name_res" id="account_name_res" disabled>
+                                    </td>
+                                    <td id="addentryform_sub_account_id_select" style="white-space: true;">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="sub_account_id" id="sub_account_id_select" required>
+                                        </select><br/><br/>
+                                        <input type="text" style="text-align: center;" name="sub_account_name_res" id="sub_account_name_res" disabled>
+                                    </td>
+                                    </td>
+                                    <td><input type="number" step="0.01" value="0" name="cr_amount" class="right-align"></td>
+                                    <td><input type="number" step="0.01" value="0" name="dr_amount" class="right-align"></td>
+                                    <td><textarea name="narration" cols="25" rows="4"></textarea></td>
+                                    <td>
+                                        <button id="addentry" type="button" class="btn btn-success">
+                                            <i class="material-icons" style="vertical-align: middle;">&#xe147;</i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2"><b>Total</b></td>
+                                    <td id="cr_totalentry" class="right-align"></td>
+                                    <td id="dr_totalentry" class="right-align"></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <!-- 
+                    <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: left; float: left;">
+                        <button class="btn btn-lg btn-primary" type="button" id="saveentry"><b>Save</b></button>
+                        <button class="btn btn-lg btn-success" type="button" id="restoreentry"><b>Restore Last Saved
+                                Data</b></button>
+                        <button class="btn btn-lg btn-danger" type="button" id="removedata"><b>Remove Saved
+                                Data</b></button>
+                    </div>
+                 -->
+                <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: right; float: right;">
+                    <button class="btn btn-lg btn-warning" type="button" id="clearentry"><b>Clear All</b></button>
+                    <button class="btn btn-lg btn-success" type="submit"><b>Submit</b></button>
+                    <a href="/jv"><button class="btn btn-lg btn-danger"
+                            type="button"><b>Cancel</b></button></a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+</body>
+
+</html>

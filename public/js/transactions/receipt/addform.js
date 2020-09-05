@@ -242,6 +242,7 @@ $(document).ready(function () {
                 accid = $(this).val();
                 $("#entries").empty();
                 $("#totalentry").empty();
+                entries = [];
                 total_gb = 0.00;
                 optionchange();
             }

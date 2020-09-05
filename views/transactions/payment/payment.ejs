@@ -175,17 +175,32 @@
             $("#viewEmployeeModal .receipt-details-table tbody").empty();
             var item = data_local[index];
             $.ajax({
-                url: '/api/transaction/receiptdetails/' + item.document_number,
+                url: '/api/transaction/paymentdetails/' + item.document_number,
                 success: function (res) {
                     var inhtml;
                     if (res.status === true) {
                         for (entry of res.data) {
+                            if(entry.narration == null){
+                                entry.narration = ""
+                            }
                             inhtml = `
                                 <tr>
-                                    <td>${entry.receipt_serial_number}</td>
-                                    <td>${entry.cr_sub_account_id}</td>
-                                    <td class="left-align">${entry.sub_account_name}</td>
-                                    <td class="right-align">${parseFloat(entry.receipt_amount).toLocaleString('en-IN')}</td>
+                                    <td>${entry.voucher_serial_number}</td>
+                                    <td>${entry.dr_sub_account_id}</td>
+                                    <td colspan="6">${entry.sub_account_name}</td>
+                                    <td class="right-align"></td>
+                                    <td rowspan="2">${entry.narration}</td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td>${entry.cattle_feed}</td>
+                                    <td>${entry.mineral_mix}</td>
+                                    <td>${entry.pasu_posak}</td>
+                                    <td>${entry.insurance}</td>
+                                    <td>${entry.other}</td>
+                                    <td>${entry.other1}</td>
+                                    <td class="right-align">${parseFloat(entry.payment_amount).toLocaleString('en-IN')}</td>
                                 </tr>
                             `;
                             $("#viewEmployeeModal .receipt-details-table tbody").append(inhtml);
@@ -194,8 +209,9 @@
                             <tr style="background-color: gray !important;">
                                 <td></td>
                                 <td></td>
-                                <td><b>Total</b></td>
+                                <td colspan="6"><b>Total</b></td>
                                 <td class="right-align" style="font-weight: bold;">${parseFloat(item.total_amount).toLocaleString('en-IN')}</td>
+                                <td></td>
                             </tr>
                         `;
                         $("#viewEmployeeModal .receipt-details-table tbody").append(inhtml);
@@ -211,7 +227,7 @@
             var documennum = data_local[index].document_number;
             var url = window.location.href;
             var arr = url.split("/");
-            var req_url = arr[0] + "//" + arr[2] + "/receipt/edit/" + documennum;
+            var req_url = arr[0] + "//" + arr[2] + "/payment/edit/" + documennum;
             window.location.href = req_url;
         }
     </script>
@@ -227,10 +243,10 @@
                 <div class="table-title">
                     <div class="row">
                         <div class="col-sm-6">
-                            <h2><b>Receipt</b></h2>
+                            <h2><b>Payment</b></h2>
                         </div>
                         <div class="col-sm-6" id="shortcut">
-                            <a href="/receipt/add" class="btn btn-success" id="addnew"><i
+                            <a href="/payment/add" class="btn btn-success" id="addnew"><i
                                     class="material-icons">&#xE147;</i> <span><b>Add New</b></span></a>
                             <% if(user_type === 'ADMIN') { %>
                             <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal"
@@ -246,7 +262,7 @@
                     <thead>
                         <tr>
                             <th>
-                                <form action="/receipt" class="entries">
+                                <form action="/payment" class="entries">
                                     <span>
                                         <select id="entryid" name="entries_per_page">
                                             <% if(entries_per_page==25) { %>
@@ -269,11 +285,10 @@
                                 </form>
                             </th>
                             <th>Document Number</th>
-                            <th>Receipt Number</th>
-                            <th>Receipt Date</th>
+                            <th>Voucher Date</th>
                             <th>Society ID</th>
                             <th>Society Name</th>
-                            <th>Receipt Amount</th>
+                            <th>Total Amount</th>
                             <th style="width: 140px !important;">Actions</th>
                         </tr>
                     </thead>
@@ -289,9 +304,8 @@
                                 <% } %>
                             </td>
                             <td><%= item.document_number %></td>
-                            <td><%= item.receipt_number %></td>
-                            <td><%= item.receipt_nice_date %></td>
-                            <td><%= item.cr_account_id %></td>
+                            <td><%= item.payment_nice_date %></td>
+                            <td><%= item.dr_account_id %></td>
                             <td><%= item.account_name %></td>
                             <td><%= parseFloat(item.total_amount).toLocaleString('en-IN') %></td>
                             <td>
@@ -317,7 +331,7 @@
                         <b><%= totalentries %></b> entries
                     </div>
                     <% } %>
-                    <form action="/receipt" id="paginationform" method="GET">
+                    <form action="/payment" id="paginationform" method="GET">
                         <ul class="pagination">
                             <li class="page-item">
                                 <span class="a page-link">
@@ -366,9 +380,9 @@
     <div id="searchEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/receipt/search" class="form-horizontal" method="GET">
+                <form action="/payment/search" class="form-horizontal" method="GET">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Search Receipt</u></b></h3>
+                        <h3 class="modal-title"><b><u>Search Payment</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
@@ -377,12 +391,8 @@
                             <input type="text" class="form-control" name="document_number" placeholder="Document Number">
                         </div>
                         <div class="form-group">
-                            <label><i><b>Receipt Number</b></i></label>
-                            <input type="text" class="form-control" name="receipt_number" placeholder="Receipt Number">
-                        </div>
-                        <div class="form-group">
-                            <label><i><b>Receipt Date</b></i></label>
-                            <input type="date" class="form-control" name="receipt_date">
+                            <label><i><b>Voucher Date</b></i></label>
+                            <input type="date" class="form-control" name="voucher_date">
                         </div>
                         <div class="form-group">
                             <label><i><b>Society Id</b></i></label>
@@ -406,7 +416,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header" style="text-align: center;">
-                    <h3 class="modal-title"><b><u>View Receipt</u></b></h3>
+                    <h3 class="modal-title"><b><u>View Voucher</u></b></h3>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 </div>
                 <div class="modal-body">
@@ -419,24 +429,23 @@
                                         <td><b>:</b></td>
                                         <td id="table_document_number"></td>
                                         <td></td>
-                                        <td class="label-text">Receipt Account</td>
+                                        <td class="label-text">Voucher Account</td>
                                         <td><b>:</b></td>
-                                        <td id="table_dr_sub_account_id"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label-text">Receipt Number</td>
-                                        <td><b>:</b></td>
-                                        <td id="table_receipt_number"></td>
-                                        <td></td>
-                                        <td class="label-text">Date</td>
-                                        <td><b>:</b></td>
-                                        <td id="table_receipt_nice_date"></td>
+                                        <td id="table_cr_sub_account_id"></td>
                                     </tr>
                                     <tr>
                                         <td class="label-text">A/C ID</td>
                                         <td><b>:</b></td>
-                                        <td id="table_cr_account_id"></td>
+                                        <td id="table_dr_account_id"></td>
                                         <td id="table_account_name"></td>
+                                        <td class="label-text">Voucher Date</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_payment_nice_date"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label-text">Cheque Number</td>
+                                        <td><b>:</b></td>
+                                        <td id="table_cheque_no"></td>
                                     </tr>
                                     <tr>
                                         <td class="label-text">Narration</td>
@@ -450,11 +459,29 @@
                     <div class="row">
                         <div class="table-responsive">
                             <table class="table receipt-details-table">
+                                <colgroup>
+                                    <col style="width: 5%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 15%;">
+                                </colgroup>
                                 <thead>
                                     <th>SR.</th>
                                     <th>Member</th>
-                                    <th>Member Name</th>
+                                    <th>Cattle Feed</th>
+                                    <th>Mineral Mix</th>
+                                    <th>Pasu Posak</th>
+                                    <th>Insurance</th>
+                                    <th>Other</th>
+                                    <th>Other1</th>
                                     <th>Amount</th>
+                                    <th>Narration</th>
                                 </thead>
                                 <tbody>
                                 </tbody>
@@ -470,7 +497,7 @@
     <div id="deleteEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/receipt/delete" method="POST">
+                <form action="/payment/delete" method="POST">
                     <div class="modal-header">
                         <h4 class="modal-title">Delete Member</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>

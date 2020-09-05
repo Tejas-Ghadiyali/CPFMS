@@ -94,6 +94,8 @@ app.use('/api/reportmaster', require('./controllers/api/report-api/report_master
 
 // Transaction Routes
 app.use('/receipt', require('./controllers/transactions/receipt'));
+app.use('/payment', require('./controllers/transactions/payment'));
+app.use('/jv', require('./controllers/transactions/jv'));
 
 // Reports Routes
 app.use('/report', require('./controllers/reports/report_master'));

@@ -36,6 +36,23 @@
 
         $(document).ready(function () {
 
+            $("#paginationform").on('submit', function (e) {
+                e.preventDefault();
+                var pvalue = $("#paginationform #pageno").val();
+                var evalue = $(".entries #entryid").val();
+                var callback = <%- JSON.stringify(callbackurl) %>;
+                var newurl = "/receipt/search?" + callback + "&entries_per_page=" + evalue +"&pagenum=" + pvalue;
+                window.location.href = newurl;                
+            });
+
+            $(".entries").on('submit', function (e) {
+                e.preventDefault();
+                var evalue = $(".entries #entryid").val();
+                var callback = <%- JSON.stringify(callbackurl) %>;
+                var newurl = "/receipt/search?" + callback + "&entries_per_page=" + evalue;
+                window.location.href = newurl;
+            });
+
             // Shortcut
             $(window).bind("keydown", function (e) {
                 counter = 0;
@@ -166,7 +183,6 @@
                 setTimeout(function () {
                     $("#searchEmployeeModal input[name=document_number]").focus();
                 }, 500);
-
             });
 
         });
@@ -237,8 +253,8 @@
                                 id="multipledelete"><i class="material-icons">&#xE15C;</i>
                                 <span><b>Delete</b></span></a>
                             <% } %>
-                            <a href="#searchEmployeeModal" class="btn btn-warning" data-toggle="modal" id="search"><i
-                                    class="material-icons">&#xe8b6;</i> <span><b>Search</b></span></a>
+                            <a href="/receipt" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i class="material-icons">&#xe888;</i> <span><b>Clear</b></span></a>
+                            <b>Searched Text : </b> <input type="text" value="<%= searchtext %>" style="width: 30%; text-align: center; color: black;" disabled>
                         </div>
                     </div>
                 </div>
@@ -362,45 +378,6 @@
             </div>
         </div>
     </main>
-    <!-- Search Modal HTML -->
-    <div id="searchEmployeeModal" class="modal fade">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="/receipt/search" class="form-horizontal" method="GET">
-                    <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Search Receipt</u></b></h3>
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label><i><b>Document Number</b></i></label>
-                            <input type="text" class="form-control" name="document_number" placeholder="Document Number">
-                        </div>
-                        <div class="form-group">
-                            <label><i><b>Receipt Number</b></i></label>
-                            <input type="text" class="form-control" name="receipt_number" placeholder="Receipt Number">
-                        </div>
-                        <div class="form-group">
-                            <label><i><b>Receipt Date</b></i></label>
-                            <input type="date" class="form-control" name="receipt_date">
-                        </div>
-                        <div class="form-group">
-                            <label><i><b>Society Id</b></i></label>
-                            <input type="text" class="form-control" name="account_id" placeholder="Society ID">
-                        </div>
-                        <div class="form-group">
-                            <label><i><b>Society Name</b></i></label>
-                            <input type="text" class="form-control" name="account_name" placeholder="Society Name">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
-                        <input type="submit" class="btn btn-warning" value="Search">
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
     <!-- View Modal HTML -->
     <div id="viewEmployeeModal" class="modal fade">
         <div class="modal-dialog">

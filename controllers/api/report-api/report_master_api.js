@@ -49,6 +49,7 @@ router.get('/accounthead', (req, res) => {
                         date: sdate,
                         username
                     }
+                    console.log(JSON.stringify(dataobject.datarows))
                     var template = "orders-main";
                     reportGenerator(dataobject, template, (err, resheaders) => {
                         if (err) {

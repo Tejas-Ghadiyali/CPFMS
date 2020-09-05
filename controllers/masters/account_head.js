@@ -151,6 +151,7 @@ router.post('/', middleware.loggedin_as_superuser, (req, res) => {
             res.redirect('/accounthead');
         }
         else {
+            console.log(req.body);
             var { account_id, account_name, account_type, is_society, village_id } = req.body;
             account_id = account_id.trim();
             var sql = 'INSERT INTO `Account_Head` (`account_id`, `account_name`, `account_type`, `is_society`, `village_id`) VALUES (?, ?, ?, ?, ?)'

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>CPFMS</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="/css/master-index.css">
+    <link rel="stylesheet" href="/css/master/receipt.css">
+    <script src="/js/transactions/payment/addform.js"></script>
+    <script src="/js/master-index.js"></script>
+
+</head>
+
+<body>
+    <%- include('../../partials/navbar.ejs') %>
+
+    <main>
+        <div class="container" style="background-color: #DBFFFB; width: 98%">
+            <%- include('../../partials/err.ejs') %>
+            <h2 class="heading-text">Voucher</h2>
+            <form class="form-horizontal" id="main-form" action="/payment" method="POST">
+                <div class="row">
+                    <div class="table-responsive">
+                        <table class="table info-table">
+                            <tbody>
+                                <tr>
+                                    <td class="label-text">Document Number</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_document_number">
+                                        <input type="number" name="document_number" class="input-disabled"
+                                            value="<%= document_number %>" readonly>
+                                    </td>
+                                    <td></td>
+                                    <td class="label-text">Voucher Account</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_cr_sub_account_id">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="cr_sub_account_id" required>
+                                            <option>CASH</option>
+                                            <option selected>BANK</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">A/C ID</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_dr_account_id">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="dr_account_id" id="account_id_select" required>
+                                            <% for(item of account_head){ %>
+                                            <option><%= item.account_id %></option>
+                                            <% } %>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" id="account_name_res" name="account_name"
+                                            style="width: 100%;" disabled>
+                                    </td>
+                                    <td class="label-text">Voucher Date</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_voucher_date">
+                                        <input type="date" name="voucher_date" value="<%= today_date %>">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">Cheque Number</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_cheque_no">
+                                        <input type="text" name="cheque_no" required>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">Narration</td>
+                                    <td><b>:</b></td>
+                                    <td colspan="2" id="table_narration">
+                                        <textarea name="acc_narration" cols="30" rows="4">
+                                        </textarea>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="table-responsive">
+                        <table class="table receipt-details-table">
+                            <colgroup>
+                                <col style="width: 5%;">
+                                <col style="width: 9%;">
+                                <col style="width: 9%;">
+                                <col style="width: 9%;">
+                                <col style="width: 9%;">
+                                <col style="width: 9%;">
+                                <col style="width: 9%;">
+                                <col style="width: 9%;">
+                                <col style="width: 17%;">
+                                <col style="width: 10%;">
+                                <col style="width: 5%;">
+                            </colgroup>
+                            <thead>
+                                <th>SR.</th>
+                                <th>Member</th>
+                                <th>Cattle Feed</th>
+                                <th>Mineral Mix</th>
+                                <th>Pasu Posak</th>
+                                <th>Insurance</th>
+                                <th>Other</th>
+                                <th>Other1</th>
+                                <th>Amount</th>
+                                <th>Narration</th>
+                                <th>Actions</th>
+                            </thead>
+                            <tbody id="entries">
+                            </tbody>
+                            <tfoot>
+                                <tr id="addentryform_first">
+                                    <td></td>
+                                    <td id="addentryform_select">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="sub_account_id" id="sub_account_id_select" required>
+                                        </select>
+                                    </td>
+                                    <td colspan="6">
+                                        <input type="text" name="sub_account_name" id="sub_account_name_res" style="text-align: center;" disabled>
+                                    </td>
+                                    <td></td>
+                                    <td rowspan="2"><textarea name="narration" cols="20" rows="4"></textarea></td>
+                                    <td></td>
+                                </tr>
+                                <tr id="addentryform">
+                                    <td></td>
+                                    <td></td>
+                                    <td><input type="number" min="0" step="0.01" name="cattle_feed" id="cattle_feed" class="right-align" value="0"></td>
+                                    <td><input type="number" min="0" step="0.01" name="mineral_mix" id="mineral_mix" class="right-align" value="0"></td>
+                                    <td><input type="number" min="0" step="0.01" name="pasu_posak" id="pasu_posak" class="right-align" value="0"></td>
+                                    <td><input type="number" min="0" step="0.01" name="insurance" id="insurance" class="right-align" value="0"></td>
+                                    <td><input type="number" min="0" step="0.01" name="other" id="other" class="right-align" value="0"></td>
+                                    <td><input type="number" min="0" step="0.01" name="other1" id="other1" class="right-align" value="0"></td>
+                                    <td id="entry_total"></td>
+                                    <td>
+                                        <button id="addentry" type="button" class="btn btn-success">
+                                            <i class="material-icons" style="vertical-align: middle;">&#xe147;</i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td></td>
+                                    <td colspan="6" style="text-align: center;"><b>Total</b></td>
+                                    <td id="totalentry" class="right-align"></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: right; float: right;">
+                    <button class="btn btn-lg btn-warning" type="button" id="clearentry"><b>Clear All</b></button>
+                    <button class="btn btn-lg btn-success" type="submit"><b>Submit</b></button>
+                    <a href="/payment"><button class="btn btn-lg btn-danger"
+                            type="button"><b>Cancel</b></button></a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+</body>
+
+</html>
