@@ -30,8 +30,29 @@
     <main>
         <div class="container" style="background-color: #DBFFFB; width: 98%">
             <%- include('../partials/err.ejs') %>
-            <h2 class="heading-text"><u>Society List Report</u></h2>
+            <h2 class="heading-text"><u>Receipt List Report</u></h2>
             <form class="form-horizontal" id="report_parameters_form">
+                <div class="row">
+                    <div class="table-responsive">
+                        <table class="table info-table">
+                            <tbody>
+                                <tr>
+                                    <td class="label-text">From Date</td>
+                                    <td><b>:</b></td>
+                                    <td>
+                                        <input type="date" name="from_date" required>
+                                    </td>
+                                    <td></td>
+                                    <td class="label-text">To Date</td>
+                                    <td><b>:</b></td>
+                                    <td>
+                                        <input type="date" name="to_date" required>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: right; float: right;">
                     <button class="btn btn-lg btn-primary" type="submit"><b>Generate PDF</b></button>
                 </div>
@@ -59,7 +80,7 @@
                 var formData = $("#report_parameters_form").serialize();
                 enter = true;
                 $.ajax({
-                    url: '/api/reportmaster/accounthead',
+                    url: '/api/reportmaster/receiptlistsummary',
                     data: formData,
                     method: 'GET',
                     success: function (res) {

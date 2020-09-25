@@ -124,7 +124,7 @@ router.get("/search", middleware.loggedin_as_superuser, (req, res) => {
         }
         else {
             var sql = `
-                SELECT
+                SELECT SQL_CALC_FOUND_ROWS
                     Receipt.*,
                     DATE_FORMAT(Receipt.receipt_date,'%d/%m/%Y') AS receipt_nice_date,
                     Account_Head.account_name
@@ -182,10 +182,10 @@ router.get("/search", middleware.loggedin_as_superuser, (req, res) => {
             if(ob["account_name"]) {
                 if(!flag) {
                     flag = true;
-                    sql = sql + " WHERE Account_Head.account_name ="+ connection.escape(ob["account_name"]);
+                    sql = sql + " WHERE Account_Head.account_name LIKE '%" + ob["account_name"] + "%'";
                 }
                 else {
-                    sql = sql + " OR Account_Head.account_name ="+ connection.escape(ob["account_name"]);
+                    sql = sql + " OR Account_Head.account_name LIKE '%" + ob["account_name"] + "%'";
                 }
             }
             sql = sql + 
@@ -439,7 +439,7 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                     }
                     sql = sql + `
                         DELETE FROM Receipt_Details WHERE Receipt_Details.document_number in (?);
-                        DELETE FROM Ledger WHERE Ledger.document_number in (?);
+                        DELETE FROM Ledger WHERE Ledger.document_number in (?) AND Ledger.tc = "CR";
                         DELETE FROM Receipt WHERE Receipt.document_number in (?);
                     `;
                     console.log(sql, docnum);
@@ -566,7 +566,7 @@ router.post("/delete", middleware.loggedin_as_admin, (req, res) => {
                     }
                     sql = sql + `
                         DELETE FROM Receipt_Details WHERE Receipt_Details.document_number in (?);
-                        DELETE FROM Ledger WHERE Ledger.document_number in (?);
+                        DELETE FROM Ledger WHERE Ledger.document_number in (?) and Ledger.tc = "CR";
                         DELETE FROM Receipt WHERE Receipt.document_number in (?);
                     `;
                     connection.query(sql, [docnum, docnum, docnum], (err1, results1) => {

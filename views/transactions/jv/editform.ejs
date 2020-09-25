@@ -30,8 +30,8 @@
     <main>
         <div class="container" style="background-color: #DBFFFB; width: 98%">
             <%- include('../../partials/err.ejs') %>
-            <h2 class="heading-text">Receipt</h2>
-            <form class="form-horizontal" id="main-form" action="/receipt/edit/<%= document_number %>" method="POST">
+            <h2 class="heading-text">Journal Voucher</h2>
+            <form class="form-horizontal" id="main-form" action="/jv/edit/<%= document_number %>" method="POST">
                 <div class="row">
                     <div class="table-responsive">
                         <table class="table info-table">
@@ -43,51 +43,25 @@
                                         <input type="number" name="document_number" class="input-disabled"
                                             value="<%= document_number %>" readonly>
                                     </td>
-                                    <td></td>
-                                    <td class="label-text">Receipt Account</td>
-                                    <td><b>:</b></td>
-                                    <td id="table_dr_sub_account_id">
-                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
-                                            name="dr_sub_account_id" id="dr_sub_account_id" required>
-                                            <option>CASH</option>
-                                            <option>BANK</option>
-                                        </select>
-                                    </td>
                                 </tr>
                                 <tr>
-                                    <td class="label-text">Receipt Number</td>
+                                    <td class="label-text">JV Number</td>
                                     <td><b>:</b></td>
-                                    <td id="table_receipt_number">
-                                        <input type="text" name="receipt_number" value="<%= receipt.receipt_number %>" required>
+                                    <td id="table_jv_number">
+                                        <input type="text" name="jv_number" value="<%= jv.jv_number %>" required>
                                     </td>
                                     <td></td>
-                                    <td class="label-text">Date</td>
+                                    <td class="label-text">JV Date</td>
                                     <td><b>:</b></td>
-                                    <td id="table_receipt_date">
-                                        <input type="date" name="receipt_date" value="<%= receipt.receipt_nice_date %>">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="label-text">A/C ID</td>
-                                    <td><b>:</b></td>
-                                    <td id="table_cr_account_id">
-                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
-                                            name="cr_account_id" id="account_id_select" required>
-                                            <% for(item of account_head){ %>
-                                            <option><%= item.account_id %></option>
-                                            <% } %>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="text" id="account_name_res" name="account_name"
-                                            style="width: 100%;" disabled>
+                                    <td id="table_jv_date">
+                                        <input type="date" name="jv_date" value="<%= jv.jv_nice_date %>">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="label-text">Narration</td>
                                     <td><b>:</b></td>
                                     <td colspan="2" id="table_narration">
-                                        <textarea name="acc_narration" cols="30" rows="4"><%= receipt.narration %></textarea>
+                                        <textarea name="acc_narration" cols="30" rows="4"><%= jv.narration %></textarea>
                                     </td>
                                 </tr>
                             </tbody>
@@ -98,18 +72,20 @@
                     <div class="table-responsive">
                         <table class="table receipt-details-table">
                             <colgroup>
-                                <col span="1" style="width: 5%">
-                                <col span="1" style="width: 10%">
-                                <col span="1" style="width: 40%">
-                                <col span="1" style="width: 10%">
-                                <col span="1" style="width: 20%">
-                                <col span="1" style="width: 10%">
+                                <col style="width: 5%;">
+                                <col style="width: 15%;">
+                                <col style="width: 30%;">
+                                <col style="width: 10%;">
+                                <col style="width: 10%;">
+                                <col style="width: 20%;">
+                                <col style="width: 10%;">
                             </colgroup>
                             <thead>
                                 <th>SR.</th>
-                                <th>Member ID</th>
-                                <th>Member Name</th>
-                                <th>Amount</th>
+                                <th>Society</th>
+                                <th>Member</th>
+                                <th>Credit</th>
+                                <th>Debit</th>
                                 <th>Narration</th>
                                 <th>Actions</th>
                             </thead>
@@ -118,15 +94,29 @@
                             <tfoot>
                                 <tr id="addentryform">
                                     <td></td>
-                                    <td id="addentryform_select">
+                                    <td id="addentryform_account_id_select">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="account_id" id="account_id_select" required>
+                                            <% for(item of account_head){ %>
+                                            <option><%= item.account_id %></option>
+                                            <% } %>
+                                        </select><br /><br />
+                                        <input type="text" style="text-align: center;" name="account_name_res"
+                                            id="account_name_res" disabled>
+                                    </td>
+                                    <td id="addentryform_sub_account_id_select" style="white-space: true;">
                                         <select class="form-control selectpicker" data-live-search="true" data-size="5"
                                             name="sub_account_id" id="sub_account_id_select" required>
-                                        </select>
+                                        </select><br /><br />
+                                        <input type="text" style="text-align: center;" name="sub_account_name_res"
+                                            id="sub_account_name_res" disabled>
                                     </td>
-                                    <td><input type="text" name="sub_account_name" id="sub_account_name_res" disabled>
                                     </td>
-                                    <td><input type="number" step="0.01" name="receipt_amount" class="right-align"></td>
-                                    <td><input type="text" name="narration"></td>
+                                    <td><input type="number" step="0.01" value="0" name="cr_amount" class="right-align">
+                                    </td>
+                                    <td><input type="number" step="0.01" value="0" name="dr_amount" class="right-align">
+                                    </td>
+                                    <td><textarea name="narration" cols="25" rows="4"></textarea></td>
                                     <td>
                                         <button id="addentry" type="button" class="btn btn-success">
                                             <i class="material-icons" style="vertical-align: middle;">&#xe147;</i>
@@ -135,9 +125,9 @@
                                 </tr>
                                 <tr style="background-color: gray;">
                                     <td></td>
-                                    <td></td>
-                                    <td><b>Total</b></td>
-                                    <td id="totalentry" class="right-align"></td>
+                                    <td colspan="2"><b>Total</b></td>
+                                    <td id="cr_totalentry" class="right-align"></td>
+                                    <td id="dr_totalentry" class="right-align"></td>
                                     <td></td>
                                     <td></td>
                                 </tr>
@@ -157,56 +147,64 @@
                 <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: right; float: right;">
                     <button class="btn btn-lg btn-warning" type="button" id="clearentry"><b>Clear All</b></button>
                     <button class="btn btn-lg btn-success" type="submit"><b>Submit</b></button>
-                    <a href="/receipt"><button class="btn btn-lg btn-danger" type="button"><b>Cancel</b></button></a>
+                    <a href="/jv"><button class="btn btn-lg btn-danger" type="button"><b>Cancel</b></button></a>
                 </div>
             </form>
         </div>
     </main>
 
     <script>
-        var entries = <%- JSON.stringify(receipt_details) %>;
-        var current_options = [];
-        var lastindex = <%= receipt_details.length %>;
-        var total_gb = parseFloat(<%= receipt.total_amount %>);
-        var accid = '';
+        var entries = <%- JSON.stringify(jv_details) %>;
+        var account_head_list = <%- JSON.stringify(account_head_list) %>;
+        var account_options = "";
+        var lastindex = <%= jv_details.length %>;
+        var cr_total_gb = 0.00;
+        var dr_total_gb = 0.00;
         var eflag = false;
 
         function fillallentries() {
             if (entries.length === 0) {
-                total_gb = 0.00;
+                cr_total_gb = 0.00;
+                dr_total_gb = 0.00;
                 $("#entries").empty();
-                $("#totalentry").empty();
+                $("#cr_totalentry").empty();
+                $("#dr_totalentry").empty();
             }
             else {
-                total = 0.00;
+                var cr_total = 0.00;
+                var dr_total = 0.00;
                 var counter = 0;
                 $("#entries").empty();
                 for (i = 0; i < entries.length; i++) {
                     entryob = entries[i];
                     counter++;
                     var inhtml = `
-                <tr id=`+ counter + `>
-                    <td>`+ counter + `</td>
-                    <td>`+ entryob.sub_account_id + `</td>
-                    <td class="left-align">`+ entryob.sub_account_name + `</td>
-                    <td class="right-align">&#8377; `+ parseFloat(entryob.receipt_amount).toLocaleString('en-IN') + `</td>
-                    <td>`+ entryob.narration + `</td>
-                    <td id="actions">
-                        <span style="cursor: pointer; color: yellow;" onclick="editentry(`+ counter + `)"><i
-                                class="material-icons">&#xE254;</i></span>
-                        <span style="cursor: pointer; color: red;" onclick="deleteentry(`+ counter + `)"><i
-                                class="material-icons">&#xE872;</i></span>
-                    </td>
-                    <input type="hidden" name="sub_account_ids[${i}]" value="${entryob.sub_account_id}">
-                    <input type="hidden" name="receipt_amounts[${i}]" value="${entryob.receipt_amount}">
-                    <input type="hidden" name="narrations[${i}]" value="${entryob.narration}">
-                </tr>
-            `;
-                    total = total + parseFloat(entryob.receipt_amount);
+                        <tr id=${counter}>
+                            <td>${counter}</td>
+                            <td style="white-space: true;">${entryob.account_id}<br/>${entryob.account_name}</td>
+                            <td style="white-space: true;">${entryob.sub_account_id}<br/>${entryob.sub_account_name}</td>
+                            <td class="right-align">${parseFloat(entryob.cr_amount).toLocaleString('en-IN')}</td>
+                            <td class="right-align">${parseFloat(entryob.dr_amount).toLocaleString('en-IN')}</td>
+                            <td>${entryob.narration}</td>
+                            <td>
+                                <span style="cursor: pointer; color: yellow;" onclick="editentry(${counter})"><i class="material-icons">&#xE254;</i></span>
+                                <span style="cursor: pointer; color: red;" onclick="deleteentry(${counter})"><i class="material-icons">&#xE872;</i></span>
+                            </td>
+                            <input type="hidden" name="account_ids[${counter - 1}]" value="${entryob.account_id}">
+                            <input type="hidden" name="sub_account_ids[${counter - 1}]" value="${entryob.sub_account_id}">
+                            <input type="hidden" name="cr_amounts[${counter - 1}]" value="${entryob.cr_amount}">
+                            <input type="hidden" name="dr_amounts[${counter - 1}]" value="${entryob.dr_amount}">
+                            <input type="hidden" name="narrations[${counter - 1}]" value="${entryob.narration}">
+                        </tr>
+                    `;
+                    cr_total += parseFloat(entryob.cr_amount);
+                    dr_total += parseFloat(entryob.dr_amount);
                     $("#entries").append(inhtml);
                 }
-                $("#totalentry").html("&#8377; " + total.toLocaleString('en-IN'));
-                total_gb = total;
+                $("#cr_totalentry").html("&#8377; " + cr_total.toLocaleString('en-IN'));
+                $("#dr_totalentry").html("&#8377; " + dr_total.toLocaleString('en-IN'));
+                cr_total_gb = cr_total;
+                dr_total_gb = dr_total;
             }
         }
 
@@ -214,78 +212,124 @@
             if (eflag)
                 return false;
             eflag = true;
-
-            // Identify Row
             var edit_entry = entries[entryindex - 1];
-            var row = $("#entries #" + entryindex);
-
-            // Option Change
-            var option_col_val = edit_entry["sub_account_id"], options = "";
-            for (item of current_options) {
-                options = options + `<option>${item}</option>`;
+            var rowid = "#entries #" + entryindex;
+            var row = $(rowid);
+            var sub_account_list = [];
+            var sub_account_options = "";
+            $.ajax({
+                url: '/api/transaction/account_details/' + edit_entry.account_id,
+                async: false,
+                success: function (res) {
+                    if (res.status === true) {
+                        for(item of res.sub_account_id) {
+                            sub_account_list.push(item.sub_account_id);
+                        }
+                    }
+                }
+            });
+            for(option of sub_account_list) {
+                sub_account_options = sub_account_options + `<option>${option}</option>`;
             }
             var inhtml = `
-        <select class="form-control selectpicker" data-live-search="true" data-dropup-auto="false" data-size="5" name="sub_account_id_copy" id="sub_account_id_select_copy" onchange="sub_optionchange(true)" required>
-        `+ options + `
-        </select>
-    `;
-            row.children("td:eq(1)").html(inhtml);
+                <td>${entryindex}</td>
+                <td id="addentryform_account_id_select_copy">
+                    <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                        name="account_id_copy" id="account_id_select_copy" onchange="optionchange(true)" data-dropup-auto="false" required>
+                    ${account_options}
+                    </select><br /><br />
+                    <input type="text" style="text-align: center;" name="account_name_res_copy"
+                        id="account_name_res_copy" value="${edit_entry.account_name}" disabled>
+                </td>
+                <td id="addentryform_sub_account_id_select_copy" style="white-space: true;">
+                    <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                        name="sub_account_id_copy" id="sub_account_id_select_copy" data-dropup-auto="false" onchange="sub_optionchange(true)" required>
+                        ${sub_account_options}
+                    </select><br /><br />
+                    <input type="text" style="text-align: center;" name="sub_account_name_res_copy"
+                        id="sub_account_name_res_copy" value="${edit_entry.sub_account_name}" disabled>
+                </td>
+                <td>
+                    <input type="number" step="0.01" value="${edit_entry.cr_amount}" name="cr_amount_copy" class="right-align">
+                </td>
+                <td>
+                    <input type="number" step="0.01" value="${edit_entry.dr_amount}" name="dr_amount_copy" class="right-align">
+                </td>
+                <td>
+                    <textarea name="narration_copy" cols="25" rows="4">${edit_entry.narration}</textarea></td>
+                <td>
+                    <span style="cursor: pointer; color: green;" onclick="submit_editentry(${entryindex})">
+                        <i class="material-icons" style="transform: scale(2);" >&#xe834;</i>
+                    </span>
+                </td>
+            `;
+            row.html(inhtml);
+            $("#account_id_select_copy").selectpicker('refresh');
             $("#sub_account_id_select_copy").selectpicker('refresh');
-            $("#sub_account_id_select_copy").selectpicker('val', option_col_val);
-            $("#sub_account_id_select_copy").selectpicker('toggle');
-
-            // Sub Account Name Change
-            var sub_name_col_val = edit_entry["sub_account_name"];
-            inhtml = `<input type="text" name="sub_account_name_copy" id="sub_account_name_res_copy" value="${sub_name_col_val}" disabled>`;
-            row.children("td:eq(2)").html(inhtml);
-
-            // Amount Change
-            var amount_col_val = edit_entry["receipt_amount"];
-            inhtml = `<input type="number" step="0.01" id="receipt_amount_copy" name="receipt_amount_copy" value="${amount_col_val}" class="right-align"></input>`;
-            row.children("td:eq(3)").html(inhtml);
-
-            // Narration Change
-            inhtml = `<input type="text" name="narration_copy" id="narration_copy" value="${edit_entry["narration"]}"></input>`;
-            row.children("td:eq(4)").html(inhtml);
-
-            // Action Chnage
-            inhtml = `
-        <span style="cursor: pointer; color: green;" onclick="submit_editentry(${entryindex})">
-            <i class="material-icons" style="transform: scale(2);" >&#xe834;</i>
-        </span>
-    `;
-            row.children("td:eq(5)").html(inhtml);
+            $("#account_id_select_copy").selectpicker('val',edit_entry.account_id);
+            $("#sub_account_id_select_copy").selectpicker('val',edit_entry.sub_account_id);
+            $("#account_id_select_copy").selectpicker('refresh');
+            $("#sub_account_id_select_copy").selectpicker('refresh');
+            $("#account_id_select_copy").selectpicker('toggle');
         }
 
         function submit_editentry(entryindex) {
+            var edit_entry = entries[entryindex - 1];
+            var rowid = "#entries #" + entryindex;
+            var account_id = $(rowid + " select[name=account_id_copy]");
+            var account_name = $(rowid + " #account_name_res_copy");
+            var sub_account_id = $(rowid + " select[name=sub_account_id_copy]");
+            var sub_account_name = $(rowid + " #sub_account_name_res_copy");
+            var cr_amount = $(rowid + " input[name=cr_amount_copy]");
+            var dr_amount = $(rowid + " input[name=dr_amount_copy]")
+            var narration = $(rowid + " textarea[name=narration_copy]");
+            var cr_amount_val = parseFloat(cr_amount.val() || '0');
+            var dr_amount_val = parseFloat(dr_amount.val() || '0');
+            console.log(cr_amount_val, dr_amount_val);
+            if (cr_amount_val != 0 && dr_amount_val != 0) {
+                alert('Credit and Debit both should not be there!');
+                return false;
+            }
+            if (cr_amount_val == 0 && dr_amount_val == 0) {
+                return false;
+            }
+            if (!account_id.children("option:selected").val() || !sub_account_id.children("option:selected").val() || cr_amount_val < 0 || dr_amount_val < 0) {
+                return false;
+            }
             var entryob = {
-                sub_account_id: $("#sub_account_id_select_copy").selectpicker('val'),
-                sub_account_name: $("#sub_account_name_res_copy").val(),
-                receipt_amount: $("#receipt_amount_copy").val(),
-                narration: $("#narration_copy").val()
+                account_id: account_id.children("option:selected").val(),
+                account_name: account_name.val(),
+                sub_account_id: sub_account_id.children("option:selected").val(),
+                sub_account_name: sub_account_name.val(),
+                cr_amount: cr_amount_val,
+                dr_amount: dr_amount_val,
+                narration: narration.val()
             }
             var row = $("#entries #" + entryindex);
             row.empty();
             var inhtml = `
-        <td>`+ entryindex + `</td>
-        <td>`+ entryob.sub_account_id + `</td>
-        <td class="left-align">`+ entryob.sub_account_name + `</td>
-        <td class="right-align">&#8377; `+ parseFloat(entryob.receipt_amount).toLocaleString('en-IN') + `</td>
-        <td>`+ entryob.narration + `</td>
-        <td id="actions">
-            <span style="cursor: pointer; color: yellow;" onclick="editentry(`+ entryindex + `)"><i
-                    class="material-icons">&#xE254;</i></span>
-            <span style="cursor: pointer; color: red;" onclick="deleteentry(`+ entryindex + `)"><i
-                    class="material-icons">&#xE872;</i></span>
-        </td>
-        <input type="hidden" name="sub_account_ids[${entryindex - 1}]" value="${entryob.sub_account_id}">
-        <input type="hidden" name="receipt_amounts[${entryindex - 1}]" value="${entryob.receipt_amount}">
-        <input type="hidden" name="narrations[${entryindex - 1}]" value="${entryob.narration}">
-    `;
+                <td>${entryindex}</td>
+                <td style="white-space: true;">${entryob.account_id}<br/>${entryob.account_name}</td>
+                <td style="white-space: true;">${entryob.sub_account_id}<br/>${entryob.sub_account_name}</td>
+                <td class="right-align">${parseFloat(entryob.cr_amount).toLocaleString('en-IN')}</td>
+                <td class="right-align">${parseFloat(entryob.dr_amount).toLocaleString('en-IN')}</td>
+                <td>${entryob.narration}</td>
+                <td>
+                    <span style="cursor: pointer; color: yellow;" onclick="editentry(${entryindex})"><i class="material-icons">&#xE254;</i></span>
+                    <span style="cursor: pointer; color: red;" onclick="deleteentry(${entryindex})"><i class="material-icons">&#xE872;</i></span>
+                </td>
+                <input type="hidden" name="account_ids[${entryindex - 1}]" value="${entryob.account_id}">
+                <input type="hidden" name="sub_account_ids[${entryindex - 1}]" value="${entryob.sub_account_id}">
+                <input type="hidden" name="cr_amounts[${entryindex - 1}]" value="${entryob.cr_amount}">
+                <input type="hidden" name="dr_amounts[${entryindex - 1}]" value="${entryob.dr_amount}">
+                <input type="hidden" name="narrations[${entryindex - 1}]" value="${entryob.narration}">
+            `;
             row.html(inhtml);
-            total_gb = total_gb - parseFloat(entries[entryindex - 1]["receipt_amount"]) + parseFloat(entryob["receipt_amount"]);
-            entries[entryindex - 1] = entryob;
-            $("#totalentry").html("&#8377; " + total_gb.toLocaleString('en-IN'));
+            cr_total_gb = cr_total_gb - edit_entry.cr_amount + entryob.cr_amount;
+            dr_total_gb = dr_total_gb - edit_entry.dr_amount + entryob.dr_amount;
+            $("#cr_totalentry").html("&#8377; " + cr_total_gb.toLocaleString('en-IN'));
+            $("#dr_totalentry").html("&#8377; " + dr_total_gb.toLocaleString('en-IN'));
+            entries[entryindex-1] = entryob;
             eflag = false;
         }
 
@@ -300,30 +344,40 @@
                 return false;
         }
 
-        function optionchange() {
+        function optionchange(flag) {
+            var ajax_account_id = "#account_id_select";
+            var ajax_account_name = "#account_name_res";
+            var ajax_sub_account_id = "#sub_account_id_select";
+            var ajax_sub_account_name = "#sub_account_name_res";
+            if (flag == true) {
+                ajax_account_id = "#account_id_select_copy";
+                ajax_account_name = "#account_name_res_copy";
+                ajax_sub_account_id = "#sub_account_id_select_copy";
+                ajax_sub_account_name = "#sub_account_name_res_copy";
+            }
+            var account_id = $(ajax_account_id).children("option:selected").val();
             $.ajax({
-                url: '/api/transaction/account_details/' + $("#account_id_select").children("option:selected").val(),
+                url: '/api/transaction/account_details/' + account_id,
                 success: function (res) {
                     if (res.status === true) {
-                        $("#account_name_res").val(res.account_name);
-                        var select_ele = $("#sub_account_id_select"), options = "";
+                        $(ajax_account_name).val(res.account_name);
+                        var select_ele = $(ajax_sub_account_id), options = "";
                         select_ele.empty();
                         select_ele.selectpicker('refresh');
-                        current_options = [];
                         for (sid of res.sub_account_id) {
-                            current_options.push(sid.sub_account_id);
                             options = options + "<option>" + sid.sub_account_id + "</option>";
                         }
                         $(select_ele).append(options);
                         $(select_ele).selectpicker('refresh');
-                        sub_optionchange();
+                        sub_optionchange(flag);
                     }
                     else {
-                        current_options = [];
-                        $("#sub_account_id_select").empty();
-                        $("#sub_account_id_select").selectpicker('refresh');
-                        $("#account_name_res").val("--------NO NAME FOUND--------");
-                        $("#sub_account_name_res").val("--------NO NAME FOUND--------");
+                        $(ajax_account_id).empty();
+                        $(ajax_sub_account_id).empty();
+                        $(ajax_account_id).selectpicker('refresh');
+                        $(ajax_sub_account_id).selectpicker('refresh');
+                        $(ajax_account_name).val("--------NO NAME FOUND--------");
+                        $(ajax_sub_account_name).val("--------NO NAME FOUND--------");
                     }
                 }
             });
@@ -355,31 +409,29 @@
         /*
         function fillmainparameters() {
         }
-        
+
         function savemainparameters() {
         }
-        
+
         function restoremainparameters() {
         }
         */
 
         $(document).ready(function () {
 
-            $("#account_id_select").selectpicker('val','<%= receipt.cr_account_id %>');
-            $("#dr_sub_account_id").selectpicker('val','<%= receipt.dr_sub_account_id %>');
-            $("#table_receipt_number input[name=receipt_number]").focus();
-
             fillallentries();
 
+            $("#table_jv_number input[name=jv_number]").focus();
             /*
             if (localStorage.getItem('savedEntries')) {
                 entries = JSON.parse(localStorage.getItem('savedEntries'));
                 fillallentries();
             }
             */
-
+            for(option of account_head_list) {
+                account_options = account_options + `<option>${option}</option>`; 
+            }
             optionchange();
-
             /*
             $("#saveentry").click(function (e) {
                 e.preventDefault();
@@ -387,13 +439,13 @@
                     localStorage.setItem('savedEntries', JSON.stringify(entries));
                 alert('Data saved locally !');
             });
-        
+
             $("#restoreentry").click(function (e) {
                 e.preventDefault();
                 entries = JSON.parse(localStorage.getItem('savedEntries'));
                 fillallentries();
             });
-        
+
             $("#removedata").click(function (e) {
                 localStorage.removeItem('savedEntries');
             });
@@ -401,27 +453,12 @@
 
             $("#clearentry").click(function (e) {
                 entries = [];
+                lastindex = 0;
                 fillallentries();
             });
 
             $("#account_id_select").on("change", function () {
-                if ($("#entries").children("tr").length > 0) {
-                    var flag = confirm("Do you want to change Society ID ?\n All the entries listed below will be deleted..");
-                    if (flag == true) {
-                        accid = $(this).val();
-                        $("#entries").empty();
-                        $("#totalentry").empty();
-                        total_gb = 0.00;
-                        optionchange();
-                    }
-                    else {
-                        $(this).selectpicker('val', accid);
-                    }
-                }
-                else {
-                    accid = $(this).val();
-                    optionchange();
-                }
+                optionchange();
             });
 
             $("#sub_account_id_select").change(function () {
@@ -429,16 +466,37 @@
             });
 
             $("#addentry").click(function () {
+                var account_id = $("#addentryform select[name=account_id]");
+                var account_name = $("#account_name_res");
                 var sub_account_id = $("#addentryform select[name=sub_account_id]");
-                var sub_account_name = $("#addentryform input[name=sub_account_name]");
-                var receipt_amount = $("#addentryform input[name=receipt_amount]");
-                var narration = $("#addentryform input[name=narration]");
+                var sub_account_name = $("#sub_account_name_res");
+                var cr_amount = $("#addentryform input[name=cr_amount]");
+                var dr_amount = $("#addentryform input[name=dr_amount]")
+                var narration = $("#addentryform textarea[name=narration]");
+                var cr_amount_val = parseFloat(cr_amount.val() || '0');
+                var dr_amount_val = parseFloat(dr_amount.val() || '0');
+                console.log(cr_amount_val, dr_amount_val);
+                if (cr_amount_val != 0 && dr_amount_val != 0) {
+                    alert('Credit and Debit both should not be there!');
+                    return false;
+                }
+                if (cr_amount_val == 0 && dr_amount_val == 0) {
+                    return false;
+                }
+                if (!account_id.children("option:selected").val() || !sub_account_id.children("option:selected").val() || cr_amount_val < 0 || dr_amount_val < 0) {
+                    return false;
+                }
+                /*
                 if (!sub_account_id.children("option:selected").val() || !receipt_amount.val() || receipt_amount.val() <= 0)
                     return false;
+                */
                 var entryob = {
+                    account_id: account_id.children("option:selected").val(),
+                    account_name: account_name.val(),
                     sub_account_id: sub_account_id.children("option:selected").val(),
                     sub_account_name: sub_account_name.val(),
-                    receipt_amount: receipt_amount.val(),
+                    cr_amount: cr_amount_val,
+                    dr_amount: dr_amount_val,
                     narration: narration.val()
                 }
                 entries.push(entryob);
@@ -446,45 +504,48 @@
                 var inhtml = `
                     <tr id=`+ lastindex + `>
                         <td>`+ lastindex + `</td>
-                        <td>`+ entryob.sub_account_id + `</td>
-                        <td class="left-align">`+ entryob.sub_account_name + `</td>
-                        <td class="right-align">&#8377; `+ parseFloat(entryob.receipt_amount).toLocaleString('en-IN') + `</td>
-                        <td>`+ entryob.narration + `</td>
-                        <td id="actions">
-                            <span style="cursor: pointer; color: yellow;" onclick="editentry(`+ lastindex + `)"><i
-                                    class="material-icons">&#xE254;</i></span>
-                            <span style="cursor: pointer; color: red;" onclick="deleteentry(`+ lastindex + `)"><i
-                                    class="material-icons">&#xE872;</i></span>
+                        <td style="white-space: true;">${entryob.account_id}<br/>${entryob.account_name}</td>
+                        <td style="white-space: true;">${entryob.sub_account_id}<br/>${entryob.sub_account_name}</td>
+                        <td class="right-align">${parseFloat(entryob.cr_amount).toLocaleString('en-IN')}</td>
+                        <td class="right-align">${parseFloat(entryob.dr_amount).toLocaleString('en-IN')}</td>
+                        <td>${entryob.narration}</td>
+                        <td>
+                            <span style="cursor: pointer; color: yellow;" onclick="editentry(`+ lastindex + `)"><i class="material-icons">&#xE254;</i></span>
+                            <span style="cursor: pointer; color: red;" onclick="deleteentry(`+ lastindex + `)"><i class="material-icons">&#xE872;</i></span>
                         </td>
+                        <input type="hidden" name="account_ids[${lastindex - 1}]" value="${entryob.account_id}">
                         <input type="hidden" name="sub_account_ids[${lastindex - 1}]" value="${entryob.sub_account_id}">
-                        <input type="hidden" name="receipt_amounts[${lastindex - 1}]" value="${entryob.receipt_amount}">
+                        <input type="hidden" name="cr_amounts[${lastindex - 1}]" value="${entryob.cr_amount}">
+                        <input type="hidden" name="dr_amounts[${lastindex - 1}]" value="${entryob.dr_amount}">
                         <input type="hidden" name="narrations[${lastindex - 1}]" value="${entryob.narration}">
                     </tr>
                 `;
-                total_gb = total_gb + parseFloat(entryob.receipt_amount);
-                $("#totalentry").html("&#8377; " + total_gb.toLocaleString('en-IN'));
-                $("#addentryform select[name=sub_account_id] option:first").attr('selected', true).change();
+                cr_total_gb += entryob.cr_amount;
+                dr_total_gb += entryob.dr_amount;
+                $("#cr_totalentry").html("&#8377; " + cr_total_gb.toLocaleString('en-IN'));
+                $("#dr_totalentry").html("&#8377; " + dr_total_gb.toLocaleString('en-IN'));
+                $("#addentryform select[name=account_id] option:first").attr('selected', true).change();
+                account_name.val('');
                 sub_account_name.val('');
-                receipt_amount.val('');
+                cr_amount.val('');
+                dr_amount.val('');
                 narration.val('');
                 $("#entries").append(inhtml);
-                $("#sub_account_id_select").selectpicker('toggle');
-            });
-
-            $("#table_receipt_number input[name=receipt_number]").on('input', function () {
-                var txt = "Receipt No.: " + $(this).val();
-                $("#table_narration textarea[name=acc_narration]").val(txt);
+                $("#account_id_select").selectpicker('toggle');
             });
 
             $("#main-form").submit(function (e) {
-                if ($("#entries td").length <= 0) {
+                if ($("#entries td").length <= 1) {
                     e.preventDefault();
-                    alert('Enter atleast one entry before submitting the form!');
+                    alert('Enter atleast two entry before submitting the form!');
+                }
+                else if (cr_total_gb != dr_total_gb) {
+                    e.preventDefault();
+                    alert('Credit Amount and Debit Amount should be same!');
                 }
             });
 
         });
-    
     </script>
 
 </body>

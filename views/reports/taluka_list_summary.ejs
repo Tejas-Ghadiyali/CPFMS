@@ -30,7 +30,7 @@
     <main>
         <div class="container" style="background-color: #DBFFFB; width: 98%">
             <%- include('../partials/err.ejs') %>
-            <h2 class="heading-text"><u>Society List Report</u></h2>
+            <h2 class="heading-text"><u>Taluka List Report</u></h2>
             <form class="form-horizontal" id="report_parameters_form">
                 <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: right; float: right;">
                     <button class="btn btn-lg btn-primary" type="submit"><b>Generate PDF</b></button>
@@ -59,7 +59,7 @@
                 var formData = $("#report_parameters_form").serialize();
                 enter = true;
                 $.ajax({
-                    url: '/api/reportmaster/accounthead',
+                    url: '/api/reportmaster/talukalistsummary',
                     data: formData,
                     method: 'GET',
                     success: function (res) {

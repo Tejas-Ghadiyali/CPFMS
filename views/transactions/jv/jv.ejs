@@ -370,7 +370,7 @@
             <div class="modal-content">
                 <form action="/jv/search" class="form-horizontal" method="GET">
                     <div class="modal-header">
-                        <h3 class="modal-title"><b><u>Search Receipt</u></b></h3>
+                        <h3 class="modal-title"><b><u>Search Journal Voucher</u></b></h3>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                     </div>
                     <div class="modal-body">
@@ -379,20 +379,16 @@
                             <input type="text" class="form-control" name="document_number" placeholder="Document Number">
                         </div>
                         <div class="form-group">
-                            <label><i><b>Receipt Number</b></i></label>
+                            <label><i><b>JV Number</b></i></label>
                             <input type="text" class="form-control" name="jv_number" placeholder="Receipt Number">
                         </div>
                         <div class="form-group">
-                            <label><i><b>Receipt Date</b></i></label>
+                            <label><i><b>JV Date</b></i></label>
                             <input type="date" class="form-control" name="jv_date">
                         </div>
                         <div class="form-group">
-                            <label><i><b>Society Id</b></i></label>
-                            <input type="text" class="form-control" name="account_id" placeholder="Society ID">
-                        </div>
-                        <div class="form-group">
-                            <label><i><b>Society Name</b></i></label>
-                            <input type="text" class="form-control" name="account_name" placeholder="Society Name">
+                            <label><i><b>JV Amount</b></i></label>
+                            <input type="number" min="0" step="0.01" class="form-control" placeholder="JV Amount" name="amount">
                         </div>
                     </div>
                     <div class="modal-footer">

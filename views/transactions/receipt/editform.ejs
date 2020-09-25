@@ -185,23 +185,23 @@
                     entryob = entries[i];
                     counter++;
                     var inhtml = `
-                <tr id=`+ counter + `>
-                    <td>`+ counter + `</td>
-                    <td>`+ entryob.sub_account_id + `</td>
-                    <td class="left-align">`+ entryob.sub_account_name + `</td>
-                    <td class="right-align">&#8377; `+ parseFloat(entryob.receipt_amount).toLocaleString('en-IN') + `</td>
-                    <td>`+ entryob.narration + `</td>
-                    <td id="actions">
-                        <span style="cursor: pointer; color: yellow;" onclick="editentry(`+ counter + `)"><i
-                                class="material-icons">&#xE254;</i></span>
-                        <span style="cursor: pointer; color: red;" onclick="deleteentry(`+ counter + `)"><i
-                                class="material-icons">&#xE872;</i></span>
-                    </td>
-                    <input type="hidden" name="sub_account_ids[${i}]" value="${entryob.sub_account_id}">
-                    <input type="hidden" name="receipt_amounts[${i}]" value="${entryob.receipt_amount}">
-                    <input type="hidden" name="narrations[${i}]" value="${entryob.narration}">
-                </tr>
-            `;
+                        <tr id=`+ counter + `>
+                            <td>`+ counter + `</td>
+                            <td>`+ entryob.sub_account_id + `</td>
+                            <td class="left-align">`+ entryob.sub_account_name + `</td>
+                            <td class="right-align">&#8377; `+ parseFloat(entryob.receipt_amount).toLocaleString('en-IN') + `</td>
+                            <td>`+ entryob.narration + `</td>
+                            <td id="actions">
+                                <span style="cursor: pointer; color: yellow;" onclick="editentry(`+ counter + `)"><i
+                                        class="material-icons">&#xE254;</i></span>
+                                <span style="cursor: pointer; color: red;" onclick="deleteentry(`+ counter + `)"><i
+                                        class="material-icons">&#xE872;</i></span>
+                            </td>
+                            <input type="hidden" name="sub_account_ids[${i}]" value="${entryob.sub_account_id}">
+                            <input type="hidden" name="receipt_amounts[${i}]" value="${entryob.receipt_amount}">
+                            <input type="hidden" name="narrations[${i}]" value="${entryob.narration}">
+                        </tr>
+                    `;
                     total = total + parseFloat(entryob.receipt_amount);
                     $("#entries").append(inhtml);
                 }
@@ -401,6 +401,7 @@
 
             $("#clearentry").click(function (e) {
                 entries = [];
+                lastindex = 0;
                 fillallentries();
             });
 

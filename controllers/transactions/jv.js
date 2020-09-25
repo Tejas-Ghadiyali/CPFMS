@@ -57,12 +57,12 @@ router.get("/", middleware.loggedin_as_superuser, (req, res) => {
                         pagenum = 1;
                     }
                     var sql2 = `
-                    SELECT
-                        JV.*,
-                        DATE_FORMAT(JV.jv_date,'%d/%m/%Y') AS jv_nice_date
-                    FROM JV
-                    ORDER BY JV.document_number DESC
-                    LIMIT ? , ?;
+                        SELECT
+                            JV.*,
+                            DATE_FORMAT(JV.jv_date,'%d/%m/%Y') AS jv_nice_date
+                        FROM JV
+                        ORDER BY JV.document_number DESC
+                        LIMIT ? , ?;
                     `;
                     var offset = (pagenum - 1) * entries_per_page;
                     if (offset < 0)
@@ -121,72 +121,51 @@ router.get("/search", middleware.loggedin_as_superuser, (req, res) => {
         }
         else {
             var sql = `
-                SELECT
+                SELECT SQL_CALC_FOUND_ROWS
                     JV.*,
-                    DATE_FORMAT(JV.jv_date,'%d/%m/%Y') AS jv_nice_date,
-                    Account_Head.account_name
+                    DATE_FORMAT(JV.jv_date,'%d/%m/%Y') AS jv_nice_date
                 FROM JV
-                INNER JOIN Account_Head
-                    ON Account_Head.account_id = JV.cr_account_id
             `;
             var ob = req.query;
             var flag = false;
-            if(ob["document_number"]) {
-                if(!flag) {
+            if (ob["document_number"]) {
+                if (!flag) {
                     flag = true;
-                    sql = sql + " WHERE JV.document_number ="+ connection.escape(ob["document_number"]);
+                    sql = sql + " WHERE JV.document_number =" + connection.escape(ob["document_number"]);
                 }
                 else {
-                    sql = sql + " AND JV.document_number ="+ connection.escape(ob["document_number"]);
+                    sql = sql + " AND JV.document_number =" + connection.escape(ob["document_number"]);
                 }
             }
-            if(ob["jv_number"]) {
-                if(!flag) {
+            if (ob["jv_number"]) {
+                if (!flag) {
                     flag = true;
-                    sql = sql + " WHERE JV.jv_number ="+ connection.escape(ob["jv_number"]);
+                    sql = sql + " WHERE JV.jv_number =" + connection.escape(ob["jv_number"]);
                 }
                 else {
-                    sql = sql + " AND JV.jv_number ="+ connection.escape(ob["jv_number"]);
+                    sql = sql + " AND JV.jv_number =" + connection.escape(ob["jv_number"]);
                 }
             }
-            if(ob["jv_date"]) {
-                if(!flag) {
+            if (ob["jv_date"]) {
+                if (!flag) {
                     flag = true;
-                    sql = sql + " WHERE JV.jv_date ="+ connection.escape(ob["jv_date"]);
+                    sql = sql + " WHERE JV.jv_date =" + connection.escape(ob["jv_date"]);
                 }
                 else {
-                    sql = sql + " AND JV.jv_date ="+ connection.escape(ob["jv_date"]);
+                    sql = sql + " AND JV.jv_date =" + connection.escape(ob["jv_date"]);
                 }
             }
-            if(ob["jv_date"]) {
-                if(!flag) {
+            if (ob["amount"]) {
+                if (!flag) {
                     flag = true;
-                    sql = sql + " WHERE JV.jv_date ="+ connection.escape(ob["jv_date"]);
+                    sql = sql + " WHERE JV.amount =" + connection.escape(ob["amount"]);
                 }
                 else {
-                    sql = sql + " AND JV.jv_date ="+ connection.escape(ob["jv_date"]);
+                    sql = sql + " AND JV.amount =" + connection.escape(ob["amount"]);
                 }
             }
-            if(ob["account_id"]) {
-                if(!flag) {
-                    flag = true;
-                    sql = sql + " WHERE JV.cr_account_id ="+ connection.escape(ob["account_id"]);
-                }
-                else {
-                    sql = sql + " AND JV.cr_account_id ="+ connection.escape(ob["account_id"]);
-                }
-            }
-            if(ob["account_name"]) {
-                if(!flag) {
-                    flag = true;
-                    sql = sql + " WHERE Account_Head.account_name ="+ connection.escape(ob["account_name"]);
-                }
-                else {
-                    sql = sql + " OR Account_Head.account_name ="+ connection.escape(ob["account_name"]);
-                }
-            }
-            sql = sql + 
-            `
+            sql = sql +
+                `
                 ORDER BY JV.document_number DESC
                 LIMIT ? , ?;
                 SELECT FOUND_ROWS() AS count;
@@ -200,8 +179,7 @@ router.get("/search", middleware.loggedin_as_superuser, (req, res) => {
                     req.flash("danger", "Error in searching JV!");
                     res.redirect("/jv");
                 }
-                else 
-                {
+                else {
                     totalentries = parseInt(results[1][0].count);
                     totalpages = Math.ceil(totalentries / entries_per_page);
                     if (pagenum > totalpages) {
@@ -213,12 +191,12 @@ router.get("/search", middleware.loggedin_as_superuser, (req, res) => {
                     var callbackurlarr = req.originalUrl.split('?')[1].split('&');
                     var newarr = [];
                     for (part of callbackurlarr) {
-                        if (part.includes('document_number') || part.includes('jv_number') || part.includes('jv_date') || part.includes('account_id') || part.includes('account_name')) {
+                        if (part.includes('document_number') || part.includes('jv_number') || part.includes('jv_date') || part.includes('amount') ) {
                             newarr.push(part);
                         }
                     }
                     var callbackurl = newarr.join('&');
-                    var searched = (req.query.document_number ? req.query.document_number : "-") + "," + (req.query.jv_number ? req.query.jv_number : "-") + "," + (req.query.jv_date ? req.query.jv_date : "-") + "," + (req.query.account_id ? req.query.account_id : "-") + "," + (req.query.account_name ? req.query.account_name : "-");
+                    var searched = (req.query.document_number ? req.query.document_number : "-") + "," + (req.query.jv_number ? req.query.jv_number : "-") + "," + (req.query.jv_date ? req.query.jv_date : "-") + "," + (req.query.amount ? req.query.amount : "-");
                     res.render("transactions/jv/jv_search", {
                         data: results[0],
                         searchtext: searched,
@@ -259,10 +237,15 @@ router.get("/add", middleware.loggedin_as_superuser, (req, res) => {
                     var mm = ('0' + (d.getMonth() + 1)).slice(-2);
                     var yyyy = d.getFullYear();
                     var date = yyyy + "-" + mm + "-" + dd;
+                    var account_head_list = [];
+                    for (item of results[0]) {
+                        account_head_list.push(item.account_id);
+                    }
                     res.render("transactions/jv/addform", {
                         account_head: results[0],
                         document_number: results[1][0].maxcount + 1,
-                        today_date: date
+                        today_date: date,
+                        account_head_list
                     });
                 }
             });
@@ -271,7 +254,9 @@ router.get("/add", middleware.loggedin_as_superuser, (req, res) => {
 });
 
 router.post("/", middleware.loggedin_as_superuser, (req, res) => {
-    if (req.body.sub_account_ids.length != req.body.jv_amounts.length) {
+    console.log(req.body);
+    const len = req.body.account_ids.length;
+    if (!(req.body.sub_account_ids.length == len && req.body.cr_amounts.length == len && req.body.dr_amounts.length == len && req.body.narrations.length == len)) {
         console.log("Array Length is not matching");
         req.flash('danger', 'Error while adding jv !');
         res.redirect('/jv');
@@ -284,63 +269,88 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
                 res.redirect('/jv');
             }
             else {
-                var sql = 'INSERT INTO JV SET ?;', i, entry, lentry, total = 0.00;
-                for (i = 0; i < req.body.sub_account_ids.length; i++) {
+                var sql = 'INSERT INTO JV SET ?;', i, entry, lentry, cr_total = 0.00, dr_total = 0.00;
+                for (i = 0; i < len; i++) {
                     entry = {
                         document_number: req.body.document_number,
                         jv_serial_number: i + 1,
-                        cr_sub_account_id: req.body.sub_account_ids[i].trim(),
-                        jv_amount: parseFloat(req.body.jv_amounts[i]),
+                        account_id: req.body.account_ids[i],
+                        sub_account_id: req.body.sub_account_ids[i],
+                        dr_amount: parseFloat(req.body.dr_amounts[i]),
+                        cr_amount: parseFloat(req.body.cr_amounts[i]),
                         narration: req.body.narrations[i].trim()
                     };
+                    if (entry.cr_amount != 0 && entry.dr_amount != 0) {
+                        console.log("Error : Both Credit and Debit Amount should not be there!");
+                        req.flash('danger', 'Error while adding jv !');
+                        res.redirect('/jv');
+                    }
+                    else if (entry.cr_amount == 0 && entry.dr_amount == 0) {
+                        console.log("Error : Both Credit and Debit Amount should not be zero!");
+                        req.flash('danger', 'Error while adding jv !');
+                        res.redirect('/jv');
+                    }
                     sql = sql + 'INSERT INTO JV_Details SET ' + connection.escape(entry) + ';';
-                    total += entry.jv_amount;
+                    cr_total += entry.cr_amount;
+                    dr_total += entry.dr_amount;
                 }
-                for (i = 0; i < req.body.sub_account_ids.length; i++) {
-                    lentry = {
-                        tc: 'CR',
-                        document_number: req.body.document_number,
-                        transaction_date: req.body.jv_date,
-                        account_id: req.body.cr_account_id,
-                        sub_account_id: req.body.sub_account_ids[i],
-                        cr_amount: parseFloat(req.body.jv_amounts[i]),
-                        dr_amount: null,
-                        cross_account_id: req.body.dr_sub_account_id,
-                        narration: req.body.acc_narration.trim() + '_' + req.body.narrations[i].trim()
-                    };
+                if (cr_total != dr_total) {
+                    console.log("Error : CR Amount and DR Amount is not matching!");
+                    req.flash('danger', 'Error while adding jv !');
+                    res.redirect('/jv');
+                }
+                for (i = 0; i < len; i++) {
+                    if (req.body.cr_amounts[i] == 0) {
+                        lentry = {
+                            tc: 'JV',
+                            document_number: req.body.document_number,
+                            transaction_date: req.body.jv_date,
+                            account_id: req.body.account_ids[i],
+                            sub_account_id: req.body.sub_account_ids[i],
+                            cr_amount: 0.00,
+                            dr_amount: parseFloat(req.body.dr_amounts[i]),
+                            cross_account_id: "Multiple",
+                            narration: req.body.acc_narration.trim() + '_' + req.body.narrations[i].trim()
+                        };
+                    }
+                    else {
+                        lentry = {
+                            tc: 'JV',
+                            document_number: req.body.document_number,
+                            transaction_date: req.body.jv_date,
+                            account_id: req.body.account_ids[i],
+                            sub_account_id: req.body.sub_account_ids[i],
+                            cr_amount: parseFloat(req.body.cr_amounts[i]),
+                            dr_amount: 0.00,
+                            cross_account_id: "Multiple",
+                            narration: req.body.acc_narration.trim() + '_' + req.body.narrations[i].trim()
+                        };
+                    }
                     sql = sql + 'INSERT INTO Ledger SET ' + connection.escape(lentry) + ';';
                 }
-                lentry = {
-                    tc: 'CR',
-                    document_number: req.body.document_number,
-                    transaction_date: req.body.jv_date,
-                    account_id: req.body.dr_sub_account_id,
-                    sub_account_id: req.body.dr_sub_account_id,
-                    cr_amount: null,
-                    dr_amount: total,
-                    cross_account_id: req.body.cr_account_id,
-                    narration: req.body.acc_narration.trim() + '_Total Member: ' + req.body.sub_account_ids.length
-                };
-                sql = sql + 'INSERT INTO Ledger SET ' + connection.escape(lentry) + ';';
-                for (i = 0; i < req.body.sub_account_ids.length; i++) {
+                for (i = 0; i < len; i++) {
                     entry = {
                         document_number: req.body.document_number,
                         jv_serial_number: i + 1,
-                        cr_sub_account_id: req.body.sub_account_ids[i].trim(),
-                        jv_amount: parseFloat(req.body.jv_amounts[i]),
+                        account_id: req.body.account_ids[i],
+                        sub_account_id: req.body.sub_account_ids[i],
+                        dr_amount: parseFloat(req.body.dr_amounts[i]),
+                        cr_amount: parseFloat(req.body.cr_amounts[i]),
                         narration: req.body.narrations[i].trim()
                     };
-                    sql = sql + `CALL updateBalance_JV(${entry.cr_sub_account_id}, ${entry.jv_amount});`;
+                    if (entry.cr_amount == 0) {
+                        sql = sql + `CALL updateBalance_Payment(${entry.sub_account_id}, ${entry.dr_amount});`;
+                    }
+                    else {
+                        sql = sql + `CALL updateBalance_Receipt(${entry.sub_account_id}, ${entry.cr_amount});`;
+                    }
                 }
                 var mentry = {
                     document_number: req.body.document_number,
                     jv_number: req.body.jv_number,
                     jv_date: req.body.jv_date,
-                    dr_account_id: req.body.dr_sub_account_id,
-                    dr_sub_account_id: req.body.dr_sub_account_id,
-                    cr_account_id: req.body.cr_account_id,
-                    narration: req.body.acc_narration.trim(),
-                    total_amount: total
+                    amount: cr_total,
+                    narration: req.body.acc_narration.trim()
                 };
                 console.log(sql, mentry);
                 connection.query(sql, mentry, (err, results) => {
@@ -371,37 +381,39 @@ router.get("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                 SELECT account_id FROM Account_Head;
                 SELECT
                     JV.*,
-                    DATE_FORMAT(JV.jv_date,'%Y-%m-%d') AS jv_nice_date,
-                    Account_Head.account_name
+                    DATE_FORMAT(JV.jv_date,'%Y-%m-%d') AS jv_nice_date
                 FROM JV
-                INNER JOIN Account_Head
-                    ON Account_Head.account_id = JV.cr_account_id
                 WHERE document_number = ?;
                 SELECT
-                    JV_Details.cr_sub_account_id AS sub_account_id,
-                    Sub_Account.sub_account_name,
-                    JV_Details.jv_amount,
-                    JV_Details.narration
+                    JV_Details.account_id,JV_Details.sub_account_id,JV_Details.dr_amount,JV_Details.cr_amount,JV_Details.narration,
+                    Account_Head.account_name,
+                    Sub_Account.sub_account_name
                 FROM JV_Details
+                INNER JOIN Account_Head
+                    ON JV_Details.account_id = Account_Head.account_id
                 INNER JOIN Sub_Account
-                    ON JV_Details.cr_sub_account_id = Sub_Account.sub_account_id
+                    ON JV_Details.sub_account_id = Sub_Account.sub_account_id
                 WHERE document_number = ?
-                ORDER BY jv_serial_number ASC;
+                ORDER BY JV_Details.jv_serial_number ASC;
             `;
             var docnum = parseInt(req.params.documentnum);
             connection.query(sql, [docnum, docnum], (err, results) => {
-                console.log(connection.query);
                 connection.release();
                 if (err) {
                     console.log(err);
                     req.flash("danger", "Error while editing entry!");
                     res.redirect("/jv");
                 } else {
+                    var account_head_list = [];
+                    for (item of results[0]) {
+                        account_head_list.push(item.account_id);
+                    }
                     res.render("transactions/jv/editform", {
                         account_head: results[0],
                         document_number: parseInt(req.params.documentnum),
                         jv: results[1][0],
-                        jv_details: results[2]
+                        jv_details: results[2],
+                        account_head_list
                     });
                 }
             });
@@ -417,6 +429,7 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
             res.redirect('/jv');
         }
         else {
+            var error_flag = false;
             var docnum = parseInt(req.params.documentnum);
             var sql = `
                 SELECT * FROM JV_Details WHERE JV_Details.document_number in (?);
@@ -425,18 +438,23 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                 if (err) {
                     connection.release();
                     console.log(err);
-                    req.flash('danger', 'Error while deleting jv!');
+                    req.flash('danger', 'Error while editing jv!');
                     res.redirect('/jv');
                 }
                 else {
                     sql = '';
                     console.log(results);
                     for (var entryob of results) {
-                        sql = sql + `CALL updateBalance_JV(${entryob.cr_sub_account_id}, ${-1 * entryob.jv_amount});`;
+                        if (entryob.cr_amount == 0) {
+                            sql = sql + `CALL updateBalance_Payment(${entryob.sub_account_id}, ${-1 * entryob.dr_amount});`;
+                        }
+                        else {
+                            sql = sql + `CALL updateBalance_Receipt(${entryob.sub_account_id}, ${-1 * entryob.cr_amount});`;
+                        }
                     }
                     sql = sql + `
                         DELETE FROM JV_Details WHERE JV_Details.document_number in (?);
-                        DELETE FROM Ledger WHERE Ledger.document_number in (?);
+                        DELETE FROM Ledger WHERE Ledger.document_number in (?) AND Ledger.tc = "JV";
                         DELETE FROM JV WHERE JV.document_number in (?);
                     `;
                     console.log(sql, docnum);
@@ -444,7 +462,7 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                         if (err1) {
                             connection.release();
                             console.log(err1);
-                            req.flash('danger', 'Error while deleting jv!');
+                            req.flash('danger', 'Error while editing jv!');
                             res.redirect('/jv');
                         }
                         else {
@@ -452,82 +470,132 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                             sql = '';
                             if (results1[0].affectedRows == 0 && results1[1].affectedRows == 0 && results1[2].affectedRows == 0) {
                                 connection.release();
-                                req.flash('danger', 'Error while deleting jv!');
+                                req.flash('danger', 'Error while editing jv!');
                                 res.redirect('/jv');
                             }
                             else {
-                                sql = sql + 'INSERT INTO JV SET ?;';
-                                var i, entry, lentry, total = 0.00;
-                                for (i = 0; i < req.body.sub_account_ids.length; i++) {
+                                const len = req.body.account_ids.length;
+                                if (!(req.body.sub_account_ids.length == len && req.body.cr_amounts.length == len && req.body.dr_amounts.length == len && req.body.narrations.length == len)) {
+                                    console.log("Array Length is not matching");
+                                    req.flash('danger', 'Error while adding jv !');
+                                    res.redirect('/jv');
+                                }
+                                sql = 'INSERT INTO JV SET ?;'
+                                var i, entry, lentry, cr_total = 0.00, dr_total = 0.00;
+                                for (i = 0; i < len; i++) {
                                     entry = {
                                         document_number: req.body.document_number,
                                         jv_serial_number: i + 1,
-                                        cr_sub_account_id: req.body.sub_account_ids[i].trim(),
-                                        jv_amount: parseFloat(req.body.jv_amounts[i]),
-                                        narration: req.body.narrations[i].trim()
-                                    };
-                                    sql = sql + 'INSERT INTO JV_Details SET ' + connection.escape(entry) + ';';
-                                    total += entry.jv_amount;
-                                }
-                                for (i = 0; i < req.body.sub_account_ids.length; i++) {
-                                    lentry = {
-                                        tc: 'CR',
-                                        document_number: req.body.document_number,
-                                        transaction_date: req.body.jv_date,
-                                        account_id: req.body.cr_account_id,
+                                        account_id: req.body.account_ids[i],
                                         sub_account_id: req.body.sub_account_ids[i],
-                                        cr_amount: parseFloat(req.body.jv_amounts[i]),
-                                        dr_amount: null,
-                                        cross_account_id: req.body.dr_sub_account_id,
-                                        narration: req.body.acc_narration.trim() + '_' + req.body.narrations[i].trim()
-                                    };
-                                    sql = sql + 'INSERT INTO Ledger SET ' + connection.escape(lentry) + ';';
-                                }
-                                lentry = {
-                                    tc: 'CR',
-                                    document_number: req.body.document_number,
-                                    transaction_date: req.body.jv_date,
-                                    account_id: req.body.dr_sub_account_id,
-                                    sub_account_id: req.body.dr_sub_account_id,
-                                    cr_amount: null,
-                                    dr_amount: total,
-                                    cross_account_id: req.body.cr_account_id,
-                                    narration: req.body.acc_narration.trim() + '_Total Member: ' + req.body.sub_account_ids.length
-                                };
-                                sql = sql + 'INSERT INTO Ledger SET ' + connection.escape(lentry) + ';';
-                                for (i = 0; i < req.body.sub_account_ids.length; i++) {
-                                    entry = {
-                                        document_number: req.body.document_number,
-                                        jv_serial_number: i + 1,
-                                        cr_sub_account_id: req.body.sub_account_ids[i].trim(),
-                                        jv_amount: parseFloat(req.body.jv_amounts[i]),
+                                        dr_amount: parseFloat(req.body.dr_amounts[i]),
+                                        cr_amount: parseFloat(req.body.cr_amounts[i]),
                                         narration: req.body.narrations[i].trim()
                                     };
-                                    sql = sql + `CALL updateBalance_JV(${entry.cr_sub_account_id}, ${entry.jv_amount});`;
+                                    console.log("ENTRY : ");
+                                    console.log(entry);
+                                    if (entry.cr_amount != 0 && entry.dr_amount != 0) {
+                                        //connection.release();
+                                        console.log("1");
+                                        console.log("Error : Both Credit and Debit Amount should not be there!");
+                                        req.flash('danger', 'Error while editing jv !');
+                                        error_flag = true;
+                                        break;
+                                        //res.redirect('/jv');
+                                    }
+                                    else if (entry.cr_amount == 0 && entry.dr_amount == 0) {
+                                        //connection.release();
+                                        console.log("2");
+                                        console.log("Error : Both Credit and Debit Amount should not be zero!");
+                                        req.flash('danger', 'Error while editing jv !');
+                                        error_flag = true;
+                                        break;
+                                        //res.redirect('/jv');
+                                    }
+                                    sql = sql + 'INSERT INTO JV_Details SET ' + connection.escape(entry) + ';';
+                                    cr_total += entry.cr_amount;
+                                    dr_total += entry.dr_amount;
                                 }
-                                var mentry = {
-                                    document_number: req.body.document_number,
-                                    jv_number: req.body.jv_number,
-                                    jv_date: req.body.jv_date,
-                                    dr_account_id: req.body.dr_sub_account_id,
-                                    dr_sub_account_id: req.body.dr_sub_account_id,
-                                    cr_account_id: req.body.cr_account_id,
-                                    narration: req.body.acc_narration.trim(),
-                                    total_amount: total
-                                };
-                                console.log(sql);
-                                connection.query(sql, mentry, (err, results) => {
+                                if (cr_total != dr_total && error_flag != true) {
+                                    //connection.release();
+                                    console.log("3");
+                                    console.log("Error : CR Amount and DR Amount is not matching!");
+                                    req.flash('danger', 'Error while editing jv !');
+                                    error_flag = true;
+                                    //res.redirect('/jv');
+                                }
+                                if (error_flag == true) {
                                     connection.release();
-                                    if (err) {
-                                        console.log(err);
-                                        req.flash('danger', 'Error while editing jv!');
-                                        res.redirect('/jv');
+                                    res.redirect('/jv');
+                                }
+                                else {
+                                    for (i = 0; i < len; i++) {
+                                        if (req.body.cr_amounts[i] == 0) {
+                                            lentry = {
+                                                tc: 'JV',
+                                                document_number: req.body.document_number,
+                                                transaction_date: req.body.jv_date,
+                                                account_id: req.body.account_ids[i],
+                                                sub_account_id: req.body.sub_account_ids[i],
+                                                cr_amount: 0.00,
+                                                dr_amount: parseFloat(req.body.dr_amounts[i]),
+                                                cross_account_id: "Multiple",
+                                                narration: req.body.acc_narration.trim() + '_' + req.body.narrations[i].trim()
+                                            };
+                                        }
+                                        else {
+                                            lentry = {
+                                                tc: 'JV',
+                                                document_number: req.body.document_number,
+                                                transaction_date: req.body.jv_date,
+                                                account_id: req.body.account_ids[i],
+                                                sub_account_id: req.body.sub_account_ids[i],
+                                                cr_amount: parseFloat(req.body.cr_amounts[i]),
+                                                dr_amount: 0.00,
+                                                cross_account_id: "Multiple",
+                                                narration: req.body.acc_narration.trim() + '_' + req.body.narrations[i].trim()
+                                            };
+                                        }
+                                        sql = sql + 'INSERT INTO Ledger SET ' + connection.escape(lentry) + ';';
                                     }
-                                    else {
-                                        req.flash('success', 'Successfully edited jv!');
-                                        res.redirect('/jv');
+                                    for (i = 0; i < len; i++) {
+                                        entry = {
+                                            document_number: req.body.document_number,
+                                            jv_serial_number: i + 1,
+                                            account_id: req.body.account_ids[i],
+                                            sub_account_id: req.body.sub_account_ids[i],
+                                            dr_amount: parseFloat(req.body.dr_amounts[i]),
+                                            cr_amount: parseFloat(req.body.cr_amounts[i]),
+                                            narration: req.body.narrations[i].trim()
+                                        };
+                                        if (entry.cr_amount == 0) {
+                                            sql = sql + `CALL updateBalance_Payment(${entry.sub_account_id}, ${entry.dr_amount});`;
+                                        }
+                                        else {
+                                            sql = sql + `CALL updateBalance_Receipt(${entry.sub_account_id}, ${entry.cr_amount});`;
+                                        }
                                     }
-                                });
+                                    var mentry = {
+                                        document_number: req.body.document_number,
+                                        jv_number: req.body.jv_number,
+                                        jv_date: req.body.jv_date,
+                                        amount: cr_total,
+                                        narration: req.body.acc_narration.trim()
+                                    };
+                                    console.log(sql, mentry);
+                                    connection.query(sql, mentry, (err, results) => {
+                                        connection.release();
+                                        if (err) {
+                                            console.log(err);
+                                            req.flash('danger', 'Error while editing entry in JV!');
+                                            res.redirect('/jv');
+                                        }
+                                        else {
+                                            req.flash('success', `Successfully edited JV with document number ${req.body.document_number} !`);
+                                            res.redirect('/jv');
+                                        }
+                                    });
+                                }
                             }
                         }
                     });
@@ -559,11 +627,16 @@ router.post("/delete", middleware.loggedin_as_admin, (req, res) => {
                 else {
                     sql = '';
                     for (var entryob of results) {
-                        sql = sql + `CALL updateBalance_JV(${entryob.cr_sub_account_id}, ${-1 * entryob.jv_amount});`;
+                        if (entryob.cr_amount == 0) {
+                            sql = sql + `CALL updateBalance_Payment(${entryob.sub_account_id}, ${-1 * entryob.dr_amount});`;
+                        }
+                        else {
+                            sql = sql + `CALL updateBalance_Receipt(${entryob.sub_account_id}, ${-1 * entryob.cr_amount});`;
+                        }
                     }
                     sql = sql + `
                         DELETE FROM JV_Details WHERE JV_Details.document_number in (?);
-                        DELETE FROM Ledger WHERE Ledger.document_number in (?);
+                        DELETE FROM Ledger WHERE Ledger.document_number in (?) AND Ledger.tc = "JV";
                         DELETE FROM JV WHERE JV.document_number in (?);
                     `;
                     connection.query(sql, [docnum, docnum, docnum], (err1, results1) => {

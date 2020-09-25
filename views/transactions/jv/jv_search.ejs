@@ -20,7 +20,6 @@
     <link rel="stylesheet" href="/css/master-index.css">
     <link rel="stylesheet" href="/css/master/receipt.css">
 
-
     <script>
         var data_local = <%- JSON.stringify(data) %>;
 
@@ -41,7 +40,7 @@
                 var pvalue = $("#paginationform #pageno").val();
                 var evalue = $(".entries #entryid").val();
                 var callback = <%- JSON.stringify(callbackurl) %>;
-                var newurl = "/receipt/search?" + callback + "&entries_per_page=" + evalue +"&pagenum=" + pvalue;
+                var newurl = "/jv/search?" + callback + "&entries_per_page=" + evalue +"&pagenum=" + pvalue;
                 window.location.href = newurl;                
             });
 
@@ -49,7 +48,7 @@
                 e.preventDefault();
                 var evalue = $(".entries #entryid").val();
                 var callback = <%- JSON.stringify(callbackurl) %>;
-                var newurl = "/receipt/search?" + callback + "&entries_per_page=" + evalue;
+                var newurl = "/jv/search?" + callback + "&entries_per_page=" + evalue;
                 window.location.href = newurl;
             });
 
@@ -183,6 +182,7 @@
                 setTimeout(function () {
                     $("#searchEmployeeModal input[name=document_number]").focus();
                 }, 500);
+
             });
 
         });
@@ -191,27 +191,34 @@
             $("#viewEmployeeModal .receipt-details-table tbody").empty();
             var item = data_local[index];
             $.ajax({
-                url: '/api/transaction/receiptdetails/' + item.document_number,
+                url: '/api/transaction/jvdetails/' + item.document_number,
                 success: function (res) {
                     var inhtml;
                     if (res.status === true) {
+                        var cr_total = 0.00;
+                        var dr_total = 0.00;
                         for (entry of res.data) {
                             inhtml = `
                                 <tr>
-                                    <td>${entry.receipt_serial_number}</td>
-                                    <td>${entry.cr_sub_account_id}</td>
-                                    <td class="left-align">${entry.sub_account_name}</td>
-                                    <td class="right-align">${parseFloat(entry.receipt_amount).toLocaleString('en-IN')}</td>
+                                    <td>${entry.jv_serial_number}</td>
+                                    <td style="white-space: true;">${entry.account_id}<br/>${entry.account_name}</td>
+                                    <td style="white-space: true;">${entry.sub_account_id}<br/>${entry.sub_account_name}</td>
+                                    <td class="right-align">${parseFloat(entry.cr_amount).toLocaleString('en-IN')}</td>
+                                    <td class="right-align">${parseFloat(entry.dr_amount).toLocaleString('en-IN')}</td>
+                                    <td>${entry.narration}</td>
                                 </tr>
                             `;
+                            cr_total += parseFloat(entry.cr_amount);
+                            dr_total += parseFloat(entry.dr_amount);
                             $("#viewEmployeeModal .receipt-details-table tbody").append(inhtml);
                         }
                         inhtml = `
                             <tr style="background-color: gray !important;">
                                 <td></td>
+                                <td colspan="2"><b>Total</b></td>
+                                <td class="right-align" style="font-weight: bold;">${parseFloat(cr_total).toLocaleString('en-IN')}</td>
+                                <td class="right-align" style="font-weight: bold;">${parseFloat(dr_total).toLocaleString('en-IN')}</td>
                                 <td></td>
-                                <td><b>Total</b></td>
-                                <td class="right-align" style="font-weight: bold;">${parseFloat(item.total_amount).toLocaleString('en-IN')}</td>
                             </tr>
                         `;
                         $("#viewEmployeeModal .receipt-details-table tbody").append(inhtml);
@@ -227,7 +234,7 @@
             var documennum = data_local[index].document_number;
             var url = window.location.href;
             var arr = url.split("/");
-            var req_url = arr[0] + "//" + arr[2] + "/receipt/edit/" + documennum;
+            var req_url = arr[0] + "//" + arr[2] + "/jv/edit/" + documennum;
             window.location.href = req_url;
         }
     </script>
@@ -243,17 +250,17 @@
                 <div class="table-title">
                     <div class="row">
                         <div class="col-sm-6">
-                            <h2><b>Receipt</b></h2>
+                            <h2><b>Journal Voucher</b></h2>
                         </div>
                         <div class="col-sm-6" id="shortcut">
-                            <a href="/receipt/add" class="btn btn-success" id="addnew"><i
+                            <a href="/jv/add" class="btn btn-success" id="addnew"><i
                                     class="material-icons">&#xE147;</i> <span><b>Add New</b></span></a>
                             <% if(user_type === 'ADMIN') { %>
                             <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal"
                                 id="multipledelete"><i class="material-icons">&#xE15C;</i>
                                 <span><b>Delete</b></span></a>
                             <% } %>
-                            <a href="/receipt" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i class="material-icons">&#xe888;</i> <span><b>Clear</b></span></a>
+                            <a href="/jv" class="btn btn-warning" data-toggle="modal" id="clearsearch"><i class="material-icons">&#xe888;</i> <span><b>Clear</b></span></a>
                             <b>Searched Text : </b> <input type="text" value="<%= searchtext %>" style="width: 30%; text-align: center; color: black;" disabled>
                         </div>
                     </div>
@@ -262,7 +269,7 @@
                     <thead>
                         <tr>
                             <th>
-                                <form action="/receipt" class="entries">
+                                <form action="/jv" class="entries">
                                     <span>
                                         <select id="entryid" name="entries_per_page">
                                             <% if(entries_per_page==25) { %>
@@ -285,11 +292,9 @@
                                 </form>
                             </th>
                             <th>Document Number</th>
-                            <th>Receipt Number</th>
-                            <th>Receipt Date</th>
-                            <th>Society ID</th>
-                            <th>Society Name</th>
-                            <th>Receipt Amount</th>
+                            <th>JV Number</th>
+                            <th>JV Date</th>
+                            <th>JV Amount</th>
                             <th style="width: 140px !important;">Actions</th>
                         </tr>
                     </thead>
@@ -305,11 +310,9 @@
                                 <% } %>
                             </td>
                             <td><%= item.document_number %></td>
-                            <td><%= item.receipt_number %></td>
-                            <td><%= item.receipt_nice_date %></td>
-                            <td><%= item.cr_account_id %></td>
-                            <td><%= item.account_name %></td>
-                            <td><%= parseFloat(item.total_amount).toLocaleString('en-IN') %></td>
+                            <td><%= item.jv_number %></td>
+                            <td><%= item.jv_nice_date %></td>
+                            <td><%= parseFloat(item.amount).toLocaleString('en-IN') %></td>
                             <td>
                                 <a href="#viewEmployeeModal" class="view" data-toggle="modal""><i class="
                                     material-icons" data-toggle="tooltip" title="View"
@@ -333,7 +336,7 @@
                         <b><%= totalentries %></b> entries
                     </div>
                     <% } %>
-                    <form action="/receipt" id="paginationform" method="GET">
+                    <form action="/jv" id="paginationform" method="GET">
                         <ul class="pagination">
                             <li class="page-item">
                                 <span class="a page-link">
@@ -383,7 +386,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header" style="text-align: center;">
-                    <h3 class="modal-title"><b><u>View Receipt</u></b></h3>
+                    <h3 class="modal-title"><b><u>View Journal Voucher</u></b></h3>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 </div>
                 <div class="modal-body">
@@ -395,25 +398,15 @@
                                         <td class="label-text">Document Number</td>
                                         <td><b>:</b></td>
                                         <td id="table_document_number"></td>
-                                        <td></td>
-                                        <td class="label-text">Receipt Account</td>
-                                        <td><b>:</b></td>
-                                        <td id="table_dr_sub_account_id"></td>
                                     </tr>
                                     <tr>
-                                        <td class="label-text">Receipt Number</td>
+                                        <td class="label-text">JV Number</td>
                                         <td><b>:</b></td>
-                                        <td id="table_receipt_number"></td>
+                                        <td id="table_jv_number"></td>
                                         <td></td>
-                                        <td class="label-text">Date</td>
+                                        <td class="label-text">JV Date</td>
                                         <td><b>:</b></td>
-                                        <td id="table_receipt_nice_date"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label-text">A/C ID</td>
-                                        <td><b>:</b></td>
-                                        <td id="table_cr_account_id"></td>
-                                        <td id="table_account_name"></td>
+                                        <td id="table_jv_nice_date"></td>
                                     </tr>
                                     <tr>
                                         <td class="label-text">Narration</td>
@@ -427,11 +420,21 @@
                     <div class="row">
                         <div class="table-responsive">
                             <table class="table receipt-details-table">
+                                <colgroup>
+                                    <col style="width: 5%;">
+                                    <col style="width: 25%;">
+                                    <col style="width: 25%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 10%;">
+                                    <col style="width: 25%;">
+                                </colgroup>
                                 <thead>
                                     <th>SR.</th>
+                                    <th>Society</th>
                                     <th>Member</th>
-                                    <th>Member Name</th>
-                                    <th>Amount</th>
+                                    <th>Credit</th>
+                                    <th>Debit</th>
+                                    <th>Narration</th>
                                 </thead>
                                 <tbody>
                                 </tbody>
@@ -447,7 +450,7 @@
     <div id="deleteEmployeeModal" class="modal fade">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="/receipt/delete" method="POST">
+                <form action="/jv/delete" method="POST">
                     <div class="modal-header">
                         <h4 class="modal-title">Delete Member</h4>
                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>

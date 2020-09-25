@@ -232,6 +232,7 @@ $(document).ready(function () {
 
     $("#clearentry").click(function (e) {
         entries = [];
+        lastindex = 0;
         fillallentries();
     });
 

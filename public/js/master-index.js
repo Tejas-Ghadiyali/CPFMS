@@ -83,6 +83,7 @@ $(document).ready(function () {
             }
         });
     });
+    
     $(".container .alert-danger").delay(1000).fadeIn(500, function () {
         $(document).keydown(function (e) {
             if (e.keyCode === 27) {

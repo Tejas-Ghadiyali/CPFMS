@@ -8,7 +8,8 @@ const generator = (data, templateName, done) => {
         data,
         options: {
             reports: {
-                save: true
+                save: true,
+                public: true
             }
         }
     }
