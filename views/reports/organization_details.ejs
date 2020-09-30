@@ -30,30 +30,23 @@
     <main>
         <div class="container" style="background-color: #DBFFFB; width: 98%;">
             <%- include('../partials/err.ejs') %>
-            <h2 class="heading-text"><u>Society Detail Report</u></h2>
+            <h2 class="heading-text"><u>Organization Wise Detail Report</u></h2>
             <form class="form-horizontal" id="report_parameters_form">
                 <div class="row">
                     <div class="table-responsive">
                         <table class="table info-table">
                             <tbody>
                                 <tr>
-                                    <td class="label-text">Society Id</td>
+                                    <td class="label-text">Organization</td>
                                     <td><b>:</b></td>
                                     <td>
-                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="account_id_list" id="id_list" multiple>
-                                            <% for(id of account_id_list) { %>
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="org_id_list" id="id_list" multiple>
+                                            <% for(id of org_id_list) { %>
                                                 <option><%= id %></option>
                                             <% } %>
                                         </select>
                                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <label class="checkbox-inline"><input type="checkbox" name="select_all" id="select_all" value="1">&nbsp;&nbsp;Select All</label>
-                                    </td>
-                                    <td></td>
-                                    <td class="label-text">Show Balance</td>
-                                    <td><b>:</b></td>
-                                    <td>
-                                        <label class="checkbox-inline"><input type="radio" name="show_balance" value="1">&nbsp;&nbsp;Yes</label>
-                                        <label class="checkbox-inline"><input type="radio" name="show_balance" value="0" checked>&nbsp;&nbsp;No</label>
                                     </td>
                                 </tr>
                                 <tr>
@@ -109,7 +102,7 @@
                 var formData = $("#report_parameters_form").serialize();
                 enter = true;
                 $.ajax({
-                    url: '/api/reportmaster/accountheaddetails',
+                    url: '/api/reportmaster/organizationdetails',
                     data: formData,
                     method: 'GET',
                     success: function (res) {
