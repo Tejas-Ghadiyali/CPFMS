@@ -1,10 +1,10 @@
-const { query } = require('express');
+const { localsName } = require('ejs');
 const express = require('express');
 const router = express.Router();
 const getConnection = require('../../../connection');
 const middleware = require('../../auth/auth_middleware');
-const { route } = require('../../reports/report_master');
 const reportGenerator = require('./report_generator_module');
+
 
 // Listing Report
 
@@ -437,6 +437,180 @@ router.get('/paymentlistsummary', middleware.loggedin_as_superuser, (req, res) =
     });
 });
 
+router.get('/rpsummary', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    console.log(data);
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.to_date, data.from_date, data.to_date, data.from_date, data.to_date, data.from_date, data.to_date, data.from_date, data.to_date];
+                sql = `
+                    SELECT 
+                        DISTINCT Account_Balance.resource_person_id AS rpid,
+                        Resource_Person.resource_person_name,
+                        (
+                            SELECT COUNT(Account_Balance.join_date) FROM Account_Balance WHERE Account_Balance.resource_person_id = rpid AND Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                        ) AS x,
+                        (
+                            SELECT COUNT(Account_Balance.cancel_date) FROM Account_Balance WHERE Account_Balance.resource_person_id = rpid AND Account_Balance.cancel_date >= ? AND Account_Balance.cancel_date <= ?
+                        ) AS y,
+                        (
+                            SELECT COUNT(Account_Balance.death_date) FROM Account_Balance WHERE Account_Balance.resource_person_id = rpid AND Account_Balance.death_date >= ? AND Account_Balance.death_date <= ?
+                        ) AS z,
+                        (
+                            SELECT COUNT(Account_Balance.heifer_date) FROM Account_Balance WHERE Account_Balance.resource_person_id = rpid AND Account_Balance.heifer_date >= ? AND Account_Balance.heifer_date <= ?
+                        ) AS a,
+                        (
+                            SELECT COUNT(Account_Balance.calwing_date) FROM Account_Balance WHERE Account_Balance.resource_person_id = rpid AND Account_Balance.calwing_date >= ? AND Account_Balance.calwing_date <= ?
+                        ) AS b
+                    FROM Account_Balance
+                        INNER JOIN Resource_Person
+                            ON Resource_Person.resource_person_id = Account_Balance.resource_person_id
+                    ORDER BY Account_Balance.resource_person_id ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.from_date, data.to_date, data.from_date, data.to_date, data.from_date, data.to_date, data.from_date, data.to_date, data.from_date, data.to_date, data.rp_id_list];
+                sql = `
+                    SELECT 
+                        DISTINCT Account_Balance.resource_person_id AS rpid,
+                        Resource_Person.resource_person_name,
+                        (
+                            SELECT COUNT(Account_Balance.join_date) FROM Account_Balance WHERE Account_Balance.resource_person_id = rpid AND Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                        ) AS x,
+                        (
+                            SELECT COUNT(Account_Balance.cancel_date) FROM Account_Balance WHERE Account_Balance.resource_person_id = rpid AND Account_Balance.cancel_date >= ? AND Account_Balance.cancel_date <= ?
+                        ) AS y,
+                        (
+                            SELECT COUNT(Account_Balance.death_date) FROM Account_Balance WHERE Account_Balance.resource_person_id = rpid AND Account_Balance.death_date >= ? AND Account_Balance.death_date <= ?
+                        ) AS z,
+                        (
+                            SELECT COUNT(Account_Balance.heifer_date) FROM Account_Balance WHERE Account_Balance.resource_person_id = rpid AND Account_Balance.heifer_date >= ? AND Account_Balance.heifer_date <= ?
+                        ) AS a,
+                        (
+                            SELECT COUNT(Account_Balance.calwing_date) FROM Account_Balance WHERE Account_Balance.resource_person_id = rpid AND Account_Balance.calwing_date >= ? AND Account_Balance.calwing_date <= ?
+                        ) AS b
+                    FROM Account_Balance
+                        INNER JOIN Resource_Person
+                            ON Resource_Person.resource_person_id = Account_Balance.resource_person_id
+                    WHERE Account_Balance.resource_person_id IN (?)
+                    ORDER BY Account_Balance.resource_person_id ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var headers, datarows = [], data_global_total;
+                    headers = ["Sr.No.", "RP ID", "RP Name", "Joint", "Cancel", "Death", "Net", "Heifer", "Calwing"];
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                    }
+                    else {
+                        var data_entry = [], single_entry, data_counter = 1, entry, net = 0, jtotal = 0, ctotal = 0, dtotal = 0, ntotal = 0, htotal = 0, caltotal = 0;
+
+                        // DataRows Generation
+                        for (item of results) {
+                            net = parseInt(item.x) - (parseInt(item.y) + parseInt(item.z));
+                            single_entry = {
+                                snum: data_counter,
+                                rpid: item.rpid,
+                                rpname: item.resource_person_name,
+                                join: item.x,
+                                cancel: item.y,
+                                death: item.z,
+                                net,
+                                hf: item.a,
+                                cal: item.b
+                            };
+                            jtotal += parseInt(single_entry.join);
+                            ctotal += parseInt(single_entry.cancel);
+                            dtotal += parseInt(single_entry.death);
+                            ntotal += net;
+                            htotal += parseInt(single_entry.hf);
+                            caltotal += parseInt(single_entry.cal);
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        var data_total = `
+                            <tr style="background-color: gray;text-align: center;width:100%">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td><strong>${jtotal}</strong></td>
+                                <td><strong>${ctotal}</strong></td>
+                                <td><strong>${dtotal}</strong></td>
+                                <td><strong>${ntotal}</strong></td>
+                                <td><strong>${htotal}</strong></td>
+                                <td><strong>${caltotal}</strong></td>
+                            </tr>
+                        `;
+                        entry = {
+                            data: data_entry,
+                            data_total
+                        }
+                        datarows.push(entry);
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title: "Resource Person Wise Summary Report",
+                        date: sdate,
+                        username
+                    }
+                    dataobject.datarows = datarows;
+                    dataobject.data_global_total = data_global_total;
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+// Details Report
+
 router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     getConnection((err, connection) => {
@@ -590,7 +764,7 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
-                    var headers, summary_headers, datarows = [], summary = {},data_global_total;
+                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
 
                     if (flag == true) {
                         headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person", "Account Balance"];
@@ -618,7 +792,10 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                     <tr style="text-align: center;border-top: 2px solid black;border-bottom: 2px solid black;background-color: white;">
                                         <td></td>
                                         <td colspan="3"><strong>Total</strong></td>
-                                        <td colspan="2"><strong>${Math.abs(total_balance).toLocaleString('en-IN') + " " + data_total_crdr}</strong></td>
+                                        <td colspan="2" style="text-align: right;"><strong>${Math.abs(total_balance).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " " + data_total_crdr}</strong></td>
                                     </tr>
                                 `;
                                     entry = {
@@ -641,7 +818,10 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                     mname: item.sub_account_name,
                                     jdate: item.join_date,
                                     rp: item.resource_person_id,
-                                    abalance: parseFloat(item.cl_balance).toLocaleString('en-IN') + " " + item.cl_crdr
+                                    abalance: parseFloat(item.cl_balance).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " " + item.cl_crdr
                                 };
                                 data_entry.push(single_entry);
                                 data_counter++;
@@ -651,7 +831,10 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                 <tr style="text-align: center;border-top: 2px solid black;border-bottom: 2px solid black;background-color: white;">
                                     <td></td>
                                     <td colspan="3"><strong>Total</strong></td>
-                                    <td colspan="2"><strong>${Math.abs(total_balance).toLocaleString('en-IN') + " " + data_total_crdr}</strong></td>
+                                    <td colspan="2" style="text-align: right;"><strong>${Math.abs(total_balance).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " " + data_total_crdr}</strong></td>
                                 </tr>
                             `;
                             entry = {
@@ -677,7 +860,10 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                     scode: item.account_id,
                                     sname: item.account_name,
                                     tm: item.total_members,
-                                    tb: Math.abs(total_balance).toLocaleString('en-IN') + " " + total_balance_crdr
+                                    tb: Math.abs(total_balance).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " " + total_balance_crdr
                                 }
                                 final_total_members += parseInt(entry.tm);
                                 summary.summary_data.push(entry);
@@ -688,14 +874,20 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                     <td></td>
                                     <td colspan="2"><strong>Total</strong></td>
                                     <td><strong>${final_total_members}</<strong></td>
-                                    <td>${Math.abs(final_total_balance).toLocaleString('en-IN') + " " + final_total_balance_crdr}</td>
+                                    <td style="text-align: right;">${Math.abs(final_total_balance).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " " + final_total_balance_crdr}</td>
                                 </tr>
                             `;
                             data_global_total = `
                                 <tr style="background-color: gray;text-align: center;">
                                     <td><strong>Total Societies&nbsp;:&nbsp;&nbsp;${results[1].length}</strong></td>
                                     <td><strong>Total Members&nbsp;:&nbsp;&nbsp;${final_total_members}</strong></td>
-                                    <td><strong>Total Balance&nbsp;:&nbsp;&nbsp;${Math.abs(final_total_balance).toLocaleString('en-IN') + " " + final_total_balance_crdr}</strong></td>
+                                    <td><strong>Total Balance&nbsp;:&nbsp;&nbsp;${Math.abs(final_total_balance).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " " + final_total_balance_crdr}</strong></td>
                                 </tr>
                             `;
                         }
@@ -781,12 +973,14 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
 
                     var dataobject = {
                         headers,
-                        data_global_total,
                         len: headers.length,
-                        datarows,
                         report_title: "Society Detail Report",
                         date: sdate,
                         username
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                        dataobject.data_global_total = data_global_total;
                     }
                     if (data.show_summary == '1') {
                         dataobject.summary = summary;
@@ -974,7 +1168,7 @@ router.get('/cowcastdetails', middleware.loggedin_as_superuser, (req, res) => {
                                 <tr style="text-align: center;background-color: gray;">
                                     <td></td>
                                     <td colspan="2"><strong>Total</strong></td>
-                                    <td>><strong>${final_total_members}</<strong>></td>
+                                    <td><strong>${final_total_members}</<strong></td>
                                 </tr>
                             `;
                         data_global_total = `
@@ -988,12 +1182,14 @@ router.get('/cowcastdetails', middleware.loggedin_as_superuser, (req, res) => {
 
                     var dataobject = {
                         headers,
-                        data_global_total,
                         len: headers.length,
-                        datarows,
                         report_title: "Cow Cast Wise Detail Report",
                         date: sdate,
                         username
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                        dataobject.data_global_total = data_global_total;
                     }
                     if (data.show_summary == '1') {
                         dataobject.summary = summary;
@@ -1191,12 +1387,14 @@ router.get('/organizationdetails', middleware.loggedin_as_superuser, (req, res) 
                     var username = req.user.user_name;
                     var dataobject = {
                         headers,
-                        data_global_total,
                         len: headers.length,
-                        datarows,
                         report_title: "Organization Wise Detail Report",
                         date: sdate,
                         username
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                        dataobject.data_global_total = data_global_total;
                     }
                     if (data.show_summary == '1') {
                         dataobject.summary = summary;
@@ -1228,5 +1426,4074 @@ router.get('/organizationdetails', middleware.loggedin_as_superuser, (req, res) 
     });
 });
 
+router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.to_date, data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Account_Balance.sub_account_id,
+                        Sub_Account.sub_account_name,
+                        DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
+                        Account_Balance.cow_cast_id
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                    WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    ORDER BY Account_Balance.account_id ASC;
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Count(Account_Balance.sub_account_id) AS total_members
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                    WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    GROUP BY Account_Balance.account_id
+                    ORDER BY Account_Balance.account_id ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.rp_id_list, data.from_date, data.to_date, data.rp_id_list, data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Account_Balance.sub_account_id,
+                        Sub_Account.sub_account_name,
+                        DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
+                        Account_Balance.cow_cast_id
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                    WHERE Account_Balance.resource_person_id IN (?) AND Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    ORDER BY Account_Balance.account_id ASC;
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Count(Account_Balance.sub_account_id) AS total_members
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                    WHERE Account_Balance.resource_person_id IN (?) AND Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    GROUP BY Account_Balance.account_id
+                    ORDER BY Account_Balance.account_id ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
+                    headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Cow Cast"];
+                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                    if (results[0].length <= 0) {
+                        datarows = [];
+                        summary = [];
+                        data_global_total = `
+                                <tr style="background-color: gray;text-align: center;width:100%">
+                                    <td><strong>Total Societies&nbsp;:&nbsp;&nbsp;0</strong></td>
+                                    <td><strong>Total Members&nbsp;:&nbsp;&nbsp;0</strong></td>
+                                </tr>
+                            `;
+                    }
+                    else {
+                        var curr_id = results[0][0].account_id, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0][0].account_id + " - " + results[0][0].account_name, entry;
+
+                        // DataRows Generation with balance
+                        for (item of results[0]) {
+                            new_id = item.account_id;
+                            if (curr_id != new_id) {
+                                data_counter = 1;
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry
+                                }
+                                datarows.push(entry);
+                                sub_title = item.account_id + " - " + item.account_name;
+                                curr_id = new_id;
+                                data_entry = [];
+                            }
+                            single_entry = {
+                                snum: data_counter,
+                                mid: item.sub_account_id,
+                                mname: item.sub_account_name,
+                                jdate: item.join_date,
+                                rp: item.cow_cast_id,
+                            };
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        entry = {
+                            data_title: sub_title,
+                            data: data_entry
+                        }
+                        datarows.push(entry);
+
+                        // Summary Generation with balance
+                        var summary_counter = 0, final_total_members = 0;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+                        for (item of results[1]) {
+                            summary_counter++;
+                            entry = {
+                                snum: summary_counter,
+                                scode: item.account_id,
+                                sname: item.account_name,
+                                tm: item.total_members
+                            }
+                            final_total_members += parseInt(entry.tm);
+                            summary.summary_data.push(entry);
+                        }
+                        summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2"><strong>Total</strong></td>
+                                    <td><strong>${final_total_members}</<strong></td>
+                                </tr>
+                            `;
+                        data_global_total = `
+                                <tr style="background-color: gray;text-align: center;width:100%">
+                                    <td><strong>Total Societies&nbsp;:&nbsp;&nbsp;${results[1].length}</strong></td>
+                                    <td><strong>Total Members&nbsp;:&nbsp;&nbsp;${final_total_members}</strong></td>
+                                </tr>
+                            `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title: "Resource Person Wise Detail Report",
+                        date: sdate,
+                        username
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                        dataobject.data_global_total = data_global_total;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            sql_arr = [data.from_date, data.to_date, data.from_date, data.to_date];
+            sql = `
+                SELECT
+                    Account_Balance.account_id,
+                    Account_Head.account_name,
+                    Account_Balance.sub_account_id,
+                    Sub_Account.sub_account_name,
+                    DATE_FORMAT(Account_Balance.insurance_date,'%d/%m/%Y') AS join_date,
+                    IF(Account_Balance.insurance_tag_no IS NULL,"",Account_Balance.insurance_tag_no) AS tag_no, 
+                    Account_Balance.insurance_due_on_date
+                FROM Account_Balance
+                    INNER JOIN Account_Head
+                        ON Account_Head.account_id = Account_Balance.account_id
+                    INNER JOIN Sub_Account
+                        ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                ORDER BY Account_Balance.account_id ASC;
+                SELECT
+                    Account_Balance.account_id,
+                    Account_Head.account_name,
+                    Count(Account_Balance.sub_account_id) AS total_members
+                FROM Account_Balance
+                    INNER JOIN Account_Head
+                        ON Account_Head.account_id = Account_Balance.account_id
+                WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                GROUP BY Account_Balance.account_id
+                ORDER BY Account_Balance.account_id ASC;
+            `;
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
+                    headers = ["Sr.No.", "Member ID", "Member Name", "Insurance Date", "Tag No.", "Next Due On"];
+                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                    if (results[0].length <= 0) {
+                        datarows = [];
+                        summary = [];
+                        data_global_total = `
+                                <tr style="background-color: gray;text-align: center;width:100%">
+                                    <td><strong>Total Societies&nbsp;:&nbsp;&nbsp;0</strong></td>
+                                    <td><strong>Total Members&nbsp;:&nbsp;&nbsp;0</strong></td>
+                                </tr>
+                            `;
+                    }
+                    else {
+                        var curr_id = results[0][0].account_id, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0][0].account_id + " - " + results[0][0].account_name, entry;
+
+                        // DataRows Generation with balance
+                        for (item of results[0]) {
+                            new_id = item.account_id;
+                            if (curr_id != new_id) {
+                                data_counter = 1;
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry
+                                }
+                                datarows.push(entry);
+                                sub_title = item.account_id + " - " + item.account_name;
+                                curr_id = new_id;
+                                data_entry = [];
+                            }
+                            single_entry = {
+                                snum: data_counter,
+                                mid: item.sub_account_id,
+                                mname: item.sub_account_name,
+                                jdate: item.join_date,
+                                tnum: item.tag_no,
+                                rp: item.insurance_due_on_date
+                            };
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        entry = {
+                            data_title: sub_title,
+                            data: data_entry
+                        }
+                        datarows.push(entry);
+
+                        // Summary Generation with balance
+                        var summary_counter = 0, final_total_members = 0;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+                        for (item of results[1]) {
+                            summary_counter++;
+                            entry = {
+                                snum: summary_counter,
+                                scode: item.account_id,
+                                sname: item.account_name,
+                                tm: item.total_members
+                            }
+                            final_total_members += parseInt(entry.tm);
+                            summary.summary_data.push(entry);
+                        }
+                        summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2"><strong>Total</strong></td>
+                                    <td><strong>${final_total_members}</<strong></td>
+                                </tr>
+                            `;
+                        data_global_total = `
+                                <tr style="background-color: gray;text-align: center;width:100%">
+                                    <td><strong>Total Societies&nbsp;:&nbsp;&nbsp;${results[1].length}</strong></td>
+                                    <td><strong>Total Members&nbsp;:&nbsp;&nbsp;${final_total_members}</strong></td>
+                                </tr>
+                            `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title: "Insurance Detail Report",
+                        date: sdate,
+                        username
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                        dataobject.data_global_total = data_global_total;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.to_date, data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Account_Balance.sub_account_id,
+                        Sub_Account.sub_account_name,
+                        DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
+                        Account_Balance.resource_person_id
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                    WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    ORDER BY Account_Balance.account_id ASC;
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Count(Account_Balance.sub_account_id) AS total_members
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                    WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    GROUP BY Account_Balance.account_id
+                    ORDER BY Account_Balance.account_id ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.taluka_id_list, data.from_date, data.to_date, data.taluka_id_list, data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Account_Balance.sub_account_id,
+                        Sub_Account.sub_account_name,
+                        DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
+                        Account_Balance.resource_person_id
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                        INNER JOIN Village
+                            ON Account_Head.village_id = Village.village_id
+                        INNER JOIN Taluka
+                            ON Village.taluka_id = Taluka.taluka_id
+                    WHERE Taluka.taluka_id IN (?) AND Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    ORDER BY Account_Balance.account_id ASC;
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Count(Account_Balance.sub_account_id) AS total_members
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Village
+                            ON Account_Head.village_id = Village.village_id
+                        INNER JOIN Taluka
+                            ON Village.taluka_id = Taluka.taluka_id
+                    WHERE Taluka.taluka_id IN (?) AND Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    GROUP BY Account_Balance.account_id
+                    ORDER BY Account_Balance.account_id ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
+                    headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
+                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                    if (results[0].length <= 0) {
+                        datarows = [];
+                        summary = [];
+                        data_global_total = `
+                                <tr style="background-color: gray;text-align: center;width:100%">
+                                    <td><strong>Total Societies&nbsp;:&nbsp;&nbsp;0</strong></td>
+                                    <td><strong>Total Members&nbsp;:&nbsp;&nbsp;0</strong></td>
+                                </tr>
+                            `;
+                    }
+                    else {
+                        var curr_id = results[0][0].account_id, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0][0].account_id + " - " + results[0][0].account_name, entry;
+
+                        // DataRows Generation with balance
+                        for (item of results[0]) {
+                            new_id = item.account_id;
+                            if (curr_id != new_id) {
+                                data_counter = 1;
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry
+                                }
+                                datarows.push(entry);
+                                sub_title = item.account_id + " - " + item.account_name;
+                                curr_id = new_id;
+                                data_entry = [];
+                            }
+                            single_entry = {
+                                snum: data_counter,
+                                mid: item.sub_account_id,
+                                mname: item.sub_account_name,
+                                jdate: item.join_date,
+                                rp: item.resource_person_id,
+                            };
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        entry = {
+                            data_title: sub_title,
+                            data: data_entry
+                        }
+                        datarows.push(entry);
+
+                        // Summary Generation with balance
+                        var summary_counter = 0, final_total_members = 0;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+                        for (item of results[1]) {
+                            summary_counter++;
+                            entry = {
+                                snum: summary_counter,
+                                scode: item.account_id,
+                                sname: item.account_name,
+                                tm: item.total_members
+                            }
+                            final_total_members += parseInt(entry.tm);
+                            summary.summary_data.push(entry);
+                        }
+                        summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2"><strong>Total</strong></td>
+                                    <td><strong>${final_total_members}</<strong></td>
+                                </tr>
+                            `;
+                        data_global_total = `
+                                <tr style="background-color: gray;text-align: center;width:100%">
+                                    <td><strong>Total Societies&nbsp;:&nbsp;&nbsp;${results[1].length}</strong></td>
+                                    <td><strong>Total Members&nbsp;:&nbsp;&nbsp;${final_total_members}</strong></td>
+                                </tr>
+                            `;
+                    }
+                    var username = req.user.user_name;
+
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title: "Taluka Wise Detail Report",
+                        date: sdate,
+                        username
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                        dataobject.data_global_total = data_global_total;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.to_date, data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Account_Balance.sub_account_id,
+                        Sub_Account.sub_account_name,
+                        DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
+                        Account_Balance.resource_person_id
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                    WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    ORDER BY Account_Balance.account_id ASC;
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Count(Account_Balance.sub_account_id) AS total_members
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                    WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    GROUP BY Account_Balance.account_id
+                    ORDER BY Account_Balance.account_id ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.district_id_list, data.from_date, data.to_date, data.district_id_list, data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Account_Balance.sub_account_id,
+                        Sub_Account.sub_account_name,
+                        DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
+                        Account_Balance.resource_person_id
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                        INNER JOIN Village
+                            ON Account_Head.village_id = Village.village_id
+                        INNER JOIN Taluka
+                            ON Village.taluka_id = Taluka.taluka_id
+                    WHERE Taluka.district_id IN (?) AND Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    ORDER BY Account_Balance.account_id ASC;
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Count(Account_Balance.sub_account_id) AS total_members
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Village
+                            ON Account_Head.village_id = Village.village_id
+                        INNER JOIN Taluka
+                            ON Village.taluka_id = Taluka.taluka_id
+                    WHERE Taluka.district_id IN (?) AND Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                    GROUP BY Account_Balance.account_id
+                    ORDER BY Account_Balance.account_id ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
+                    headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
+                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                    if (results[0].length <= 0) {
+                        datarows = [];
+                        summary = [];
+                        data_global_total = `
+                                <tr style="background-color: gray;text-align: center;width:100%">
+                                    <td><strong>Total Societies&nbsp;:&nbsp;&nbsp;0</strong></td>
+                                    <td><strong>Total Members&nbsp;:&nbsp;&nbsp;0</strong></td>
+                                </tr>
+                            `;
+                    }
+                    else {
+                        var curr_id = results[0][0].account_id, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0][0].account_id + " - " + results[0][0].account_name, entry;
+
+                        // DataRows Generation with balance
+                        for (item of results[0]) {
+                            new_id = item.account_id;
+                            if (curr_id != new_id) {
+                                data_counter = 1;
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry
+                                }
+                                datarows.push(entry);
+                                sub_title = item.account_id + " - " + item.account_name;
+                                curr_id = new_id;
+                                data_entry = [];
+                            }
+                            single_entry = {
+                                snum: data_counter,
+                                mid: item.sub_account_id,
+                                mname: item.sub_account_name,
+                                jdate: item.join_date,
+                                rp: item.resource_person_id,
+                            };
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        entry = {
+                            data_title: sub_title,
+                            data: data_entry
+                        }
+                        datarows.push(entry);
+
+                        // Summary Generation with balance
+                        var summary_counter = 0, final_total_members = 0;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+                        for (item of results[1]) {
+                            summary_counter++;
+                            entry = {
+                                snum: summary_counter,
+                                scode: item.account_id,
+                                sname: item.account_name,
+                                tm: item.total_members
+                            }
+                            final_total_members += parseInt(entry.tm);
+                            summary.summary_data.push(entry);
+                        }
+                        summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2"><strong>Total</strong></td>
+                                    <td><strong>${final_total_members}</<strong></td>
+                                </tr>
+                            `;
+                        data_global_total = `
+                                <tr style="background-color: gray;text-align: center;width:100%">
+                                    <td><strong>Total Societies&nbsp;:&nbsp;&nbsp;${results[1].length}</strong></td>
+                                    <td><strong>Total Members&nbsp;:&nbsp;&nbsp;${final_total_members}</strong></td>
+                                </tr>
+                            `;
+                    }
+                    var username = req.user.user_name;
+
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title: "District Wise Detail Report",
+                        date: sdate,
+                        username
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                        dataobject.data_global_total = data_global_total;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.from_date, data.to_date, data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        (
+                            CASE
+                                WHEN Account_Balance.op_crdr = "DR" THEN (-1)*Account_Balance.op_balance
+                                ELSE Account_Balance.op_balance
+                            END
+                        ) AS op1,
+                        IFNULL(
+                            (
+                                SELECT
+                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
+                                FROM Ledger
+                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date < ?
+                            )
+                        ,0) AS op2,
+                        IFNULL(
+                            (
+                                SELECT
+                                    SUM(Ledger.cr_amount)
+                                FROM Ledger
+                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
+                            )
+                        ,0) AS cr,
+                        IFNULL(
+                            (
+                                SELECT
+                                    SUM(Ledger.dr_amount)
+                                FROM Ledger
+                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
+                            )
+                        ,0) AS dr
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                    WHERE Account_Head.is_society = 1
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.from_date, data.from_date, data.to_date, data.from_date, data.to_date, data.account_id_list];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        (
+                            CASE
+                                WHEN Account_Balance.op_crdr = "DR" THEN (-1)*Account_Balance.op_balance
+                                ELSE Account_Balance.op_balance
+                            END
+                        ) AS op1,
+                        IFNULL(
+                            (
+                                SELECT
+                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
+                                FROM Ledger
+                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date < ?
+                            )
+                        ,0) AS op2,
+                        IFNULL(
+                            (
+                                SELECT
+                                    SUM(Ledger.cr_amount)
+                                FROM Ledger
+                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
+                            )
+                        ,0) AS cr,
+                        IFNULL(
+                            (
+                                SELECT
+                                    SUM(Ledger.dr_amount)
+                                FROM Ledger
+                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
+                            )
+                        ,0) AS dr
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                    WHERE Account_Balance.account_id IN (?) AND Account_Head.is_society = 1
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
+                    headers = ["Sr.No.", "Member ID", "Member Name", "Opening Balance", "Credit", "Debit", "Closing Balance"];
+                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total OP", "Total CR", "Total DR", "Total CL"];
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                        data_global_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td><strong>0</strong></td>
+                                <td><strong>0</strong></td>
+                                <td><strong>0</strong></td>
+                                <td><strong>0</strong></td>
+                            </tr>
+                        `;
+                    }
+                    else {
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, s_op = 0.00, s_cr = 0.00, s_dr = 0.00, s_cl = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_op_global = 0.00, s_cr_global = 0.00, s_dr_global = 0.00, s_cl_global = 0.00, op_string, cl_string, last_aid, last_aname;
+
+                        var summary_counter = 1, sentry;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+
+                        last_aid = curr_id;
+                        last_aname = results[0].aname;
+
+                        // DataRows Generation
+                        for (item of results) {
+                            new_id = item.aid;
+                            if (curr_id != new_id) {
+                                data_counter = 1;
+                                if (s_op >= 0) {
+                                    op_string = Math.abs(s_op).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " CR";
+                                }
+                                else {
+                                    op_string = Math.abs(s_op).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " DR";
+                                }
+                                if (s_cl >= 0) {
+                                    cl_string = Math.abs(s_cl).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " CR";
+                                }
+                                else {
+                                    cl_string = Math.abs(s_cl).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " DR";
+                                }
+                                data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td></td>
+                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td><strong>${op_string}</strong></td>
+                                        <td style="text-align: right;"><strong>${s_cr.toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                        <td style="text-align: right;"><strong>${s_dr.toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                        <td><strong>${cl_string}</strong></td>
+                                    </tr>
+                                `;
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: last_aid,
+                                    aname: last_aname,
+                                    op: op_string,
+                                    cr: s_cr.toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: s_dr.toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    cl: cl_string
+                                };
+                                if (data.show_zero == '0') {
+                                    if (s_op != 0 || s_cr != 0 || s_dr != 0) {
+                                        summary_counter++;
+                                        summary.summary_data.push(sentry);
+                                    }
+                                }
+                                else {
+                                    summary_counter++;
+                                    summary.summary_data.push(sentry);
+                                }
+                                s_op_global += parseFloat(s_op);
+                                s_cr_global += parseFloat(s_cr);
+                                s_dr_global += parseFloat(s_dr);
+                                s_cl_global += parseFloat(s_cl);
+                                if (data_entry.length > 0) {
+                                    entry = {
+                                        data_title: sub_title,
+                                        data: data_entry,
+                                        data_total
+                                    };
+                                    datarows.push(entry);
+                                }
+                                sub_title = item.aid + " - " + item.aname;
+                                curr_id = new_id;
+                                s_op = 0.00;
+                                s_cr = 0.00;
+                                s_dr = 0.00;
+                                s_cl = 0.00;
+                                data_entry = [];
+                            }
+                            op = (parseFloat(item.op1) + parseFloat(item.op2)) || 0.00;
+                            cr = parseFloat(item.cr) || 0.00;
+                            dr = parseFloat(item.dr) || 0.00;
+                            cl = parseFloat(op) + parseFloat(cr) - parseFloat(dr);
+                            if (op >= 0) {
+                                op_string = Math.abs(op).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + " CR";
+                            }
+                            else {
+                                op_string = Math.abs(op).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + " DR";
+                            }
+                            if (cl >= 0) {
+                                cl_string = Math.abs(cl).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + " CR";
+                            }
+                            else {
+                                cl_string = Math.abs(cl).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + " DR";
+                            }
+                            single_entry = {
+                                snum: data_counter,
+                                mid: item.sid,
+                                mname: item.sname,
+                                op: op_string,
+                                cr: cr.toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: dr.toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                cl: cl_string
+                            };
+                            s_op += parseFloat(op);
+                            s_cr += parseFloat(cr);
+                            s_dr += parseFloat(dr);
+                            s_cl += parseFloat(cl);
+                            if (data.show_zero == '0') {
+                                if (op != 0 || cr != 0 || dr != 0) {
+                                    last_aid = item.aid;
+                                    last_aname = item.aname;
+                                    data_entry.push(single_entry);
+                                    data_counter++;
+                                }
+                            }
+                            else {
+                                last_aid = item.aid;
+                                last_aname = item.aname;
+                                data_entry.push(single_entry);
+                                data_counter++;
+                            }
+                        }
+                        if (s_op >= 0) {
+                            op_string = Math.abs(s_op).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " CR";
+                        }
+                        else {
+                            op_string = Math.abs(s_op).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " DR";
+                        }
+                        if (s_cl >= 0) {
+                            cl_string = Math.abs(s_cl).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " CR";
+                        }
+                        else {
+                            cl_string = Math.abs(s_cl).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " DR";
+                        }
+                        sentry = {
+                            snum: summary_counter,
+                            aid: last_aid,
+                            aname: last_aname,
+                            op: op_string,
+                            cr: s_cr,
+                            dr: s_dr,
+                            cl: cl_string
+                        };
+                        if (data.show_zero == '0') {
+                            if (s_op != 0 || s_cr != 0 || s_dr != 0) {
+                                summary.summary_data.push(sentry);
+                            }
+                        }
+                        else {
+                            summary.summary_data.push(sentry);
+                        }
+                        s_op_global += parseFloat(s_op);
+                        s_cr_global += parseFloat(s_cr);
+                        s_dr_global += parseFloat(s_dr);
+                        s_cl_global += parseFloat(s_cl);
+                        var s_op_string, s_cl_string;
+                        if (s_op_global >= 0) {
+                            s_op_string = Math.abs(s_op_global).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " CR";
+                        }
+                        else {
+                            s_op_string = Math.abs(s_op_global).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " DR";
+                        }
+                        if (s_cl_global >= 0) {
+                            s_cl_string = Math.abs(s_cl_global).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " CR";
+                        }
+                        else {
+                            s_cl_string = Math.abs(s_cl_global).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " DR";
+                        }
+                        data_total = `
+                            <tr style="text-align: center;background-color: silver;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td style="text-align: right;"><strong>${op_string}</strong></td>
+                                <td style="text-align: right;"><strong>${s_cr.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${s_dr.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${cl_string}</strong></td>
+                            </tr>
+                            <tr style="height: 20px !important;background-color: #FFFFFF;">
+                                <td colspan="7"></td>
+                            </tr>
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td style="text-align: right;"><strong>${s_op_string}</strong></td>
+                                <td style="text-align: right;"><strong>${s_cr_global.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${s_dr_global.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${s_cl_string}</strong></td>
+                            </tr>
+                        `;
+                        if (data_entry.length > 0) {
+                            entry = {
+                                data_title: sub_title,
+                                data: data_entry,
+                                data_total
+                            }
+                            datarows.push(entry);
+                        }
+
+                        // Summary Generation
+                        summary.summary_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td style="text-align: right;"><strong>${s_op_string}</strong></td>
+                                <td style="text-align: right;"><strong>${s_cr_global.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${s_dr_global.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${s_cl_string}</strong></td>
+                            </tr>
+                        `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title: "Society Wise Periodical Balance Report",
+                        date: sdate,
+                        username
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [1, 4, 5],
+        header_text_align_right: [1, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Credit", "Debit"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Credit", "Debit"];
+    var report_title = "Society Wise Closing Balance Report";
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.to_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        Account_Balance.op_balance AS op,
+                        (
+                            SELECT
+                                SUM(Ledger.cr_amount)
+                            FROM Ledger
+                            WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date <= ?
+                        ) AS cr,
+                        (
+                            SELECT
+                                SUM(Ledger.dr_amount)
+                            FROM Ledger
+                            WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date <= ?
+                        ) AS dr
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                    WHERE Account_Head.is_society = 1
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.to_date, data.to_date, data.account_id_list];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        Account_Balance.op_balance AS op,
+                        (
+                            SELECT
+                                SUM(Ledger.cr_amount)
+                            FROM Ledger
+                            WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date <= ?
+                        ) AS cr,
+                        (
+                            SELECT
+                                SUM(Ledger.dr_amount)
+                            FROM Ledger
+                            WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date <= ?
+                        ) AS dr
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
+                    WHERE Account_Balance.account_id IN (?) AND Account_Head.is_society = 1
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [], summary = {}, data_global_total;
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                        data_global_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td><strong>0</strong></td>
+                                <td><strong>0</strong></td>
+                            </tr>
+                        `;
+                    }
+                    else {
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, last_aid, last_aname;
+
+                        var summary_counter = 1, sentry;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+
+                        last_aid = curr_id;
+                        last_aname = results[0].aname;
+
+                        // DataRows Generation
+                        for (item of results) {
+                            new_id = item.aid;
+                            if (curr_id != new_id) {
+                                data_counter = 1;
+                                data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td></td>
+                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                    </tr>
+                                `;
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: last_aid,
+                                    aname: last_aname,
+                                    cr: Math.abs(s_cr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: Math.abs(s_dr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                if (data.show_zero == '0') {
+                                    if (s_cr != 0 || s_dr != 0) {
+                                        summary_counter++;
+                                        summary.summary_data.push(sentry);
+                                    }
+                                }
+                                else {
+                                    summary_counter++;
+                                    summary.summary_data.push(sentry);
+                                }
+                                s_cr_global += parseFloat(s_cr);
+                                s_dr_global += parseFloat(s_dr);
+                                if (data_entry.length > 0) {
+                                    entry = {
+                                        data_title: sub_title,
+                                        data: data_entry,
+                                        data_total
+                                    };
+                                    datarows.push(entry);
+                                }
+                                sub_title = item.aid + " - " + item.aname;
+                                curr_id = new_id;
+                                s_cr = 0.00;
+                                s_dr = 0.00;
+                                data_entry = [];
+                            }
+                            op = parseFloat(item.op) || 0.00;
+                            cr = parseFloat(item.cr) || 0.00;
+                            dr = parseFloat(item.dr) || 0.00;
+                            cl = parseFloat(op) + parseFloat(cr) - parseFloat(dr);
+                            if (cl > 0) {
+                                single_entry = {
+                                    snum: data_counter,
+                                    mid: item.sid,
+                                    mname: item.sname,
+                                    cr: Math.abs(cl).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: ' '
+                                };
+                                s_cr += parseFloat(cl);
+                                last_aid = item.aid;
+                                last_aname = item.aname;
+                                data_entry.push(single_entry);
+                                data_counter++;
+                            }
+                            else if (cl < 0) {
+                                single_entry = {
+                                    snum: data_counter,
+                                    mid: item.sid,
+                                    mname: item.sname,
+                                    cr: ' ',
+                                    dr: Math.abs(cl).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_dr += parseFloat(cl);
+                                last_aid = item.aid;
+                                last_aname = item.aname;
+                                data_entry.push(single_entry);
+                                data_counter++;
+                            }
+                            else {
+                                if (data.show_zero == '1') {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        mid: item.sid,
+                                        mname: item.sname,
+                                        cr: '0',
+                                        dr: ' '
+                                    };
+                                    last_aid = item.aid;
+                                    last_aname = item.aname;
+                                    data_entry.push(single_entry);
+                                    data_counter++;
+                                }
+                            }
+                        }
+                        sentry = {
+                            snum: summary_counter,
+                            aid: last_aid,
+                            aname: last_aname,
+                            cr: Math.abs(s_cr).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }),
+                            dr: Math.abs(s_dr).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })
+                        };
+                        if (data.show_zero == '0') {
+                            if (s_cr != 0 || s_dr != 0) {
+                                summary.summary_data.push(sentry);
+                            }
+                        }
+                        else {
+                            summary.summary_data.push(sentry);
+                        }
+                        s_cr_global += parseFloat(s_cr);
+                        s_dr_global += parseFloat(s_dr);
+                        data_total = `
+                            <tr style="text-align: center;background-color: silver;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                            </tr>
+                            <tr style="height: 20px !important;background-color: #FFFFFF;">
+                                <td colspan="7"></td>
+                            </tr>
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                            </tr>
+                        `;
+                        if (data_entry.length > 0) {
+                            entry = {
+                                data_title: sub_title,
+                                data: data_entry,
+                                data_total
+                            }
+                            datarows.push(entry);
+                        }
+
+                        // Summary Generation
+                        summary.summary_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                            </tr>
+                        `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 4, 5],
+        header_text_align_right: [1, 2, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Date", "Narration", "Credit", "Debit"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Closing CR", "Closing DR"];
+    var report_title = "Society Account Ledger";
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        DISTINCT Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        (
+                            SELECT
+                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
+                            FROM Account_Balance
+                            WHERE Account_Balance.account_id = aid
+                        ) AS op1,
+                        IFNULL(
+                            (
+                                SELECT
+                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
+                                FROM Ledger
+                                WHERE Ledger.account_id = aid AND Ledger.transaction_date <= ?
+                            )
+                        ,0) AS op2,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr
+                        FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Ledger
+                            ON Ledger.account_id = Account_Balance.account_id
+                    WHERE Account_Head.is_society = 1 AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
+                    ORDER BY Account_Balance.account_id ASC, Ledger.transaction_date ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.from_date, data.from_date, data.to_date, data.account_id_list];
+                sql = `
+                    SELECT
+                        DISTINCT Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        (
+                            SELECT
+                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
+                            FROM Account_Balance
+                            WHERE Account_Balance.account_id = aid
+                        ) AS op1,
+                        IFNULL(
+                            (
+                                SELECT
+                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
+                                FROM Ledger
+                                WHERE Ledger.account_id = aid AND Ledger.transaction_date <= ?
+                            )
+                        ,0) AS op2,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr
+                        FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Ledger
+                            ON Ledger.account_id = Account_Balance.account_id
+                    WHERE Account_Head.is_society = 1 AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Account_Head.account_id IN (?)
+                    ORDER BY Account_Balance.account_id ASC, Ledger.transaction_date ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [], summary = {}, data_global_total;
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                        data_global_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td><strong>0</strong></td>
+                                <td><strong>0</strong></td>
+                            </tr>
+                        `;
+                    }
+                    else {
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
+
+                        var summary_counter = 1, sentry;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+
+                        // Opening Entry
+                        var fr_date_arr = data.from_date.split('-');
+                        var fr_date = fr_date_arr[2] + "/" + fr_date_arr[1] + "/" + fr_date_arr[0];
+                        var to_date_arr = data.to_date.split('-');
+                        var to_date = to_date_arr[2] + "/" + to_date_arr[1] + "/" + to_date_arr[0];
+                        op = (parseFloat(results[0].op1) + parseFloat(results[0].op2)) || 0.00;
+                        last_aname = results[0].aname;
+                        if (op >= 0) {
+                            single_entry = {
+                                snum: data_counter,
+                                date: fr_date,
+                                narration: "Opening Balance",
+                                cr: Math.abs(op).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: ' '
+                            };
+                            s_cr += Math.abs(parseFloat(op));
+                        }
+                        else {
+                            single_entry = {
+                                snum: data_counter,
+                                date: fr_date,
+                                narration: "Opening Balance",
+                                cr: ' ',
+                                dr: Math.abs(op).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                            };
+                            s_dr += Math.abs(parseFloat(op));
+                        }
+                        data_entry.push(single_entry);
+                        data_counter++;
+
+                        // DataRows Generation
+                        for (item of results) {
+                            new_id = item.aid;
+                            if (curr_id != new_id) {
+                                cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
+                                if (cl_balance >= 0) {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: to_date,
+                                        narration: "Closing Balance",
+                                        cr: ' ',
+                                        dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    }
+                                    s_dr += Math.abs(parseFloat(cl_balance));
+                                }
+                                else {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: to_date,
+                                        narration: "Closing Balance",
+                                        cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ' '
+                                    }
+                                    s_cr += Math.abs(parseFloat(cl_balance));
+                                }
+                                data_entry.push(single_entry);
+                                data_counter = 1;
+                                data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td></td>
+                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                    </tr>
+                                `;
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: curr_id,
+                                    aname: last_aname,
+                                    cr: Math.abs(s_cr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: Math.abs(s_dr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                summary_counter++;
+                                summary.summary_data.push(sentry);
+                                s_cr_global += parseFloat(s_cr);
+                                s_dr_global += parseFloat(s_dr);
+                                if (data_entry.length > 0) {
+                                    entry = {
+                                        data_title: sub_title,
+                                        data: data_entry,
+                                        data_total
+                                    };
+                                    datarows.push(entry);
+                                }
+                                sub_title = item.aid + " - " + item.aname;
+                                curr_id = new_id;
+                                s_cr = 0.00;
+                                s_dr = 0.00;
+                                data_entry = [];
+                                op = parseFloat(item.op1) + parseFloat(item.op2);
+                                if (op >= 0) {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: fr_date,
+                                        narration: "Opening Balance",
+                                        cr: Math.abs(op).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ' '
+                                    };
+                                    s_cr += Math.abs(parseFloat(op));
+                                }
+                                else {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: fr_date,
+                                        narration: "Opening Balance",
+                                        cr: ' ',
+                                        dr: Math.abs(op).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    s_dr += Math.abs(parseFloat(op));
+                                }
+                                data_entry.push(single_entry);
+                                data_counter++;
+                            }
+                            cr = Math.abs(parseFloat(item.cr)) || 0.00;
+                            dr = Math.abs(parseFloat(item.dr)) || 0.00;
+                            if (dr > 0) {
+                                single_entry = {
+                                    snum: data_counter,
+                                    date: item.tc_date,
+                                    narration: item.narration,
+                                    cr: ' ',
+                                    dr: Math.abs(dr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_dr += dr;
+                            }
+                            else {
+                                single_entry = {
+                                    snum: data_counter,
+                                    date: item.tc_date,
+                                    narration: item.narration,
+                                    cr: Math.abs(cr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: ' '
+                                };
+                                s_cr += cr;
+                            }
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
+                        if (cl_balance >= 0) {
+                            single_entry = {
+                                snum: data_counter,
+                                date: to_date,
+                                narration: "Closing Balance",
+                                cr: ' ',
+                                dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                            }
+                            s_dr += Math.abs(parseFloat(cl_balance));
+                        }
+                        else {
+                            single_entry = {
+                                snum: data_counter,
+                                date: to_date,
+                                narration: "Closing Balance",
+                                cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: ' '
+                            }
+                            s_cr += Math.abs(parseFloat(cl_balance));
+                        }
+                        data_entry.push(single_entry);
+                        data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td></td>
+                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                    </tr>
+                                `;
+                        sentry = {
+                            snum: summary_counter,
+                            aid: curr_id,
+                            aname: last_aname,
+                            cr: Math.abs(s_cr).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }),
+                            dr: Math.abs(s_dr).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })
+                        };
+                        summary_counter++;
+                        summary.summary_data.push(sentry);
+                        s_cr_global += parseFloat(s_cr);
+                        s_dr_global += parseFloat(s_dr);
+                        if (data_entry.length > 0) {
+                            entry = {
+                                data_title: sub_title,
+                                data: data_entry,
+                                data_total
+                            };
+                            datarows.push(entry);
+                        }
+                        // Summary Generation
+                        summary.summary_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                            </tr>
+                        `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 4, 5],
+        header_text_align_right: [1, 2, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Date", "Narration", "Credit", "Debit"];
+    var summary_headers = ["Sr.No.", "Member ID", "Member Name", "Closing CR", "Closing DR"];
+    var report_title = "Member Account Ledger";
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        DISTINCT Account_Balance.sub_account_id AS aid,
+                        Sub_Account.sub_account_name AS aname,
+                        (
+                            SELECT
+                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
+                            FROM Account_Balance
+                            WHERE Account_Balance.sub_account_id = aid
+                        ) AS op1,
+                        IFNULL(
+                            (
+                                SELECT
+                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
+                                FROM Ledger
+                                WHERE Ledger.sub_account_id = aid AND Ledger.transaction_date <= ?
+                            )
+                        ,0) AS op2,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr
+                        FROM Account_Balance
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                        INNER JOIN Ledger
+                            ON Ledger.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
+                    ORDER BY Account_Balance.sub_account_id ASC, Ledger.transaction_date ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.from_date, data.from_date, data.to_date, data.sub_account_id_list];
+                sql = `
+                    SELECT
+                        DISTINCT Account_Balance.sub_account_id AS aid,
+                        Sub_Account.sub_account_name AS aname,
+                        (
+                            SELECT
+                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
+                            FROM Account_Balance
+                            WHERE Account_Balance.sub_account_id = aid
+                        ) AS op1,
+                        IFNULL(
+                            (
+                                SELECT
+                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
+                                FROM Ledger
+                                WHERE Ledger.sub_account_id = aid AND Ledger.transaction_date <= ?
+                            )
+                        ,0) AS op2,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr
+                        FROM Account_Balance
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                        INNER JOIN Ledger
+                            ON Ledger.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Sub_Account.sub_account_id IN (?)
+                    ORDER BY Account_Balance.sub_account_id ASC, Ledger.transaction_date ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [], summary = {}, data_global_total;
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                        data_global_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td><strong>0</strong></td>
+                                <td><strong>0</strong></td>
+                            </tr>
+                        `;
+                    }
+                    else {
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
+
+                        var summary_counter = 1, sentry;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+
+                        // Opening Entry
+                        var fr_date_arr = data.from_date.split('-');
+                        var fr_date = fr_date_arr[2] + "/" + fr_date_arr[1] + "/" + fr_date_arr[0];
+                        var to_date_arr = data.to_date.split('-');
+                        var to_date = to_date_arr[2] + "/" + to_date_arr[1] + "/" + to_date_arr[0];
+                        op = (parseFloat(results[0].op1) + parseFloat(results[0].op2)) || 0.00;
+                        last_aname = results[0].aname;
+                        if (op >= 0) {
+                            single_entry = {
+                                snum: data_counter,
+                                date: fr_date,
+                                narration: "Opening Balance",
+                                cr: Math.abs(op).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: ' '
+                            };
+                            s_cr += Math.abs(parseFloat(op));
+                        }
+                        else {
+                            single_entry = {
+                                snum: data_counter,
+                                date: fr_date,
+                                narration: "Opening Balance",
+                                cr: ' ',
+                                dr: Math.abs(op).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                            };
+                            s_dr += Math.abs(parseFloat(op));
+                        }
+                        data_entry.push(single_entry);
+                        data_counter++;
+
+                        // DataRows Generation
+                        for (item of results) {
+                            new_id = item.aid;
+                            if (curr_id != new_id) {
+                                cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
+                                if (cl_balance >= 0) {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: to_date,
+                                        narration: "Closing Balance",
+                                        cr: ' ',
+                                        dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    }
+                                    s_dr += Math.abs(parseFloat(cl_balance));
+                                }
+                                else {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: to_date,
+                                        narration: "Closing Balance",
+                                        cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ' '
+                                    }
+                                    s_cr += Math.abs(parseFloat(cl_balance));
+                                }
+                                data_entry.push(single_entry);
+                                data_counter = 1;
+                                data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td></td>
+                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                    </tr>
+                                `;
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: curr_id,
+                                    aname: last_aname,
+                                    cr: Math.abs(s_cr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: Math.abs(s_dr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                summary_counter++;
+                                summary.summary_data.push(sentry);
+                                s_cr_global += parseFloat(s_cr);
+                                s_dr_global += parseFloat(s_dr);
+                                if (data_entry.length > 0) {
+                                    entry = {
+                                        data_title: sub_title,
+                                        data: data_entry,
+                                        data_total
+                                    };
+                                    datarows.push(entry);
+                                }
+                                sub_title = item.aid + " - " + item.aname;
+                                curr_id = new_id;
+                                s_cr = 0.00;
+                                s_dr = 0.00;
+                                data_entry = [];
+                                op = parseFloat(item.op1) + parseFloat(item.op2);
+                                if (op >= 0) {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: fr_date,
+                                        narration: "Opening Balance",
+                                        cr: Math.abs(op).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ' '
+                                    };
+                                    s_cr += Math.abs(parseFloat(op));
+                                }
+                                else {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: fr_date,
+                                        narration: "Opening Balance",
+                                        cr: ' ',
+                                        dr: Math.abs(op).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    s_dr += Math.abs(parseFloat(op));
+                                }
+                                data_entry.push(single_entry);
+                                data_counter++;
+                            }
+                            cr = Math.abs(parseFloat(item.cr)) || 0.00;
+                            dr = Math.abs(parseFloat(item.dr)) || 0.00;
+                            if (dr > 0) {
+                                single_entry = {
+                                    snum: data_counter,
+                                    date: item.tc_date,
+                                    narration: item.narration,
+                                    cr: ' ',
+                                    dr: Math.abs(dr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_dr += dr;
+                            }
+                            else {
+                                single_entry = {
+                                    snum: data_counter,
+                                    date: item.tc_date,
+                                    narration: item.narration,
+                                    cr: Math.abs(cr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: ' '
+                                };
+                                s_cr += cr;
+                            }
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
+                        if (cl_balance >= 0) {
+                            single_entry = {
+                                snum: data_counter,
+                                date: to_date,
+                                narration: "Closing Balance",
+                                cr: ' ',
+                                dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                            }
+                            s_dr += Math.abs(parseFloat(cl_balance));
+                        }
+                        else {
+                            single_entry = {
+                                snum: data_counter,
+                                date: to_date,
+                                narration: "Closing Balance",
+                                cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: ' '
+                            }
+                            s_cr += Math.abs(parseFloat(cl_balance));
+                        }
+                        data_entry.push(single_entry);
+                        data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td></td>
+                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                    </tr>
+                                `;
+                        sentry = {
+                            snum: summary_counter,
+                            aid: curr_id,
+                            aname: last_aname,
+                            cr: Math.abs(s_cr).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }),
+                            dr: Math.abs(s_dr).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })
+                        };
+                        summary_counter++;
+                        summary.summary_data.push(sentry);
+                        s_cr_global += parseFloat(s_cr);
+                        s_dr_global += parseFloat(s_dr);
+                        if (data_entry.length > 0) {
+                            entry = {
+                                data_title: sub_title,
+                                data: data_entry,
+                                data_total
+                            };
+                            datarows.push(entry);
+                        }
+                        // Summary Generation
+                        summary.summary_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                            </tr>
+                        `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 4, 5],
+        header_text_align_right: [1, 2, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Date", "Narration", "Credit", "Debit"];
+    var summary_headers = ["Sr.No.", "Member ID", "Member Name", "Closing CR", "Closing DR"];
+    var report_title = "Society Wise Member Account Ledger";
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.from_date, data.to_date, data.account_id_list];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Account_Balance.sub_account_id AS aid,
+                        Sub_Account.sub_account_name AS aname,
+                        (
+                            SELECT
+                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
+                            FROM Account_Balance
+                            WHERE Account_Balance.sub_account_id = aid
+                        ) AS op1,
+                        IFNULL(
+                            (
+                                SELECT
+                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
+                                FROM Ledger
+                                WHERE Ledger.sub_account_id = aid AND Ledger.transaction_date <= ?
+                            )
+                        ,0) AS op2,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr
+                        FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                        INNER JOIN Ledger
+                            ON Ledger.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id = ?
+                    ORDER BY Account_Balance.sub_account_id ASC, Ledger.transaction_date ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.from_date, data.from_date, data.to_date, data.account_id_list, data.sub_account_id_list];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id,
+                        Account_Head.account_name,
+                        Account_Balance.sub_account_id AS aid,
+                        Sub_Account.sub_account_name AS aname,
+                        (
+                            SELECT
+                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
+                            FROM Account_Balance
+                            WHERE Account_Balance.sub_account_id = aid
+                        ) AS op1,
+                        IFNULL(
+                            (
+                                SELECT
+                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
+                                FROM Ledger
+                                WHERE Ledger.sub_account_id = aid AND Ledger.transaction_date <= ?
+                            )
+                        ,0) AS op2,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr
+                        FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                        INNER JOIN Ledger
+                            ON Ledger.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id = ? AND Ledger.sub_account_id IN (?)
+                    ORDER BY Account_Balance.sub_account_id ASC, Ledger.transaction_date ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [], summary = {}, data_global_total;
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                        data_global_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td><strong>0</strong></td>
+                                <td><strong>0</strong></td>
+                            </tr>
+                        `;
+                    }
+                    else {
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
+
+                        var summary_counter = 1, sentry;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+
+                        // Opening Entry
+                        var fr_date_arr = data.from_date.split('-');
+                        var fr_date = fr_date_arr[2] + "/" + fr_date_arr[1] + "/" + fr_date_arr[0];
+                        var to_date_arr = data.to_date.split('-');
+                        var to_date = to_date_arr[2] + "/" + to_date_arr[1] + "/" + to_date_arr[0];
+                        op = (parseFloat(results[0].op1) + parseFloat(results[0].op2)) || 0.00;
+                        last_aname = results[0].aname;
+                        if (op >= 0) {
+                            single_entry = {
+                                snum: data_counter,
+                                date: fr_date,
+                                narration: "Opening Balance",
+                                cr: Math.abs(op).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: ' '
+                            };
+                            s_cr += Math.abs(parseFloat(op));
+                        }
+                        else {
+                            single_entry = {
+                                snum: data_counter,
+                                date: fr_date,
+                                narration: "Opening Balance",
+                                cr: ' ',
+                                dr: Math.abs(op).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                            };
+                            s_dr += Math.abs(parseFloat(op));
+                        }
+                        data_entry.push(single_entry);
+                        data_counter++;
+
+                        // DataRows Generation
+                        for (item of results) {
+                            new_id = item.aid;
+                            if (curr_id != new_id) {
+                                cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
+                                if (cl_balance >= 0) {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: to_date,
+                                        narration: "Closing Balance",
+                                        cr: ' ',
+                                        dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    }
+                                    s_dr += Math.abs(parseFloat(cl_balance));
+                                }
+                                else {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: to_date,
+                                        narration: "Closing Balance",
+                                        cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ' '
+                                    }
+                                    s_cr += Math.abs(parseFloat(cl_balance));
+                                }
+                                data_entry.push(single_entry);
+                                data_counter = 1;
+                                data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td></td>
+                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                    </tr>
+                                `;
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: curr_id,
+                                    aname: last_aname,
+                                    cr: Math.abs(s_cr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: Math.abs(s_dr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                summary_counter++;
+                                summary.summary_data.push(sentry);
+                                s_cr_global += parseFloat(s_cr);
+                                s_dr_global += parseFloat(s_dr);
+                                if (data_entry.length > 0) {
+                                    entry = {
+                                        data_title: sub_title,
+                                        data: data_entry,
+                                        data_total
+                                    };
+                                    datarows.push(entry);
+                                }
+                                sub_title = item.aid + " - " + item.aname;
+                                curr_id = new_id;
+                                s_cr = 0.00;
+                                s_dr = 0.00;
+                                data_entry = [];
+                                op = parseFloat(item.op1) + parseFloat(item.op2);
+                                if (op >= 0) {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: fr_date,
+                                        narration: "Opening Balance",
+                                        cr: Math.abs(op).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ' '
+                                    };
+                                    s_cr += Math.abs(parseFloat(op));
+                                }
+                                else {
+                                    single_entry = {
+                                        snum: data_counter,
+                                        date: fr_date,
+                                        narration: "Opening Balance",
+                                        cr: ' ',
+                                        dr: Math.abs(op).toLocaleString('en-IN', {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    s_dr += Math.abs(parseFloat(op));
+                                }
+                                data_entry.push(single_entry);
+                                data_counter++;
+                            }
+                            cr = Math.abs(parseFloat(item.cr)) || 0.00;
+                            dr = Math.abs(parseFloat(item.dr)) || 0.00;
+                            if (dr > 0) {
+                                single_entry = {
+                                    snum: data_counter,
+                                    date: item.tc_date,
+                                    narration: item.narration,
+                                    cr: ' ',
+                                    dr: Math.abs(dr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_dr += dr;
+                            }
+                            else {
+                                single_entry = {
+                                    snum: data_counter,
+                                    date: item.tc_date,
+                                    narration: item.narration,
+                                    cr: Math.abs(cr).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: ' '
+                                };
+                                s_cr += cr;
+                            }
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
+                        if (cl_balance >= 0) {
+                            single_entry = {
+                                snum: data_counter,
+                                date: to_date,
+                                narration: "Closing Balance",
+                                cr: ' ',
+                                dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                            }
+                            s_dr += Math.abs(parseFloat(cl_balance));
+                        }
+                        else {
+                            single_entry = {
+                                snum: data_counter,
+                                date: to_date,
+                                narration: "Closing Balance",
+                                cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: ' '
+                            }
+                            s_cr += Math.abs(parseFloat(cl_balance));
+                        }
+                        data_entry.push(single_entry);
+                        data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td></td>
+                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                    </tr>
+                                `;
+                        sentry = {
+                            snum: summary_counter,
+                            aid: curr_id,
+                            aname: last_aname,
+                            cr: Math.abs(s_cr).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }),
+                            dr: Math.abs(s_dr).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })
+                        };
+                        summary_counter++;
+                        summary.summary_data.push(sentry);
+                        s_cr_global += parseFloat(s_cr);
+                        s_dr_global += parseFloat(s_dr);
+                        if (data_entry.length > 0) {
+                            entry = {
+                                data_title: sub_title,
+                                data: data_entry,
+                                data_total
+                            };
+                            datarows.push(entry);
+                        }
+                        // Summary Generation
+                        summary.summary_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td></td>
+                                <td colspan="2"><strong>Total</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                            </tr>
+                        `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 4, 5],
+        header_text_align_right: [1, 2, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Birth Date", "Calwing Date", "Age(days)"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Average Age(days)"];
+    var report_title = "Society Wise Member Calwing Age";
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        DATE_FORMAT(Account_Balance.birth_date,'%d/%m/%Y') AS bdate,
+                        DATE_FORMAT(Account_Balance.calwing_date,'%d/%m/%Y') AS cdate,
+                        Account_Balance.birth_date AS bcaldate,
+                        Account_Balance.calwing_date AS ccaldate
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Account_Balance.birth_date IS NOT NULL AND Account_Balance.calwing_date IS NOT NULL AND Account_Balance.calwing_date >= ? AND Account_Balance.calwing_date <= ?
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC, Account_Balance.birth_date ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.from_date, data.to_date, data.account_id_list];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        DATE_FORMAT(Account_Balance.birth_date,'%d/%m/%Y') AS bdate,
+                        DATE_FORMAT(Account_Balance.calwing_date,'%d/%m/%Y') AS cdate,
+                        Account_Balance.birth_date AS bcaldate,
+                        Account_Balance.calwing_date AS ccaldate
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Account_Balance.birth_date IS NOT NULL AND Account_Balance.calwing_date IS NOT NULL AND Account_Balance.calwing_date >= ? AND Account_Balance.calwing_date <= ? AND Account_Balance.account_id IN (?)
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC, Account_Balance.birth_date ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [], summary = {}, data_global_total;
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                    }
+                    else {
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, days = 0, diff, total_days = 0, avg, data_total, lname;
+                        var summary_counter = 1, sentry, date1, date2;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+
+                        for (item of results) {
+                            new_id = item.aid;
+                            if (new_id != curr_id) {
+                                if (data_counter != 0) {
+                                    avg = parseFloat(total_days) / parseFloat(data_counter - 1);
+                                }
+                                else {
+                                    avg = 0;
+                                }
+                                data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td></td>
+                                        <td colspan="3"><strong>Average Calwing Period For Whole Society</strong></td>
+                                        <td colspan="2" style="text-align: right"><strong>${avg.toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })} Days</strong></td>
+                                    </tr>
+                                `;
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry,
+                                    data_total
+                                };
+                                datarows.push(entry);
+                                sentry = {
+                                    snum: summary_counter,
+                                    sid: curr_id,
+                                    sname: lname,
+                                    age: avg.toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                summary_counter++;
+                                summary.summary_data.push(sentry);
+                                data_entry = [];
+                                data_counter = 1;
+                                total_days = 0;
+                                sub_title = item.aid + " - " + item.aname;
+                                curr_id = new_id;
+                            }
+                            date1 = new Date(item.bcaldate);
+                            date2 = new Date(item.ccaldate);
+                            diff = date2.getTime() - date1.getTime();
+                            days = diff / (1000 * 3600 * 24) + 1;
+                            single_entry = {
+                                snum: data_counter,
+                                sid: item.sid,
+                                sname: item.sname,
+                                bdate: item.bdate,
+                                cdate: item.cdate,
+                                age: days.toLocaleString('en-IN')
+                            };
+                            lname = item.aname;
+                            total_days += days;
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        avg = parseFloat(total_days) / parseFloat(data_counter - 1);
+                        data_total = `
+                            <tr style="text-align: center;background-color: silver;">
+                                <td></td>
+                                <td colspan="3"><strong>Average Calwing Period For Whole Society</strong></td>
+                                <td colspan="2" style="text-align: right"><strong>${avg.toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })} Days</strong></td>
+                            </tr>
+                        `;
+                        entry = {
+                            data_title: sub_title,
+                            data: data_entry,
+                            data_total
+                        };
+                        datarows.push(entry);
+                        sentry = {
+                            snum: summary_counter,
+                            sid: curr_id,
+                            sname: lname,
+                            age: avg.toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })
+                        };
+                        summary.summary_data.push(sentry);
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 4, 5],
+        header_text_align_right: [1, 2, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Calwing Date", "Cancel Date", "Death Date", "Closing Balance"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Net Closing Balance"];
+    var report_title = "Society Wise Member Calwing Analysis Report";
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        DATE_FORMAT(Account_Balance.calwing_date,'%d/%m/%Y') AS caldate,
+                        DATE_FORMAT(Account_Balance.cancel_date,'%d/%m/%Y') AS candate,
+                        DATE_FORMAT(Account_Balance.death_date,'%d/%m/%Y') AS deathdate,
+                        IF(Account_Balance.cl_crdr = "DR", -1*Account_Balance.cl_balance, Account_Balance.cl_balance) AS cl
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Account_Head.is_society = '1'
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.account_id_list];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        DATE_FORMAT(Account_Balance.calwing_date,'%d/%m/%Y') AS caldate,
+                        DATE_FORMAT(Account_Balance.cancel_date,'%d/%m/%Y') AS candate,
+                        DATE_FORMAT(Account_Balance.death_date,'%d/%m/%Y') AS deathdate,
+                        IF(Account_Balance.cl_crdr = "DR", -1*Account_Balance.cl_balance, Account_Balance.cl_balance) AS cl
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Account_Head.is_society = '1' AND Account_Balance.account_id IN (?)
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [], summary = {}, data_global_total;
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                    }
+                    else {
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, data_total, lname, s_cl_balance, cl_total = 0.00, cl_global = 0.00, s_cl_total, s_cl_global;
+                        var summary_counter = 1, sentry, date1, date2;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+
+                        for (item of results) {
+                            new_id = item.aid;
+                            if (new_id != curr_id) {
+                                if (cl_total >= 0) {
+                                    s_cl_total = Math.abs(cl_total).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " CR";
+                                    data_total = `
+                                        <tr style="text-align: center;background-color: silver;">
+                                            <td></td>
+                                            <td colspan="2"><strong>Net Balance</strong></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td style="text-align: right"><strong>${s_cl_total}</strong></td>
+                                        </tr>
+                                    `;
+                                }
+                                else {
+                                    s_cl_total = Math.abs(cl_total).toLocaleString('en-IN', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " DR";
+                                    data_total = `
+                                        <tr style="text-align: center;background-color: silver;">
+                                            <td></td>
+                                            <td colspan="2"><strong>Net Balance</strong></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td style="text-align: right"><strong>${s_cl_total}</strong></td>
+                                        </tr>
+                                    `;
+                                }
+                                if(data_entry.length > 0) {
+                                    entry = {
+                                        data_title: sub_title,
+                                        data: data_entry,
+                                        data_total
+                                    };
+                                    datarows.push(entry);
+                                    sentry = {
+                                        snum: summary_counter,
+                                        sid: curr_id,
+                                        sname: lname,
+                                        cl_total: s_cl_total
+                                    };
+                                    cl_global = parseFloat(cl_global) + parseFloat(cl_total);
+                                    summary_counter++;
+                                    summary.summary_data.push(sentry);
+                                }
+                                data_entry = [];
+                                data_counter = 1;
+                                cl_total = 0.00;
+                                sub_title = item.aid + " - " + item.aname;
+                                curr_id = new_id;
+                            }
+                            if (item.cl >= 0) {
+                                s_cl_balance = Math.abs(item.cl).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + " CR";
+                            }
+                            else {
+                                s_cl_balance = Math.abs(item.cl).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + " DR";
+                            }
+                            single_entry = {
+                                snum: data_counter,
+                                sid: item.sid,
+                                sname: item.sname,
+                                caldate: item.caldate,
+                                candate: item.candate,
+                                deathdate: item.deathdate,
+                                cl_balance: s_cl_balance
+                            };
+                            if(data.show_zero == '0') {
+                                if(item.cl != 0 ) {
+                                    lname = item.aname;
+                                    cl_total = parseFloat(cl_total) + parseFloat(item.cl);
+                                    data_entry.push(single_entry);
+                                    data_counter++;
+                                }
+                            }
+                            else {
+                                lname = item.aname;
+                                cl_total = parseFloat(cl_total) + parseFloat(item.cl);
+                                data_entry.push(single_entry);
+                                data_counter++;
+                            }
+                        }
+                        if (cl_total >= 0) {
+                            s_cl_total = Math.abs(cl_total).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " CR";
+                            data_total = `
+                                <tr style="text-align: center;background-color: silver;">
+                                    <td></td>
+                                    <td colspan="2"><strong>Net Balance</strong></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td style="text-align: right"><strong>${s_cl_total}</strong></td>
+                                </tr>
+                            `;
+                        }
+                        else {
+                            s_cl_total = Math.abs(cl_total).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " DR";
+                            data_total = `
+                                <tr style="text-align: center;background-color: silver;">
+                                    <td></td>
+                                    <td colspan="2"><strong>Net Balance</strong></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td style="text-align: right"><strong>${s_cl_total}</strong></td>
+                                </tr>
+                            `;
+                        }
+                        if(data_entry.length > 0) {
+                            entry = {
+                                data_title: sub_title,
+                                data: data_entry,
+                                data_total
+                            };
+                            datarows.push(entry);
+                            sentry = {
+                                snum: summary_counter,
+                                sid: curr_id,
+                                sname: lname,
+                                cl_total: s_cl_total
+                            };
+                            cl_global = parseFloat(cl_global) + parseFloat(cl_total);
+                            summary_counter++;
+                            summary.summary_data.push(sentry);
+                        }
+                        if(cl_global >= 0) {
+                            s_cl_global = Math.abs(cl_global).toLocaleString('en-IN',{
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " CR";
+                        }
+                        else {
+                            s_cl_global = Math.abs(cl_global).toLocaleString('en-IN',{
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) + " DR";
+                        }
+                        console.log(cl_global);
+                        console.log(s_cl_global);
+                        summary.summary_total = `
+                            <tr style="text-align: center;background-color: silver;">
+                                <td>HERE</td>
+                                <td colspan="2"><strong>Net Balance</strong></td>
+                                <td style="text-align: right"><strong>${s_cl_global}</strong></td>
+                            </tr>
+                        `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/societywiseheiferdate', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 4, 5],
+        header_text_align_right: [1, 2, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Heifer Date"];
+    var report_title = "Society-Member Heifer Datewise Report";
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        DATE_FORMAT(Account_Balance.heifer_date,'%d/%m/%Y') AS hdate
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Account_Balance.heifer_date IS NOT NULL AND Account_Balance.heifer_date >= ? AND Account_Balance.heifer_date <= ?
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.from_date, data.to_date, data.account_id_list];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        DATE_FORMAT(Account_Balance.heifer_date,'%d/%m/%Y') AS hdate
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Account_Balance.heifer_date IS NOT NULL AND Account_Balance.heifer_date >= ? AND Account_Balance.heifer_date <= ? AND Account_Balance.account_id IN (?)
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [];
+                    if (results.length <= 0) {
+                        datarows = [];
+                    }
+                    else {
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry,lname;
+
+                        for (item of results) {
+                            new_id = item.aid;
+                            if (new_id != curr_id) {
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry
+                                };
+                                datarows.push(entry);
+                                data_entry = [];
+                                data_counter = 1;
+                                sub_title = item.aid + " - " + item.aname;
+                                curr_id = new_id;
+                            }
+                            single_entry = {
+                                snum: data_counter,
+                                sid: item.sid,
+                                sname: item.sname,
+                                hdate: item.hdate
+                            };
+                            lname = item.aname;
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        entry = {
+                            data_title: sub_title,
+                            data: data_entry
+                        };
+                        datarows.push(entry);
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        datarows,
+                        len: headers.length,
+                        report_title,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/societywisedeathdate', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 4, 5],
+        header_text_align_right: [1, 2, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Death Date"];
+    var report_title = "Society-Member Death Datewise Report";
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.from_date, data.to_date];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        DATE_FORMAT(Account_Balance.death_date,'%d/%m/%Y') AS hdate
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Account_Balance.death_date IS NOT NULL AND Account_Balance.death_date >= ? AND Account_Balance.death_date <= ?
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.from_date, data.to_date, data.account_id_list];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Head.account_name AS aname,
+                        Account_Balance.sub_account_id AS sid,
+                        Sub_Account.sub_account_name AS sname,
+                        DATE_FORMAT(Account_Balance.death_date,'%d/%m/%Y') AS hdate
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Account_Balance.death_date IS NOT NULL AND Account_Balance.death_date >= ? AND Account_Balance.death_date <= ? AND Account_Balance.account_id IN (?)
+                    ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [];
+                    if (results.length <= 0) {
+                        datarows = [];
+                    }
+                    else {
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry,lname;
+
+                        for (item of results) {
+                            new_id = item.aid;
+                            if (new_id != curr_id) {
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry
+                                };
+                                datarows.push(entry);
+                                data_entry = [];
+                                data_counter = 1;
+                                sub_title = item.aid + " - " + item.aname;
+                                curr_id = new_id;
+                            }
+                            single_entry = {
+                                snum: data_counter,
+                                sid: item.sid,
+                                sname: item.sname,
+                                hdate: item.hdate
+                            };
+                            lname = item.aname;
+                            data_entry.push(single_entry);
+                            data_counter++;
+                        }
+                        entry = {
+                            data_title: sub_title,
+                            data: data_entry
+                        };
+                        datarows.push(entry);
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        datarows,
+                        len: headers.length,
+                        report_title,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 4, 5],
+        header_text_align_right: [1, 2, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Receipt ID", "Receipt No.", "Society Name", "Receipt Amount"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Receipt Amount"];
+    var report_title = "Periodical Receipt Register";
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            sql_arr = [data.from_date, data.to_date];
+            sql = `
+                SELECT
+                    DATE_FORMAT(Receipt.receipt_date,'%d/%m/%Y') AS rdate,
+                    Receipt.receipt_number AS rnum,
+                    Receipt.cr_account_id AS aid,
+                    Account_Head.account_name AS aname,
+                    Receipt.total_amount AS tamount
+                FROM Receipt
+                    INNER JOIN Account_Head
+                        ON Account_Head.account_id = Receipt.cr_account_id
+                WHERE Receipt.receipt_date IS NOT NULL AND Receipt.receipt_date >= ? AND Receipt.receipt_date <= ?
+                ORDER BY Receipt.receipt_date ASC;
+            `;
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [], summary = {}, data_global_total;
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                    }
+                    else {
+                        var curr_id, data_entry = [], single_entry, data_counter = 1, entry, data_total, gtotal = 0.00;
+                        var summary_counter = 1, sentry;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+
+                        var sdata = {};
+
+                        for (item of results) {
+                            curr_id = item.aid;
+                            if(curr_id in sdata) {
+                                sdata[curr_id]["total"] += parseFloat(item.tamount);
+                            }
+                            else {
+                                sdata[curr_id] = {};
+                                sdata[curr_id]["name"] = item.aname;
+                                sdata[curr_id]["total"] = parseFloat(item.tamount);
+                            }
+                            single_entry = {
+                                snum: data_counter,
+                                rdate: item.rdate,
+                                rnum: item.rnum,
+                                aname: item.aname,
+                                total: parseFloat(item.tamount).toLocaleString('en-IN',{
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                            };
+                            data_counter++;
+                            gtotal = parseFloat(gtotal) + parseFloat(item.tamount);
+                            data_entry.push(single_entry);
+                        }
+                        data_total = `
+                            <tr style="text-align: center;background-color: silver;">
+                                <td colspan="3"></td>
+                                <td><strong>Total</strong></td>
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN',{
+                                    maximumFractionDigits: 2,
+                                    minimumFractionDigits: 2
+                                })}</strong></td>
+                            </tr>
+                        `;
+                        entry = {
+                            data: data_entry,
+                            data_total
+                        };
+                        datarows.push(entry);
+                        for(var key in sdata) {
+                            sentry = {
+                                snum: summary_counter,
+                                aid: key,
+                                aname: sdata[key]["name"],
+                                total: sdata[key]["total"].toLocaleString('en-IN',{
+                                    maximumFractionDigits: 2,
+                                    minimumFractionDigits: 2
+                                })
+                            };
+                            summary_counter++;
+                            summary.summary_data.push(sentry);
+                        }
+                        summary.summary_total = `
+                            <tr style="text-align: center;background-color: silver;">
+                                <td colspan="2"></td>
+                                <td><strong>Total</strong></td>
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN',{
+                                    maximumFractionDigits: 2,
+                                    minimumFractionDigits: 2
+                                })}</strong></td>
+                            </tr>
+                        `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 4, 5],
+        header_text_align_right: [1, 2, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Voucher ID", "Voucher No.", "Society Name", "Payment Amount"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Payment Amount"];
+    var report_title = "Periodical Payment Register";
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            sql_arr = [data.from_date, data.to_date];
+            sql = `
+                SELECT
+                    DATE_FORMAT(Payment.voucher_date,'%d/%m/%Y') AS rdate,
+                    Payment.document_number AS rnum,
+                    Payment.dr_account_id AS aid,
+                    Account_Head.account_name AS aname,
+                    Payment.total_amount AS tamount
+                FROM Payment
+                    INNER JOIN Account_Head
+                        ON Account_Head.account_id = Payment.dr_account_id
+                WHERE Payment.voucher_date IS NOT NULL AND Payment.voucher_date >= ? AND Payment.voucher_date <= ?
+                ORDER BY Payment.voucher_date ASC;
+            `;
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [], summary = {}, data_global_total;
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                    }
+                    else {
+                        var curr_id, data_entry = [], single_entry, data_counter = 1, entry, data_total, gtotal = 0.00;
+                        var summary_counter = 1, sentry;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+
+                        var sdata = {};
+
+                        for (item of results) {
+                            curr_id = item.aid;
+                            if(curr_id in sdata) {
+                                sdata[curr_id]["total"] += parseFloat(item.tamount);
+                            }
+                            else {
+                                sdata[curr_id] = {};
+                                sdata[curr_id]["name"] = item.aname;
+                                sdata[curr_id]["total"] = parseFloat(item.tamount);
+                            }
+                            single_entry = {
+                                snum: data_counter,
+                                rdate: item.rdate,
+                                rnum: item.rnum,
+                                aname: item.aname,
+                                total: parseFloat(item.tamount).toLocaleString('en-IN',{
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                            };
+                            data_counter++;
+                            gtotal = parseFloat(gtotal) + parseFloat(item.tamount);
+                            data_entry.push(single_entry);
+                        }
+                        data_total = `
+                            <tr style="text-align: center;background-color: silver;">
+                                <td colspan="3"></td>
+                                <td><strong>Total</strong></td>
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN',{
+                                    maximumFractionDigits: 2,
+                                    minimumFractionDigits: 2
+                                })}</strong></td>
+                            </tr>
+                        `;
+                        entry = {
+                            data: data_entry,
+                            data_total
+                        };
+                        datarows.push(entry);
+                        for(var key in sdata) {
+                            sentry = {
+                                snum: summary_counter,
+                                aid: key,
+                                aname: sdata[key]["name"],
+                                total: sdata[key]["total"].toLocaleString('en-IN',{
+                                    maximumFractionDigits: 2,
+                                    minimumFractionDigits: 2
+                                })
+                            };
+                            summary_counter++;
+                            summary.summary_data.push(sentry);
+                        }
+                        summary.summary_total = `
+                            <tr style="text-align: center;background-color: silver;">
+                                <td colspan="2"></td>
+                                <td><strong>Total</strong></td>
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN',{
+                                    maximumFractionDigits: 2,
+                                    minimumFractionDigits: 2
+                                })}</strong></td>
+                            </tr>
+                        `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            link.hostname = client_link.hostname;
+                            //var pdf_id = link.split('/').slice(-2)[0];
+                            //console.log(pdf_id);
+                            res.send({
+                                status: true,
+                                link
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
 
 module.exports = router;

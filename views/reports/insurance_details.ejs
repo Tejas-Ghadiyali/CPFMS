@@ -30,27 +30,14 @@
     <main>
         <div class="container" style="background-color: #DBFFFB; width: 98%;">
             <%- include('../partials/err.ejs') %>
-            <h2 class="heading-text"><u>Cow Cast Wise Detail Report</u></h2>
+            <h2 class="heading-text"><u>Insurance Detail Report</u></h2>
             <form class="form-horizontal" id="report_parameters_form">
                 <div class="row">
                     <div class="table-responsive">
                         <table class="table info-table">
                             <tbody>
                                 <tr>
-                                    <td class="label-text">Cow Cast</td>
-                                    <td><b>:</b></td>
-                                    <td>
-                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="cowcast_id_list" id="id_list" multiple>
-                                            <% for(id of cowcast_id_list) { %>
-                                                <option><%= id %></option>
-                                            <% } %>
-                                        </select>
-                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                        <label class="checkbox-inline"><input type="checkbox" name="select_all" id="select_all" value="1">&nbsp;&nbsp;Select All</label>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="label-text">From Date</td>
+                                    <td class="label-text">Insurance From Date</td>
                                     <td><b>:</b></td>
                                     <td>
                                         <input type="date" name="from_date" required>
@@ -103,7 +90,7 @@
                 var formData = $("#report_parameters_form").serialize();
                 enter = true;
                 $.ajax({
-                    url: '/api/reportmaster/cowcastdetails',
+                    url: '/api/reportmaster/insurancedetails',
                     data: formData,
                     method: 'GET',
                     success: function (res) {

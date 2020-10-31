@@ -30,18 +30,18 @@
     <main>
         <div class="container" style="background-color: #DBFFFB; width: 98%;">
             <%- include('../partials/err.ejs') %>
-            <h2 class="heading-text"><u>Cow Cast Wise Detail Report</u></h2>
+            <h2 class="heading-text"><u>Society Wise Periodical Balance Detail Report</u></h2>
             <form class="form-horizontal" id="report_parameters_form">
                 <div class="row">
                     <div class="table-responsive">
                         <table class="table info-table">
                             <tbody>
                                 <tr>
-                                    <td class="label-text">Cow Cast</td>
+                                    <td class="label-text">Society Id</td>
                                     <td><b>:</b></td>
                                     <td>
-                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="cowcast_id_list" id="id_list" multiple>
-                                            <% for(id of cowcast_id_list) { %>
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="account_id_list" id="id_list" multiple>
+                                            <% for(id of account_id_list) { %>
                                                 <option><%= id %></option>
                                             <% } %>
                                         </select>
@@ -50,13 +50,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="label-text">From Date</td>
-                                    <td><b>:</b></td>
-                                    <td>
-                                        <input type="date" name="from_date" required>
-                                    </td>
-                                    <td></td>
-                                    <td class="label-text">To Date</td>
+                                    <td class="label-text">As On Date</td>
                                     <td><b>:</b></td>
                                     <td>
                                         <input type="date" name="to_date" required>
@@ -69,6 +63,14 @@
                                         <label class="checkbox-inline"><input type="checkbox" name="show_details" value="1" checked>&nbsp;&nbsp;Details</label>
                                         &nbsp;&nbsp;&nbsp;&nbsp;
                                         <label class="checkbox-inline"><input type="checkbox" name="show_summary" value="1" checked>&nbsp;&nbsp;Summary</label>
+                                    </td>
+                                    <td></td>
+                                    <td class="label-text">Show Zero Balance Member</td>
+                                    <td><b>:</b></td>
+                                    <td>
+                                        <label class="checkbox-inline"><input type="radio" name="show_zero" value="1">&nbsp;&nbsp;Yes</label>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;
+                                        <label class="checkbox-inline"><input type="radio" name="show_zero" value="0" checked>&nbsp;&nbsp;No</label>
                                     </td>
                                 </tr>
                             </tbody>
@@ -103,7 +105,7 @@
                 var formData = $("#report_parameters_form").serialize();
                 enter = true;
                 $.ajax({
-                    url: '/api/reportmaster/cowcastdetails',
+                    url: '/api/reportmaster/societybalancedetailsondate',
                     data: formData,
                     method: 'GET',
                     success: function (res) {

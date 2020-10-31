@@ -20,7 +20,7 @@
     },
     "homepage": "https://github.com/CS17B011/CPFMS#readme",
     "dependencies": {
-        "bcrypt": "^4.0.1",
+        "bcrypt": "^5.0.0",
         "body-parser": "^1.19.0",
         "dotenv": "^8.2.0",
         "ejs": "^3.0.2",
@@ -35,6 +35,6 @@
         "request": "^2.88.2"
     },
     "devDependencies": {
-        "nodemon": "^2.0.2"
+        "nodemon": "^2.0.6"
     }
 }

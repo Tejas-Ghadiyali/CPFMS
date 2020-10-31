@@ -15,8 +15,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
-        rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfobject/2.1.1/pdfobject.min.js"></script>
     <link rel="stylesheet" href="/css/master-index.css">
     <link rel="stylesheet" href="/css/master/receipt.css">
@@ -28,20 +27,20 @@
     <%- include('../partials/navbar.ejs') %>
 
     <main>
-        <div class="container" style="background-color: #DBFFFB; width: 98%;">
+        <div class="container" style="background-color: #DBFFFB; width: 98%">
             <%- include('../partials/err.ejs') %>
-            <h2 class="heading-text"><u>Cow Cast Wise Detail Report</u></h2>
+            <h2 class="heading-text"><u>Resource Person Summary</u></h2>
             <form class="form-horizontal" id="report_parameters_form">
                 <div class="row">
                     <div class="table-responsive">
                         <table class="table info-table">
                             <tbody>
                                 <tr>
-                                    <td class="label-text">Cow Cast</td>
+                                    <td class="label-text">Resource Person</td>
                                     <td><b>:</b></td>
                                     <td>
-                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="cowcast_id_list" id="id_list" multiple>
-                                            <% for(id of cowcast_id_list) { %>
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="rp_id_list" id="id_list" multiple>
+                                            <% for(id of rp_id_list) { %>
                                                 <option><%= id %></option>
                                             <% } %>
                                         </select>
@@ -62,15 +61,6 @@
                                         <input type="date" name="to_date" required>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td class="label-text">Details/Summary</td>
-                                    <td><b>:</b></td>
-                                    <td>
-                                        <label class="checkbox-inline"><input type="checkbox" name="show_details" value="1" checked>&nbsp;&nbsp;Details</label>
-                                        &nbsp;&nbsp;&nbsp;&nbsp;
-                                        <label class="checkbox-inline"><input type="checkbox" name="show_summary" value="1" checked>&nbsp;&nbsp;Summary</label>
-                                    </td>
-                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -89,7 +79,6 @@
     </main>
     <script>
         var enter = false;
-
         $(document).ready(function () {
 
             $("#report_parameters_form input[name=from_date]").focus();
@@ -103,7 +92,7 @@
                 var formData = $("#report_parameters_form").serialize();
                 enter = true;
                 $.ajax({
-                    url: '/api/reportmaster/cowcastdetails',
+                    url: '/api/reportmaster/rpsummary',
                     data: formData,
                     method: 'GET',
                     success: function (res) {

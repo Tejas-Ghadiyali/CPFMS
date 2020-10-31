@@ -30,18 +30,18 @@
     <main>
         <div class="container" style="background-color: #DBFFFB; width: 98%;">
             <%- include('../partials/err.ejs') %>
-            <h2 class="heading-text"><u>Cow Cast Wise Detail Report</u></h2>
+            <h2 class="heading-text"><u>Member Account Ledger Report</u></h2>
             <form class="form-horizontal" id="report_parameters_form">
                 <div class="row">
                     <div class="table-responsive">
                         <table class="table info-table">
                             <tbody>
                                 <tr>
-                                    <td class="label-text">Cow Cast</td>
+                                    <td class="label-text">Member Id</td>
                                     <td><b>:</b></td>
                                     <td>
-                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="cowcast_id_list" id="id_list" multiple>
-                                            <% for(id of cowcast_id_list) { %>
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="sub_account_id_list" id="id_list" multiple>
+                                            <% for(id of sub_account_id_list) { %>
                                                 <option><%= id %></option>
                                             <% } %>
                                         </select>
@@ -103,7 +103,7 @@
                 var formData = $("#report_parameters_form").serialize();
                 enter = true;
                 $.ajax({
-                    url: '/api/reportmaster/cowcastdetails',
+                    url: '/api/reportmaster/memberledger',
                     data: formData,
                     method: 'GET',
                     success: function (res) {
