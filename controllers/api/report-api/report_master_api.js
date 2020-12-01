@@ -5,10 +5,21 @@ const getConnection = require('../../../connection');
 const middleware = require('../../auth/auth_middleware');
 const reportGenerator = require('./report_generator_module');
 
+const beautifyDate = (date) => {
+    var arr = date.split('-');
+    var bdate = arr[2] + "/" + arr[1] + "/" + arr[0];
+    return bdate;
+}
 
 // Listing Report
 
 router.get('/accounthead', middleware.loggedin_as_superuser, (req, res) => {
+    var headers = ["Sr.No.", "Society ID", "Society Name", "Village", "Taluka", "District"];
+    var report_title = "Society List Report";
+    var settings = {
+        header_text_align_right: [1, 2],
+        text_align_right: [1, 2]
+    };
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -50,12 +61,13 @@ router.get('/accounthead', middleware.loggedin_as_superuser, (req, res) => {
                     var yyyy = date.getFullYear();
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
-                    var headers = ["Sr.No.", "Society ID", "Society Name", "Village", "Taluka", "District"];
+
                     var username = req.user.user_name;
                     var dataobject = {
                         headers,
+                        settings,
                         datarows: results[1],
-                        report_title: "Society List Report",
+                        report_title,
                         date: sdate,
                         username
                     }
@@ -71,14 +83,21 @@ router.get('/accounthead', middleware.loggedin_as_superuser, (req, res) => {
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //console.log("FINAL PDF LINK : ",link.href);
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link: link.href
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -88,6 +107,12 @@ router.get('/accounthead', middleware.loggedin_as_superuser, (req, res) => {
 });
 
 router.get('/talukalistsummary', middleware.loggedin_as_superuser, (req, res) => {
+    var headers = ["Sr.No.", "Taluka ID", "Taluka Name", "No. of Societies", "No. of Members", "District ID"];
+    var report_title = "Taluka List Report";
+    var settings = {
+        header_text_align_right: [1, 4, 5],
+        text_align_right: [1, 4, 5]
+    };
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -150,12 +175,13 @@ router.get('/talukalistsummary', middleware.loggedin_as_superuser, (req, res) =>
                     var yyyy = date.getFullYear();
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
-                    var headers = ["Sr.No.", "Taluka ID", "Taluka Name", "No. of Societies", "No. of Members", "District ID"];
+
                     var username = req.user.user_name;
                     var dataobject = {
                         headers,
+                        settings,
                         datarows: results[1],
-                        report_title: "Taluka List Report",
+                        report_title,
                         date: sdate,
                         username
                     }
@@ -171,13 +197,21 @@ router.get('/talukalistsummary', middleware.loggedin_as_superuser, (req, res) =>
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -187,6 +221,12 @@ router.get('/talukalistsummary', middleware.loggedin_as_superuser, (req, res) =>
 });
 
 router.get('/districtlistsummary', middleware.loggedin_as_superuser, (req, res) => {
+    var headers = ["Sr.No.", "District ID", "District Name", "No. of Societies", "No. of Members"];
+    var report_title = "District List Report";
+    var settings = {
+        header_text_align_right: [1, 4, 5],
+        text_align_right: [1, 4, 5]
+    };
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -252,12 +292,13 @@ router.get('/districtlistsummary', middleware.loggedin_as_superuser, (req, res) 
                     var yyyy = date.getFullYear();
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
-                    var headers = ["Sr.No.", "District ID", "District Name", "No. of Societies", "No. of Members"];
+
                     var username = req.user.user_name;
                     var dataobject = {
                         headers,
+                        settings,
                         datarows: results[1],
-                        report_title: "District List Report",
+                        report_title,
                         date: sdate,
                         username
                     }
@@ -273,13 +314,21 @@ router.get('/districtlistsummary', middleware.loggedin_as_superuser, (req, res) 
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -290,6 +339,14 @@ router.get('/districtlistsummary', middleware.loggedin_as_superuser, (req, res) 
 
 router.get('/receiptlistsummary', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    var headers = ["Sr.No.", "Date", "Document No.", "Receipt No.", "Society Name / Narration", "Receipt Amount"];
+    var report_title = "Receipt List Report";
+    var settings = {
+        header_text_align_right: [],
+        header_text_align_center: [],
+        text_align_right: [],
+        text_align_center: []
+    };
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -327,12 +384,11 @@ router.get('/receiptlistsummary', middleware.loggedin_as_superuser, (req, res) =
                     var yyyy = date.getFullYear();
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
-                    var headers = ["Sr.No.", "Date", "Document No.", "Receipt No.", "Society Name / Narration", "Receipt Amount"];
                     var username = req.user.user_name;
                     var dataobject = {
                         headers,
                         datarows: results[1],
-                        report_title: "Receipt List Report",
+                        report_title,
                         date: sdate,
                         username
                     }
@@ -348,13 +404,21 @@ router.get('/receiptlistsummary', middleware.loggedin_as_superuser, (req, res) =
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -365,6 +429,14 @@ router.get('/receiptlistsummary', middleware.loggedin_as_superuser, (req, res) =
 
 router.get('/paymentlistsummary', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    var headers = ["Sr.No.", "Date", "Document No.", "Society Name / Narration", "Voucher Amount"];
+    var report_title = "Payment List Report";
+    var settings = {
+        header_text_align_right: [],
+        header_text_align_center: [],
+        text_align_right: [],
+        text_align_center: []
+    };
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -401,12 +473,11 @@ router.get('/paymentlistsummary', middleware.loggedin_as_superuser, (req, res) =
                     var yyyy = date.getFullYear();
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
-                    var headers = ["Sr.No.", "Date", "Document No.", "Society Name / Narration", "Voucher Amount"];
                     var username = req.user.user_name;
                     var dataobject = {
                         headers,
                         datarows: results[1],
-                        report_title: "Payment List Report",
+                        report_title,
                         date: sdate,
                         username
                     }
@@ -422,13 +493,21 @@ router.get('/paymentlistsummary', middleware.loggedin_as_superuser, (req, res) =
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -439,7 +518,31 @@ router.get('/paymentlistsummary', middleware.loggedin_as_superuser, (req, res) =
 
 router.get('/rpsummary', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
-    console.log(data);
+    var headers = ["Sr.No.", "RP ID", "RP Name", "Joint", "Cancel", "Death", "Net", "Heifer", "Calwing"];
+    var settings = {
+        header_text_align_right: [1, 4, 5, 6, 7, 8, 9],
+        header_text_align_center: [2],
+        text_align_right: [1, 4, 5, 6, 7, 8, 9],
+        text_align_center: [2]
+    };
+    var report_title = "Resource Person Wise Summary Report";
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>From Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>To Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -522,8 +625,8 @@ router.get('/rpsummary', middleware.loggedin_as_superuser, (req, res) => {
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
-                    var headers, datarows = [], data_global_total;
-                    headers = ["Sr.No.", "RP ID", "RP Name", "Joint", "Cancel", "Death", "Net", "Heifer", "Calwing"];
+                    var datarows = [], data_global_total;
+
                     if (results.length <= 0) {
                         datarows = [];
                         summary = [];
@@ -576,8 +679,10 @@ router.get('/rpsummary', middleware.loggedin_as_superuser, (req, res) => {
                     var dataobject = {
                         headers,
                         len: headers.length,
-                        report_title: "Resource Person Wise Summary Report",
+                        report_title,
+                        report_information,
                         date: sdate,
+                        settings,
                         username
                     }
                     dataobject.datarows = datarows;
@@ -594,13 +699,21 @@ router.get('/rpsummary', middleware.loggedin_as_superuser, (req, res) => {
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -613,6 +726,34 @@ router.get('/rpsummary', middleware.loggedin_as_superuser, (req, res) => {
 
 router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    var settings = {
+        header_text_align_right: [1, 6],
+        header_text_align_center: [4],
+        text_align_right: [1, 6],
+        text_align_center: [4],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers;
+    var summary_headers;
+    var report_title = "Society-Member Detail Report";
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Join Date From</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>Join Date To</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -764,11 +905,11 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
-                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
+                    var datarows = [], summary = {}, data_global_total;
 
                     if (flag == true) {
                         headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person", "Account Balance"];
-                        summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members", "Total Balance"];
+                        summary_headers = ["Sr.No.", "Society ID", "Society Name", "Members", "Balance"];
                         if (results[0].length <= 0) {
                             datarows = [];
                             summary = [];
@@ -870,10 +1011,10 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                             }
                             final_total_balance_crdr = final_total_balance >= 0 ? "CR" : "DR";
                             summary.summary_total = `
-                                <tr style="text-align: center;background-color: gray;">
+                                <tr style="background-color: gray;">
                                     <td></td>
-                                    <td colspan="2"><strong>Total</strong></td>
-                                    <td><strong>${final_total_members}</<strong></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Total</strong></td>
+                                    <td style="text-align: right;"><strong>${final_total_members}</<strong></td>
                                     <td style="text-align: right;">${Math.abs(final_total_balance).toLocaleString('en-IN', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
@@ -894,7 +1035,7 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                     }
                     else {
                         headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
-                        summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                        summary_headers = ["Sr.No.", "Society ID", "Society Name", "Members"];
                         if (results[0].length <= 0) {
                             datarows = [];
                             summary = [];
@@ -955,10 +1096,10 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                 summary.summary_data.push(entry);
                             }
                             summary.summary_total = `
-                                <tr style="text-align: center;background-color: gray;">
+                                <tr style="background-color: gray;">
                                     <td></td>
-                                    <td colspan="2"><strong>Total</strong></td>
-                                    <td><strong>${final_total_members}</<strong></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Total</strong></td>
+                                    <td style="text-align: right;"><strong>${final_total_members}</<strong></td>
                                 </tr>
                             `;
                             data_global_total = `
@@ -974,8 +1115,10 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                     var dataobject = {
                         headers,
                         len: headers.length,
-                        report_title: "Society Detail Report",
+                        report_title,
+                        report_information,
                         date: sdate,
+                        settings,
                         username
                     }
                     if (data.show_details == '1') {
@@ -1000,13 +1143,21 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -1017,6 +1168,52 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
 
 router.get('/cowcastdetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    var settings = {
+        header_text_align_right: [1],
+        header_text_align_center: [4, 5],
+        text_align_right: [1],
+        text_align_center: [4, 5],
+        summary_header_text_align_right: [1, 4],
+        summary_text_align_right: [1, 4]
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+    var report_title = "Cow Cast Wise Society Detail Report";
+    var cow_cast_list;
+    if (data.select_all == '1')
+        cow_cast_list = 'All';
+    else {
+        if ("cowcast_id_list" in data) {
+            if (typeof (data.cowcast_id_list) === 'string')
+                cow_cast_list = data.cowcast_id_list
+            else
+                cow_cast_list = data.cowcast_id_list.join(', ');
+        }
+        else
+            cow_cast_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Join Date From</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>Join Date To</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Cow Cast</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${cow_cast_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -1102,9 +1299,8 @@ router.get('/cowcastdetails', middleware.loggedin_as_superuser, (req, res) => {
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
-                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
-                    headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
-                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                    var datarows = [], summary = {}, data_global_total;
+
                     if (results[0].length <= 0) {
                         datarows = [];
                         summary = [];
@@ -1165,10 +1361,10 @@ router.get('/cowcastdetails', middleware.loggedin_as_superuser, (req, res) => {
                             summary.summary_data.push(entry);
                         }
                         summary.summary_total = `
-                                <tr style="text-align: center;background-color: gray;">
+                                <tr style="background-color: gray;">
                                     <td></td>
-                                    <td colspan="2"><strong>Total</strong></td>
-                                    <td><strong>${final_total_members}</<strong></td>
+                                    <td style="text-align: center;" colspan="2"><strong>Total</strong></td>
+                                    <td style="text-align: right;"><strong>${final_total_members}</<strong></td>
                                 </tr>
                             `;
                         data_global_total = `
@@ -1183,8 +1379,10 @@ router.get('/cowcastdetails', middleware.loggedin_as_superuser, (req, res) => {
                     var dataobject = {
                         headers,
                         len: headers.length,
-                        report_title: "Cow Cast Wise Detail Report",
+                        report_title,
+                        report_information,
                         date: sdate,
+                        settings,
                         username
                     }
                     if (data.show_details == '1') {
@@ -1206,13 +1404,21 @@ router.get('/cowcastdetails', middleware.loggedin_as_superuser, (req, res) => {
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -1223,6 +1429,52 @@ router.get('/cowcastdetails', middleware.loggedin_as_superuser, (req, res) => {
 
 router.get('/organizationdetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    var settings = {
+        header_text_align_right: [1, 5],
+        header_text_align_center: [4],
+        text_align_right: [1, 5],
+        text_align_center: [4],
+        summary_text_align_right: [1, 4],
+        summary_header_text_align_right: [1, 4]
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+    var report_title = "Organization Wise Society Detail Report";
+    var org_list;
+    if (data.select_all == '1')
+        org_list = 'All';
+    else {
+        if ("org_id_list" in data) {
+            if (typeof (data.org_id_list) === 'string')
+                org_list = data.org_id_list
+            else
+                org_list = data.org_id_list.join(', ');
+        }
+        else
+            org_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Join Date From</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>Join Date To</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Organization</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${org_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -1308,9 +1560,8 @@ router.get('/organizationdetails', middleware.loggedin_as_superuser, (req, res) 
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
-                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
-                    headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
-                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                    var datarows = [], summary = {}, data_global_total;
+
                     if (results[0].length <= 0) {
                         datarows = [];
                         summary = [];
@@ -1374,7 +1625,7 @@ router.get('/organizationdetails', middleware.loggedin_as_superuser, (req, res) 
                                 <tr style="text-align: center;background-color: gray;">
                                     <td></td>
                                     <td colspan="2"><strong>Total</strong></td>
-                                    <td><strong>${final_total_members}</<strong></td>
+                                    <td style="text-align: right;"><strong>${final_total_members}</<strong></td>
                                 </tr>
                             `;
                         data_global_total = `
@@ -1388,8 +1639,10 @@ router.get('/organizationdetails', middleware.loggedin_as_superuser, (req, res) 
                     var dataobject = {
                         headers,
                         len: headers.length,
-                        report_title: "Organization Wise Detail Report",
+                        report_title,
+                        report_information,
                         date: sdate,
+                        settings,
                         username
                     }
                     if (data.show_details == '1') {
@@ -1411,13 +1664,21 @@ router.get('/organizationdetails', middleware.loggedin_as_superuser, (req, res) 
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -1428,6 +1689,52 @@ router.get('/organizationdetails', middleware.loggedin_as_superuser, (req, res) 
 
 router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    var settings = {
+        header_text_align_right: [1, 4],
+        header_text_align_center: [4],
+        text_align_right: [1, 4],
+        text_align_center: [4],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "RP ID"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+    var report_title = "Resource Person Wise Detail Report";
+    var rp_list;
+    if (data.select_all == '1')
+        rp_list = 'All';
+    else {
+        if ("rp_id_list" in data) {
+            if (typeof (data.rp_id_list) === 'string')
+                rp_list = data.rp_id_list
+            else
+                rp_list = data.rp_id_list.join(', ');
+        }
+        else
+            rp_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Join Date From</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>Join Date To</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Resource Person</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${rp_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -1446,7 +1753,7 @@ router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
                         Account_Balance.sub_account_id,
                         Sub_Account.sub_account_name,
                         DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
-                        Account_Balance.cow_cast_id
+                        Account_Balance.resource_person_id
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
@@ -1475,7 +1782,7 @@ router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
                         Account_Balance.sub_account_id,
                         Sub_Account.sub_account_name,
                         DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
-                        Account_Balance.cow_cast_id
+                        Account_Balance.resource_person_id
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
@@ -1513,9 +1820,7 @@ router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
-                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
-                    headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Cow Cast"];
-                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                    var datarows = [], summary = {}, data_global_total;
                     if (results[0].length <= 0) {
                         datarows = [];
                         summary = [];
@@ -1548,7 +1853,7 @@ router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
                                 mid: item.sub_account_id,
                                 mname: item.sub_account_name,
                                 jdate: item.join_date,
-                                rp: item.cow_cast_id,
+                                rp: item.resource_person_id,
                             };
                             data_entry.push(single_entry);
                             data_counter++;
@@ -1579,7 +1884,7 @@ router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
                                 <tr style="text-align: center;background-color: gray;">
                                     <td></td>
                                     <td colspan="2"><strong>Total</strong></td>
-                                    <td><strong>${final_total_members}</<strong></td>
+                                    <td style="text-align: right;"><strong>${final_total_members}</<strong></td>
                                 </tr>
                             `;
                         data_global_total = `
@@ -1593,8 +1898,10 @@ router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
                     var dataobject = {
                         headers,
                         len: headers.length,
-                        report_title: "Resource Person Wise Detail Report",
+                        report_title,
+                        report_information,
                         date: sdate,
+                        settings,
                         username
                     }
                     if (data.show_details == '1') {
@@ -1616,13 +1923,21 @@ router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -1633,6 +1948,32 @@ router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
 
 router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    var settings = {
+        text_align_right: [1, 4, 5],
+        header_text_align_right: [1, 4, 5],
+        summary_text_align_right: [1, 4, 5],
+        summary_header_text_align_right: [1, 4, 5]
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Insurance Date", "Tag No.", "Next Due On"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+    var report_title = "Insurance Detail Report";
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Insurance Date From</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>Insurance Date To</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -1650,14 +1991,14 @@ router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => 
                     Account_Balance.sub_account_id,
                     Sub_Account.sub_account_name,
                     DATE_FORMAT(Account_Balance.insurance_date,'%d/%m/%Y') AS join_date,
-                    IF(Account_Balance.insurance_tag_no IS NULL,"",Account_Balance.insurance_tag_no) AS tag_no, 
-                    Account_Balance.insurance_due_on_date
+                    IF(Account_Balance.insurance_tag_no IS NULL,"",Account_Balance.insurance_tag_no) AS tag_no,
+                    DATE_FORMAT(Account_Balance.insurance_due_on_date,'%d/%m/%Y') AS due_date
                 FROM Account_Balance
                     INNER JOIN Account_Head
                         ON Account_Head.account_id = Account_Balance.account_id
                     INNER JOIN Sub_Account
                         ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
-                WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                WHERE Account_Balance.insurance_date >= ? AND Account_Balance.insurance_date <= ?
                 ORDER BY Account_Balance.account_id ASC;
                 SELECT
                     Account_Balance.account_id,
@@ -1666,7 +2007,7 @@ router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => 
                 FROM Account_Balance
                     INNER JOIN Account_Head
                         ON Account_Head.account_id = Account_Balance.account_id
-                WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
+                WHERE Account_Balance.insurance_date >= ? AND Account_Balance.insurance_date <= ?
                 GROUP BY Account_Balance.account_id
                 ORDER BY Account_Balance.account_id ASC;
             `;
@@ -1688,9 +2029,8 @@ router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => 
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
-                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
-                    headers = ["Sr.No.", "Member ID", "Member Name", "Insurance Date", "Tag No.", "Next Due On"];
-                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                    var datarows = [], summary = {}, data_global_total;
+
                     if (results[0].length <= 0) {
                         datarows = [];
                         summary = [];
@@ -1724,7 +2064,7 @@ router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => 
                                 mname: item.sub_account_name,
                                 jdate: item.join_date,
                                 tnum: item.tag_no,
-                                rp: item.insurance_due_on_date
+                                rp: item.due_date
                             };
                             data_entry.push(single_entry);
                             data_counter++;
@@ -1755,7 +2095,7 @@ router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => 
                                 <tr style="text-align: center;background-color: gray;">
                                     <td></td>
                                     <td colspan="2"><strong>Total</strong></td>
-                                    <td><strong>${final_total_members}</<strong></td>
+                                    <td style="text-align: right;"><strong>${final_total_members}</<strong></td>
                                 </tr>
                             `;
                         data_global_total = `
@@ -1769,8 +2109,10 @@ router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => 
                     var dataobject = {
                         headers,
                         len: headers.length,
-                        report_title: "Insurance Detail Report",
+                        report_title,
+                        report_information,
                         date: sdate,
+                        settings,
                         username
                     }
                     if (data.show_details == '1') {
@@ -1792,13 +2134,21 @@ router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => 
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -1809,6 +2159,52 @@ router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => 
 
 router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 5],
+        header_text_align_right: [1, 2, 5],
+        text_align_center: [4],
+        header_text_align_center: [4],
+        summary_text_align_right: [1, 2, 4],
+        summary_header_text_align_right: [1, 2, 4],
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+    var report_title = "Taluka Wise Society Detail Report";
+    var taluka_list;
+    if (data.select_all == '1')
+        taluka_list = 'All';
+    else {
+        if ("taluka_id_list" in data) {
+            if (typeof (data.taluka_id_list) === 'string')
+                taluka_list = data.taluka_id_list
+            else
+                taluka_list = data.taluka_id_list.join(', ');
+        }
+        else
+            taluka_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Join Date From</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>Join Date To</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Taluka</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${taluka_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -1902,9 +2298,7 @@ router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
-                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
-                    headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
-                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                    var datarows = [], summary = {}, data_global_total;
                     if (results[0].length <= 0) {
                         datarows = [];
                         summary = [];
@@ -1965,10 +2359,10 @@ router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
                             summary.summary_data.push(entry);
                         }
                         summary.summary_total = `
-                                <tr style="text-align: center;background-color: gray;">
+                                <tr style="background-color: gray;">
                                     <td></td>
-                                    <td colspan="2"><strong>Total</strong></td>
-                                    <td><strong>${final_total_members}</<strong></td>
+                                    <td style="text-align: center;" colspan="2"><strong>Total</strong></td>
+                                    <td style="text-align: right;"><strong>${final_total_members}</<strong></td>
                                 </tr>
                             `;
                         data_global_total = `
@@ -1983,8 +2377,10 @@ router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
                     var dataobject = {
                         headers,
                         len: headers.length,
-                        report_title: "Taluka Wise Detail Report",
+                        report_title,
+                        report_information,
                         date: sdate,
+                        settings,
                         username
                     }
                     if (data.show_details == '1') {
@@ -2006,13 +2402,21 @@ router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -2023,6 +2427,52 @@ router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
 
 router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    var settings = {
+        text_align_right: [1, 2, 5],
+        header_text_align_right: [1, 2, 5],
+        text_align_center: [4],
+        header_text_align_center: [4],
+        summary_text_align_right: [1, 2, 4],
+        summary_header_text_align_right: [1, 2, 4],
+    };
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+    var report_title = "District Wise Society Detail Report";
+    var district_list;
+    if (data.select_all == '1')
+        district_list = 'All';
+    else {
+        if ("district_id_list" in data) {
+            if (typeof (data.district_id_list) === 'string')
+                district_list = data.district_id_list
+            else
+                district_list = data.district_id_list.join(', ');
+        }
+        else
+            district_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Join Date From</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>Join Date To</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>District</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${district_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -2116,9 +2566,7 @@ router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
-                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
-                    headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
-                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
+                    var datarows = [], summary = {}, data_global_total;
                     if (results[0].length <= 0) {
                         datarows = [];
                         summary = [];
@@ -2179,10 +2627,10 @@ router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
                             summary.summary_data.push(entry);
                         }
                         summary.summary_total = `
-                                <tr style="text-align: center;background-color: gray;">
+                                <tr style="background-color: gray;">
                                     <td></td>
-                                    <td colspan="2"><strong>Total</strong></td>
-                                    <td><strong>${final_total_members}</<strong></td>
+                                    <td style="text-align: center;" colspan="2"><strong>Total</strong></td>
+                                    <td style="text-align: right;"><strong>${final_total_members}</<strong></td>
                                 </tr>
                             `;
                         data_global_total = `
@@ -2197,8 +2645,10 @@ router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
                     var dataobject = {
                         headers,
                         len: headers.length,
-                        report_title: "District Wise Detail Report",
+                        report_title,
+                        report_information,
                         date: sdate,
+                        settings,
                         username
                     }
                     if (data.show_details == '1') {
@@ -2220,13 +2670,21 @@ router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -2237,6 +2695,50 @@ router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
 
 router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    var settings = {
+        text_align_right: [1, 3, 4, 5, 6],
+        header_text_align_right: [1, 3, 4, 5, 6],
+        summary_text_align_right: [1, 2, 4, 5, 6, 7],
+        summary_header_text_align_right: [1, 2, 4, 5, 6, 7]
+    };
+    var headers = ["Member ID", "Member Name", "Opening Balance", "Credit", "Debit", "Closing Balance"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total OP", "Total CR", "Total DR", "Total CL"];
+    var report_title = "Society Wise Periodical Balance Report";
+    var soc_led_list;
+    if (data.select_all == '1')
+        soc_led_list = 'All';
+    else {
+        if ("account_id_list" in data) {
+            if (typeof (data.account_id_list) === 'string')
+                soc_led_list = data.account_id_list
+            else
+                soc_led_list = data.account_id_list.join(', ');
+        }
+        else
+            soc_led_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>From Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>To Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Society</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${soc_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -2358,16 +2860,13 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
-                    var headers, summary_headers, datarows = [], summary = {}, data_global_total;
-                    headers = ["Sr.No.", "Member ID", "Member Name", "Opening Balance", "Credit", "Debit", "Closing Balance"];
-                    summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total OP", "Total CR", "Total DR", "Total CL"];
+                    var datarows = [], summary = {}, data_global_total;
                     if (results.length <= 0) {
                         datarows = [];
                         summary = [];
                         data_global_total = `
                             <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                                <td colspan="2"></td>
                                 <td><strong>0</strong></td>
                                 <td><strong>0</strong></td>
                                 <td><strong>0</strong></td>
@@ -2376,7 +2875,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, s_op = 0.00, s_cr = 0.00, s_dr = 0.00, s_cl = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_op_global = 0.00, s_cr_global = 0.00, s_dr_global = 0.00, s_cl_global = 0.00, op_string, cl_string, last_aid, last_aname;
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_op = 0.00, s_cr = 0.00, s_dr = 0.00, s_cl = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_op_global = 0.00, s_cr_global = 0.00, s_dr_global = 0.00, s_cl_global = 0.00, op_string, cl_string, last_aid, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
@@ -2390,7 +2889,6 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                         for (item of results) {
                             new_id = item.aid;
                             if (curr_id != new_id) {
-                                data_counter = 1;
                                 if (s_op >= 0) {
                                     op_string = Math.abs(s_op).toLocaleString('en-IN', {
                                         minimumFractionDigits: 2,
@@ -2417,8 +2915,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 }
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
-                                        <td></td>
-                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td colspan="2"></td>
                                         <td><strong>${op_string}</strong></td>
                                         <td style="text-align: right;"><strong>${s_cr.toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
@@ -2505,7 +3002,6 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 }) + " DR";
                             }
                             single_entry = {
-                                snum: data_counter,
                                 mid: item.sid,
                                 mname: item.sname,
                                 op: op_string,
@@ -2528,14 +3024,12 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                     last_aid = item.aid;
                                     last_aname = item.aname;
                                     data_entry.push(single_entry);
-                                    data_counter++;
                                 }
                             }
                             else {
                                 last_aid = item.aid;
                                 last_aname = item.aname;
                                 data_entry.push(single_entry);
-                                data_counter++;
                             }
                         }
                         if (s_op >= 0) {
@@ -2609,9 +3103,8 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             }) + " DR";
                         }
                         data_total = `
-                            <tr style="text-align: center;background-color: silver;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                            <tr style="background-color: silver;">
+                                <td colspan="2"></td>
                                 <td style="text-align: right;"><strong>${op_string}</strong></td>
                                 <td style="text-align: right;"><strong>${s_cr.toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
@@ -2627,8 +3120,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 <td colspan="7"></td>
                             </tr>
                             <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                                <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
                                 <td style="text-align: right;"><strong>${s_op_string}</strong></td>
                                 <td style="text-align: right;"><strong>${s_cr_global.toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
@@ -2652,9 +3144,8 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
 
                         // Summary Generation
                         summary.summary_total = `
-                            <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                            <tr style="background-color: gray;">
+                                <td colspan="3" style="text-align: center;"><strong>Grand Total</strong></td>
                                 <td style="text-align: right;"><strong>${s_op_string}</strong></td>
                                 <td style="text-align: right;"><strong>${s_cr_global.toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
@@ -2672,8 +3163,10 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                     var dataobject = {
                         headers,
                         len: headers.length,
-                        report_title: "Society Wise Periodical Balance Report",
+                        report_title,
+                        report_information,
                         date: sdate,
+                        settings,
                         username
                     }
                     if (data.show_details == '1') {
@@ -2694,13 +3187,21 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -2712,14 +3213,49 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
 router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 4, 5],
-        header_text_align_right: [1, 4, 5],
-        summary_text_align_right: [1, 4, 5],
-        summary_header_text_align_right: [1, 4, 5]
+        text_align_right: [1, 3, 4],
+        header_text_align_right: [1, 3, 4],
+        summary_text_align_right: [1, 2, 4, 5],
+        summary_header_text_align_right: [1, 2, 4, 5]
     };
-    var headers = ["Sr.No.", "Member ID", "Member Name", "Credit", "Debit"];
+    var headers = ["Member ID", "Member Name", "Credit", "Debit"];
     var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Credit", "Debit"];
-    var report_title = "Society Wise Closing Balance Report";
+    var report_title = "Society Wise Periodical Balance Detail Report";
+    var soc_led_list;
+    if (data.select_all == '1')
+        soc_led_list = 'All';
+    else {
+        if ("account_id_list" in data) {
+            if (typeof (data.account_id_list) === 'string')
+                soc_led_list = data.account_id_list
+            else
+                soc_led_list = data.account_id_list.join(', ');
+        }
+        else
+            soc_led_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>As on Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Society</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${soc_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -2813,15 +3349,14 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         summary = [];
                         data_global_total = `
                             <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                                <td colspan="2"><strong>Grand Total</strong></td>
                                 <td><strong>0</strong></td>
                                 <td><strong>0</strong></td>
                             </tr>
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, last_aid, last_aname;
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, last_aid, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
@@ -2835,11 +3370,9 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         for (item of results) {
                             new_id = item.aid;
                             if (curr_id != new_id) {
-                                data_counter = 1;
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
-                                        <td></td>
-                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td colspan="2"></td>
                                         <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
@@ -2895,7 +3428,6 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             cl = parseFloat(op) + parseFloat(cr) - parseFloat(dr);
                             if (cl > 0) {
                                 single_entry = {
-                                    snum: data_counter,
                                     mid: item.sid,
                                     mname: item.sname,
                                     cr: Math.abs(cl).toLocaleString('en-IN', {
@@ -2908,11 +3440,9 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                 last_aid = item.aid;
                                 last_aname = item.aname;
                                 data_entry.push(single_entry);
-                                data_counter++;
                             }
                             else if (cl < 0) {
                                 single_entry = {
-                                    snum: data_counter,
                                     mid: item.sid,
                                     mname: item.sname,
                                     cr: ' ',
@@ -2925,12 +3455,10 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                 last_aid = item.aid;
                                 last_aname = item.aname;
                                 data_entry.push(single_entry);
-                                data_counter++;
                             }
                             else {
                                 if (data.show_zero == '1') {
                                     single_entry = {
-                                        snum: data_counter,
                                         mid: item.sid,
                                         mname: item.sname,
                                         cr: '0',
@@ -2939,7 +3467,6 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                     last_aid = item.aid;
                                     last_aname = item.aname;
                                     data_entry.push(single_entry);
-                                    data_counter++;
                                 }
                             }
                         }
@@ -2967,9 +3494,8 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         s_cr_global += parseFloat(s_cr);
                         s_dr_global += parseFloat(s_dr);
                         data_total = `
-                            <tr style="text-align: center;background-color: silver;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                            <tr style="background-color: silver;">
+                                <td colspan="2"></td>
                                 <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -2982,9 +3508,8 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             <tr style="height: 20px !important;background-color: #FFFFFF;">
                                 <td colspan="7"></td>
                             </tr>
-                            <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                            <tr style="background-color: gray;">
+                                <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
                                 <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -3003,12 +3528,32 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             }
                             datarows.push(entry);
                         }
-
+                        else {
+                            data_total = `
+                                <tr style="height: 20px !important;background-color: #FFFFFF;">
+                                    <td colspan="7"></td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</strong></td>
+                                </tr>
+                            `;
+                            entry = {
+                                data_total
+                            }
+                            datarows.push(entry);
+                        }
                         // Summary Generation
                         summary.summary_total = `
-                            <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                            <tr style="background-color: gray;">
+                                <td colspan="3" style="text-align: center;"><strong>Grand Total</strong></td>
                                 <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -3025,6 +3570,7 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         headers,
                         len: headers.length,
                         report_title,
+                        report_information,
                         date: sdate,
                         username,
                         settings
@@ -3047,13 +3593,21 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -3064,15 +3618,54 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
 
 router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
+    if (!("select_all" in data))
+        data.select_all = '0';
     var settings = {
-        text_align_right: [1, 2, 4, 5],
-        header_text_align_right: [1, 2, 4, 5],
-        summary_text_align_right: [1, 4, 5],
-        summary_header_text_align_right: [1, 4, 5]
+        text_align_right: [3, 4],
+        text_align_center: [1],
+        header_text_align_right: [3, 4],
+        header_text_align_center: [1],
+        summary_text_align_right: [1, 2, 4, 5],
+        summary_header_text_align_right: [1, 2, 4, 5]
     };
-    var headers = ["Sr.No.", "Date", "Narration", "Credit", "Debit"];
-    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Closing CR", "Closing DR"];
-    var report_title = "Society Account Ledger";
+    var headers = ["Date", "Narration", "Credit", "Debit"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "CR", "DR"];
+    var report_title = "Society Account Ledger Report";
+    var soc_led_list;
+    if (data.select_all == '1')
+        soc_led_list = 'All';
+    else {
+        if ("account_id_list" in data) {
+            if (typeof (data.account_id_list) === 'string')
+                soc_led_list = data.account_id_list
+            else
+                soc_led_list = data.account_id_list.join(', ');
+        }
+        else
+            soc_led_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>From Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>To Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Society</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${soc_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -3157,7 +3750,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                     });
                 }
                 else {
-                    //console.log(results);
+                    // console.log(results);
 
                     var date = new Date();
                     var dd = ('0' + date.getDate()).slice(-2);
@@ -3172,15 +3765,14 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         summary = [];
                         data_global_total = `
                             <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                                <td colspan="2"></td>
                                 <td><strong>0</strong></td>
                                 <td><strong>0</strong></td>
                             </tr>
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
@@ -3196,7 +3788,6 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         last_aname = results[0].aname;
                         if (op >= 0) {
                             single_entry = {
-                                snum: data_counter,
                                 date: fr_date,
                                 narration: "Opening Balance",
                                 cr: Math.abs(op).toLocaleString('en-IN', {
@@ -3209,7 +3800,6 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         }
                         else {
                             single_entry = {
-                                snum: data_counter,
                                 date: fr_date,
                                 narration: "Opening Balance",
                                 cr: ' ',
@@ -3221,7 +3811,6 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                             s_dr += Math.abs(parseFloat(op));
                         }
                         data_entry.push(single_entry);
-                        data_counter++;
 
                         // DataRows Generation
                         for (item of results) {
@@ -3230,36 +3819,32 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                 cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
                                 if (cl_balance >= 0) {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: to_date,
                                         narration: "Closing Balance",
                                         cr: ' ',
                                         dr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
-                                        })
+                                        }) + ' CR'
                                     }
                                     s_dr += Math.abs(parseFloat(cl_balance));
                                 }
                                 else {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: to_date,
                                         narration: "Closing Balance",
                                         cr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
-                                        }),
+                                        }) + ' DR',
                                         dr: ' '
                                     }
                                     s_cr += Math.abs(parseFloat(cl_balance));
                                 }
                                 data_entry.push(single_entry);
-                                data_counter = 1;
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
-                                        <td></td>
-                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td colspan="2"></td>
                                         <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
@@ -3303,7 +3888,6 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                 op = parseFloat(item.op1) + parseFloat(item.op2);
                                 if (op >= 0) {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: fr_date,
                                         narration: "Opening Balance",
                                         cr: Math.abs(op).toLocaleString('en-IN', {
@@ -3316,7 +3900,6 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                 }
                                 else {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: fr_date,
                                         narration: "Opening Balance",
                                         cr: ' ',
@@ -3328,13 +3911,11 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                     s_dr += Math.abs(parseFloat(op));
                                 }
                                 data_entry.push(single_entry);
-                                data_counter++;
                             }
                             cr = Math.abs(parseFloat(item.cr)) || 0.00;
                             dr = Math.abs(parseFloat(item.dr)) || 0.00;
                             if (dr > 0) {
                                 single_entry = {
-                                    snum: data_counter,
                                     date: item.tc_date,
                                     narration: item.narration,
                                     cr: ' ',
@@ -3347,7 +3928,6 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                             }
                             else {
                                 single_entry = {
-                                    snum: data_counter,
                                     date: item.tc_date,
                                     narration: item.narration,
                                     cr: Math.abs(cr).toLocaleString('en-IN', {
@@ -3359,31 +3939,29 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                 s_cr += cr;
                             }
                             data_entry.push(single_entry);
-                            data_counter++;
+                            last_aname = item.aname;
                         }
                         cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
                         if (cl_balance >= 0) {
                             single_entry = {
-                                snum: data_counter,
                                 date: to_date,
                                 narration: "Closing Balance",
                                 cr: ' ',
                                 dr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
-                                })
+                                }) + ' CR'
                             }
                             s_dr += Math.abs(parseFloat(cl_balance));
                         }
                         else {
                             single_entry = {
-                                snum: data_counter,
                                 date: to_date,
                                 narration: "Closing Balance",
                                 cr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
-                                }),
+                                }) + ' DR',
                                 dr: ' '
                             }
                             s_cr += Math.abs(parseFloat(cl_balance));
@@ -3391,8 +3969,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         data_entry.push(single_entry);
                         data_total = `
                                     <tr style="text-align: center;background-color: silver;">
-                                        <td></td>
-                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td colspan="2"></td>
                                         <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -3431,8 +4008,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         // Summary Generation
                         summary.summary_total = `
                             <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                                <td colspan="3"></td>
                                 <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -3449,6 +4025,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         headers,
                         len: headers.length,
                         report_title,
+                        report_information,
                         date: sdate,
                         username,
                         settings
@@ -3471,13 +4048,21 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -3489,14 +4074,51 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
 router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 2, 4, 5],
-        header_text_align_right: [1, 2, 4, 5],
-        summary_text_align_right: [1, 4, 5],
-        summary_header_text_align_right: [1, 4, 5]
+        text_align_right: [3, 4],
+        text_align_center: [1],
+        header_text_align_right: [3, 4],
+        header_text_align_center: [1],
+        summary_text_align_right: [1, 2, 4, 5],
+        summary_header_text_align_right: [1, 2, 4, 5]
     };
-    var headers = ["Sr.No.", "Date", "Narration", "Credit", "Debit"];
-    var summary_headers = ["Sr.No.", "Member ID", "Member Name", "Closing CR", "Closing DR"];
-    var report_title = "Member Account Ledger";
+    var headers = ["Date", "Narration", "Credit", "Debit"];
+    var summary_headers = ["Sr.No.", "Member ID", "Member Name", "CR", "DR"];
+    var report_title = "Member Account Ledger Report";
+    var mem_led_list;
+    if (data.select_all == '1')
+        mem_led_list = 'All';
+    else {
+        if ("sub_account_id_list" in data) {
+            if (typeof (data.sub_account_id_list) === 'string')
+                mem_led_list = data.sub_account_id_list
+            else
+                mem_led_list = data.sub_account_id_list.join(', ');
+        }
+        else
+            mem_led_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>From Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>To Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Member</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${mem_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -3596,15 +4218,14 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                         summary = [];
                         data_global_total = `
                             <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                                <td colspan="2"></td>
                                 <td><strong>0</strong></td>
                                 <td><strong>0</strong></td>
                             </tr>
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
@@ -3620,7 +4241,6 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                         last_aname = results[0].aname;
                         if (op >= 0) {
                             single_entry = {
-                                snum: data_counter,
                                 date: fr_date,
                                 narration: "Opening Balance",
                                 cr: Math.abs(op).toLocaleString('en-IN', {
@@ -3633,7 +4253,6 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                         }
                         else {
                             single_entry = {
-                                snum: data_counter,
                                 date: fr_date,
                                 narration: "Opening Balance",
                                 cr: ' ',
@@ -3645,7 +4264,6 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                             s_dr += Math.abs(parseFloat(op));
                         }
                         data_entry.push(single_entry);
-                        data_counter++;
 
                         // DataRows Generation
                         for (item of results) {
@@ -3654,36 +4272,32 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                 cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
                                 if (cl_balance >= 0) {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: to_date,
                                         narration: "Closing Balance",
                                         cr: ' ',
                                         dr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
-                                        })
+                                        }) + " CR"
                                     }
                                     s_dr += Math.abs(parseFloat(cl_balance));
                                 }
                                 else {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: to_date,
                                         narration: "Closing Balance",
                                         cr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
-                                        }),
+                                        }) + " DR",
                                         dr: ' '
                                     }
                                     s_cr += Math.abs(parseFloat(cl_balance));
                                 }
                                 data_entry.push(single_entry);
-                                data_counter = 1;
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
-                                        <td></td>
-                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td colspan="2"></td>
                                         <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
@@ -3727,7 +4341,6 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                 op = parseFloat(item.op1) + parseFloat(item.op2);
                                 if (op >= 0) {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: fr_date,
                                         narration: "Opening Balance",
                                         cr: Math.abs(op).toLocaleString('en-IN', {
@@ -3740,7 +4353,6 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                 }
                                 else {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: fr_date,
                                         narration: "Opening Balance",
                                         cr: ' ',
@@ -3752,13 +4364,11 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                     s_dr += Math.abs(parseFloat(op));
                                 }
                                 data_entry.push(single_entry);
-                                data_counter++;
                             }
                             cr = Math.abs(parseFloat(item.cr)) || 0.00;
                             dr = Math.abs(parseFloat(item.dr)) || 0.00;
                             if (dr > 0) {
                                 single_entry = {
-                                    snum: data_counter,
                                     date: item.tc_date,
                                     narration: item.narration,
                                     cr: ' ',
@@ -3771,7 +4381,6 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                             }
                             else {
                                 single_entry = {
-                                    snum: data_counter,
                                     date: item.tc_date,
                                     narration: item.narration,
                                     cr: Math.abs(cr).toLocaleString('en-IN', {
@@ -3783,50 +4392,47 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                 s_cr += cr;
                             }
                             data_entry.push(single_entry);
-                            data_counter++;
+                            last_aname = item.aname;
                         }
                         cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
                         if (cl_balance >= 0) {
                             single_entry = {
-                                snum: data_counter,
                                 date: to_date,
                                 narration: "Closing Balance",
                                 cr: ' ',
                                 dr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
-                                })
+                                }) + " CR"
                             }
                             s_dr += Math.abs(parseFloat(cl_balance));
                         }
                         else {
                             single_entry = {
-                                snum: data_counter,
                                 date: to_date,
                                 narration: "Closing Balance",
                                 cr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
-                                }),
+                                }) + " DR",
                                 dr: ' '
                             }
                             s_cr += Math.abs(parseFloat(cl_balance));
                         }
                         data_entry.push(single_entry);
                         data_total = `
-                                    <tr style="text-align: center;background-color: silver;">
-                                        <td></td>
-                                        <td colspan="2"><strong>Total</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                            <tr style="text-align: center;background-color: silver;">
+                                <td colspan="2"></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                    </tr>
-                                `;
+                            </tr>
+                        `;
                         sentry = {
                             snum: summary_counter,
                             aid: curr_id,
@@ -3855,8 +4461,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                         // Summary Generation
                         summary.summary_total = `
                             <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                                <td colspan="3"></td>
                                 <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -3873,6 +4478,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                         headers,
                         len: headers.length,
                         report_title,
+                        report_information,
                         date: sdate,
                         username,
                         settings
@@ -3895,13 +4501,21 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -3913,14 +4527,64 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
 router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 2, 4, 5],
-        header_text_align_right: [1, 2, 4, 5],
-        summary_text_align_right: [1, 4, 5],
-        summary_header_text_align_right: [1, 4, 5]
+        text_align_right: [3, 4],
+        text_align_center: [1],
+        header_text_align_right: [3, 4],
+        header_text_align_center: [1],
+        summary_text_align_right: [1, 2, 4, 5],
+        summary_header_text_align_right: [1, 2, 4, 5]
     };
-    var headers = ["Sr.No.", "Date", "Narration", "Credit", "Debit"];
-    var summary_headers = ["Sr.No.", "Member ID", "Member Name", "Closing CR", "Closing DR"];
-    var report_title = "Society Wise Member Account Ledger";
+    var headers = ["Date", "Narration", "Credit", "Debit"];
+    var summary_headers = ["Sr.No.", "Member ID", "Member Name", "CR", "DR"];
+    var report_title = "Society Wise Member Account Ledger Report";
+    var mem_led_list, soc_led_list;
+    if (data.select_all == '1')
+        mem_led_list = 'All';
+    else {
+        if ("sub_account_id_list" in data) {
+            if (typeof (data.sub_account_id_list) === 'string')
+                mem_led_list = data.sub_account_id_list
+            else
+                mem_led_list = data.sub_account_id_list.join(', ');
+        }
+        else
+            mem_led_list = 'None';
+    }
+    if ("account_id_list" in data) {
+        if (typeof (data.account_id_list) === 'string')
+            soc_led_list = data.account_id_list
+        else
+            soc_led_list = data.account_id_list.join(', ');
+    }
+    else
+        soc_led_list = 'None';
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>From Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>To Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Society</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${soc_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Member</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${mem_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -4028,15 +4692,14 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                         summary = [];
                         data_global_total = `
                             <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                                <td colspan="2"></td>
                                 <td><strong>0</strong></td>
                                 <td><strong>0</strong></td>
                             </tr>
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
@@ -4052,7 +4715,6 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                         last_aname = results[0].aname;
                         if (op >= 0) {
                             single_entry = {
-                                snum: data_counter,
                                 date: fr_date,
                                 narration: "Opening Balance",
                                 cr: Math.abs(op).toLocaleString('en-IN', {
@@ -4065,7 +4727,6 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                         }
                         else {
                             single_entry = {
-                                snum: data_counter,
                                 date: fr_date,
                                 narration: "Opening Balance",
                                 cr: ' ',
@@ -4077,7 +4738,6 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                             s_dr += Math.abs(parseFloat(op));
                         }
                         data_entry.push(single_entry);
-                        data_counter++;
 
                         // DataRows Generation
                         for (item of results) {
@@ -4086,36 +4746,32 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                 cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
                                 if (cl_balance >= 0) {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: to_date,
                                         narration: "Closing Balance",
                                         cr: ' ',
                                         dr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
-                                        })
+                                        }) + " CR"
                                     }
                                     s_dr += Math.abs(parseFloat(cl_balance));
                                 }
                                 else {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: to_date,
                                         narration: "Closing Balance",
                                         cr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
-                                        }),
+                                        }) + " DR",
                                         dr: ' '
                                     }
                                     s_cr += Math.abs(parseFloat(cl_balance));
                                 }
                                 data_entry.push(single_entry);
-                                data_counter = 1;
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
-                                        <td></td>
-                                        <td colspan="2"><strong>Total</strong></td>
+                                        <td colspan="2"></td>
                                         <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
@@ -4159,7 +4815,6 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                 op = parseFloat(item.op1) + parseFloat(item.op2);
                                 if (op >= 0) {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: fr_date,
                                         narration: "Opening Balance",
                                         cr: Math.abs(op).toLocaleString('en-IN', {
@@ -4172,7 +4827,6 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                 }
                                 else {
                                     single_entry = {
-                                        snum: data_counter,
                                         date: fr_date,
                                         narration: "Opening Balance",
                                         cr: ' ',
@@ -4184,13 +4838,11 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                     s_dr += Math.abs(parseFloat(op));
                                 }
                                 data_entry.push(single_entry);
-                                data_counter++;
                             }
                             cr = Math.abs(parseFloat(item.cr)) || 0.00;
                             dr = Math.abs(parseFloat(item.dr)) || 0.00;
                             if (dr > 0) {
                                 single_entry = {
-                                    snum: data_counter,
                                     date: item.tc_date,
                                     narration: item.narration,
                                     cr: ' ',
@@ -4203,7 +4855,6 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                             }
                             else {
                                 single_entry = {
-                                    snum: data_counter,
                                     date: item.tc_date,
                                     narration: item.narration,
                                     cr: Math.abs(cr).toLocaleString('en-IN', {
@@ -4215,50 +4866,47 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                 s_cr += cr;
                             }
                             data_entry.push(single_entry);
-                            data_counter++;
+                            last_aname = item.aname;
                         }
                         cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
                         if (cl_balance >= 0) {
                             single_entry = {
-                                snum: data_counter,
                                 date: to_date,
                                 narration: "Closing Balance",
                                 cr: ' ',
                                 dr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
-                                })
+                                }) + " CR"
                             }
                             s_dr += Math.abs(parseFloat(cl_balance));
                         }
                         else {
                             single_entry = {
-                                snum: data_counter,
                                 date: to_date,
                                 narration: "Closing Balance",
                                 cr: Math.abs(cl_balance).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
-                                }),
+                                }) + " DR",
                                 dr: ' '
                             }
                             s_cr += Math.abs(parseFloat(cl_balance));
                         }
                         data_entry.push(single_entry);
                         data_total = `
-                                    <tr style="text-align: center;background-color: silver;">
-                                        <td></td>
-                                        <td colspan="2"><strong>Total</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                            <tr style="text-align: center;background-color: silver;">
+                                <td colspan="2"></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                    </tr>
-                                `;
+                            </tr>
+                        `;
                         sentry = {
                             snum: summary_counter,
                             aid: curr_id,
@@ -4287,8 +4935,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                         // Summary Generation
                         summary.summary_total = `
                             <tr style="text-align: center;background-color: gray;">
-                                <td></td>
-                                <td colspan="2"><strong>Total</strong></td>
+                                <td colspan="3"></td>
                                 <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
@@ -4305,6 +4952,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                         headers,
                         len: headers.length,
                         report_title,
+                        report_information,
                         date: sdate,
                         username,
                         settings
@@ -4327,13 +4975,21 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -4345,14 +5001,50 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
 router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 2, 4, 5],
-        header_text_align_right: [1, 2, 4, 5],
-        summary_text_align_right: [1, 4, 5],
-        summary_header_text_align_right: [1, 4, 5]
+        text_align_right: [1, 2, 6],
+        text_align_center: [4, 5],
+        header_text_align_right: [1, 2, 6],
+        header_text_align_center: [4, 5],
+        summary_text_align_right: [1, 2, 4],
+        summary_header_text_align_right: [1, 2, 4]
     };
     var headers = ["Sr.No.", "Member ID", "Member Name", "Birth Date", "Calwing Date", "Age(days)"];
     var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Average Age(days)"];
-    var report_title = "Society Wise Member Calwing Age";
+    var report_title = "Society Wise Member Calwing Age Report";
+    if (data.select_all == '1')
+        soc_led_list = 'All';
+    else {
+        if ("account_id_list" in data) {
+            if (typeof (data.account_id_list) === 'string')
+                soc_led_list = data.account_id_list
+            else
+                soc_led_list = data.account_id_list.join(', ');
+        }
+        else
+            soc_led_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Calwing Date From</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>Calwing Date To</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Society</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${soc_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -4446,11 +5138,11 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
                                         <td></td>
-                                        <td colspan="3"><strong>Average Calwing Period For Whole Society</strong></td>
+                                        <td colspan="3"><strong>Average Calwing Period For Whole Society(in Days)</strong></td>
                                         <td colspan="2" style="text-align: right"><strong>${avg.toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
-                                })} Days</strong></td>
+                                })}</strong></td>
                                     </tr>
                                 `;
                                 entry = {
@@ -4497,11 +5189,11 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                         data_total = `
                             <tr style="text-align: center;background-color: silver;">
                                 <td></td>
-                                <td colspan="3"><strong>Average Calwing Period For Whole Society</strong></td>
+                                <td colspan="3"><strong>Average Calwing Period For Whole Society(in Days)</strong></td>
                                 <td colspan="2" style="text-align: right"><strong>${avg.toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
-                        })} Days</strong></td>
+                        })}</strong></td>
                             </tr>
                         `;
                         entry = {
@@ -4526,6 +5218,7 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                         headers,
                         len: headers.length,
                         report_title,
+                        report_information,
                         date: sdate,
                         username,
                         settings
@@ -4548,13 +5241,21 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -4566,14 +5267,41 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
 router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 2, 4, 5],
-        header_text_align_right: [1, 2, 4, 5],
-        summary_text_align_right: [1, 4, 5],
-        summary_header_text_align_right: [1, 4, 5]
+        text_align_right: [1, 2, 7],
+        text_align_center: [4, 5, 6],
+        header_text_align_right: [1, 2, 7],
+        header_text_align_center: [4, 5, 6],
+        summary_text_align_right: [1, 2, 4],
+        summary_header_text_align_right: [1, 2, 4]
     };
     var headers = ["Sr.No.", "Member ID", "Member Name", "Calwing Date", "Cancel Date", "Death Date", "Closing Balance"];
-    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Net Closing Balance"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Closing Balance"];
     var report_title = "Society Wise Member Calwing Analysis Report";
+    if (data.select_all == '1')
+        soc_led_list = 'All';
+    else {
+        if ("account_id_list" in data) {
+            if (typeof (data.account_id_list) === 'string')
+                soc_led_list = data.account_id_list
+            else
+                soc_led_list = data.account_id_list.join(', ');
+        }
+        else
+            soc_led_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Society</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${soc_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -4690,7 +5418,7 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                                         </tr>
                                     `;
                                 }
-                                if(data_entry.length > 0) {
+                                if (data_entry.length > 0) {
                                     entry = {
                                         data_title: sub_title,
                                         data: data_entry,
@@ -4734,8 +5462,8 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                                 deathdate: item.deathdate,
                                 cl_balance: s_cl_balance
                             };
-                            if(data.show_zero == '0') {
-                                if(item.cl != 0 ) {
+                            if (data.show_zero == '0') {
+                                if (item.cl != 0) {
                                     lname = item.aname;
                                     cl_total = parseFloat(cl_total) + parseFloat(item.cl);
                                     data_entry.push(single_entry);
@@ -4755,9 +5483,9 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                                 maximumFractionDigits: 2
                             }) + " CR";
                             data_total = `
-                                <tr style="text-align: center;background-color: silver;">
+                                <tr style="background-color: silver;">
                                     <td></td>
-                                    <td colspan="2"><strong>Net Balance</strong></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Net Balance</strong></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
@@ -4781,7 +5509,7 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                                 </tr>
                             `;
                         }
-                        if(data_entry.length > 0) {
+                        if (data_entry.length > 0) {
                             entry = {
                                 data_title: sub_title,
                                 data: data_entry,
@@ -4798,24 +5526,22 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                             summary_counter++;
                             summary.summary_data.push(sentry);
                         }
-                        if(cl_global >= 0) {
-                            s_cl_global = Math.abs(cl_global).toLocaleString('en-IN',{
+                        if (cl_global >= 0) {
+                            s_cl_global = Math.abs(cl_global).toLocaleString('en-IN', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " CR";
                         }
                         else {
-                            s_cl_global = Math.abs(cl_global).toLocaleString('en-IN',{
+                            s_cl_global = Math.abs(cl_global).toLocaleString('en-IN', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " DR";
                         }
-                        console.log(cl_global);
-                        console.log(s_cl_global);
                         summary.summary_total = `
-                            <tr style="text-align: center;background-color: silver;">
-                                <td>HERE</td>
-                                <td colspan="2"><strong>Net Balance</strong></td>
+                            <tr style="background-color: silver;">
+                                <td></td>
+                                <td colspan="2" style="text-align: center;"><strong>Net Balance</strong></td>
                                 <td style="text-align: right"><strong>${s_cl_global}</strong></td>
                             </tr>
                         `;
@@ -4825,6 +5551,7 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                         headers,
                         len: headers.length,
                         report_title,
+                        report_information,
                         date: sdate,
                         username,
                         settings
@@ -4847,13 +5574,21 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -4865,13 +5600,48 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
 router.get('/societywiseheiferdate', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 2, 4, 5],
-        header_text_align_right: [1, 2, 4, 5],
-        summary_text_align_right: [1, 4, 5],
-        summary_header_text_align_right: [1, 4, 5]
+        text_align_right: [1, 2],
+        text_align_center: [4],
+        header_text_align_right: [1, 2],
+        header_text_align_center: [4]
     };
     var headers = ["Sr.No.", "Member ID", "Member Name", "Heifer Date"];
     var report_title = "Society-Member Heifer Datewise Report";
+    var soc_led_list;
+    if (data.select_all == '1')
+        soc_led_list = 'All';
+    else {
+        if ("account_id_list" in data) {
+            if (typeof (data.account_id_list) === 'string')
+                soc_led_list = data.account_id_list
+            else
+                soc_led_list = data.account_id_list.join(', ');
+        }
+        else
+            soc_led_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Heifer Date From</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>Heifer Date To</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Society</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${soc_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -4940,7 +5710,7 @@ router.get('/societywiseheiferdate', middleware.loggedin_as_superuser, (req, res
                         datarows = [];
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry,lname;
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, lname;
 
                         for (item of results) {
                             new_id = item.aid;
@@ -4977,6 +5747,7 @@ router.get('/societywiseheiferdate', middleware.loggedin_as_superuser, (req, res
                         datarows,
                         len: headers.length,
                         report_title,
+                        report_information,
                         date: sdate,
                         username,
                         settings
@@ -4993,13 +5764,21 @@ router.get('/societywiseheiferdate', middleware.loggedin_as_superuser, (req, res
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -5011,13 +5790,48 @@ router.get('/societywiseheiferdate', middleware.loggedin_as_superuser, (req, res
 router.get('/societywisedeathdate', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 2, 4, 5],
-        header_text_align_right: [1, 2, 4, 5],
-        summary_text_align_right: [1, 4, 5],
-        summary_header_text_align_right: [1, 4, 5]
+        text_align_right: [1, 2],
+        text_align_center: [4],
+        header_text_align_right: [1, 2],
+        header_text_align_center: [4]
     };
     var headers = ["Sr.No.", "Member ID", "Member Name", "Death Date"];
     var report_title = "Society-Member Death Datewise Report";
+    var soc_led_list;
+    if (data.select_all == '1')
+        soc_led_list = 'All';
+    else {
+        if ("account_id_list" in data) {
+            if (typeof (data.account_id_list) === 'string')
+                soc_led_list = data.account_id_list
+            else
+                soc_led_list = data.account_id_list.join(', ');
+        }
+        else
+            soc_led_list = 'None';
+    }
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Death Date From</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>Death Date To</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Society</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${soc_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -5086,7 +5900,7 @@ router.get('/societywisedeathdate', middleware.loggedin_as_superuser, (req, res)
                         datarows = [];
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry,lname;
+                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, data_counter = 1, sub_title = results[0].aid + " - " + results[0].aname, entry, lname;
 
                         for (item of results) {
                             new_id = item.aid;
@@ -5123,6 +5937,7 @@ router.get('/societywisedeathdate', middleware.loggedin_as_superuser, (req, res)
                         datarows,
                         len: headers.length,
                         report_title,
+                        report_information,
                         date: sdate,
                         username,
                         settings
@@ -5139,13 +5954,21 @@ router.get('/societywisedeathdate', middleware.loggedin_as_superuser, (req, res)
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -5157,14 +5980,33 @@ router.get('/societywisedeathdate', middleware.loggedin_as_superuser, (req, res)
 router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 2, 4, 5],
-        header_text_align_right: [1, 2, 4, 5],
-        summary_text_align_right: [1, 4, 5],
-        summary_header_text_align_right: [1, 4, 5]
+        header_text_align_right: [1, 3, 5],
+        header_text_align_center: [2],
+        text_align_right: [1, 3, 5],
+        text_align_center: [2],
+        summary_text_align_right: [1, 2, 4],
+        summary_header_text_align_right: [1, 2, 4]
     };
     var headers = ["Sr.No.", "Receipt ID", "Receipt No.", "Society Name", "Receipt Amount"];
-    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Receipt Amount"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Receipt Amount"];
     var report_title = "Periodical Receipt Register";
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>From Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>To Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -5222,7 +6064,7 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
 
                         for (item of results) {
                             curr_id = item.aid;
-                            if(curr_id in sdata) {
+                            if (curr_id in sdata) {
                                 sdata[curr_id]["total"] += parseFloat(item.tamount);
                             }
                             else {
@@ -5235,7 +6077,7 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                                 rdate: item.rdate,
                                 rnum: item.rnum,
                                 aname: item.aname,
-                                total: parseFloat(item.tamount).toLocaleString('en-IN',{
+                                total: parseFloat(item.tamount).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })
@@ -5245,13 +6087,13 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                             data_entry.push(single_entry);
                         }
                         data_total = `
-                            <tr style="text-align: center;background-color: silver;">
-                                <td colspan="3"></td>
-                                <td><strong>Total</strong></td>
-                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN',{
-                                    maximumFractionDigits: 2,
-                                    minimumFractionDigits: 2
-                                })}</strong></td>
+                            <tr style="background-color: silver;">
+                                <td colspan="2"></td>
+                                <td colspan="2" style="text-align: center;"><strong>Total</strong></td>
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN', {
+                            maximumFractionDigits: 2,
+                            minimumFractionDigits: 2
+                        })}</strong></td>
                             </tr>
                         `;
                         entry = {
@@ -5259,12 +6101,12 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                             data_total
                         };
                         datarows.push(entry);
-                        for(var key in sdata) {
+                        for (var key in sdata) {
                             sentry = {
                                 snum: summary_counter,
                                 aid: key,
                                 aname: sdata[key]["name"],
-                                total: sdata[key]["total"].toLocaleString('en-IN',{
+                                total: sdata[key]["total"].toLocaleString('en-IN', {
                                     maximumFractionDigits: 2,
                                     minimumFractionDigits: 2
                                 })
@@ -5273,13 +6115,13 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                             summary.summary_data.push(sentry);
                         }
                         summary.summary_total = `
-                            <tr style="text-align: center;background-color: silver;">
-                                <td colspan="2"></td>
-                                <td><strong>Total</strong></td>
-                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN',{
-                                    maximumFractionDigits: 2,
-                                    minimumFractionDigits: 2
-                                })}</strong></td>
+                            <tr style="background-color: silver;">
+                                <td></td>
+                                <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN', {
+                            maximumFractionDigits: 2,
+                            minimumFractionDigits: 2
+                        })}</strong></td>
                             </tr>
                         `;
                     }
@@ -5288,6 +6130,7 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                         headers,
                         len: headers.length,
                         report_title,
+                        report_information,
                         date: sdate,
                         username,
                         settings
@@ -5310,13 +6153,21 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }
@@ -5328,14 +6179,33 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
 router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 2, 4, 5],
-        header_text_align_right: [1, 2, 4, 5],
-        summary_text_align_right: [1, 4, 5],
-        summary_header_text_align_right: [1, 4, 5]
+        header_text_align_right: [1, 3, 5],
+        header_text_align_center: [2],
+        text_align_right: [1, 3, 5],
+        text_align_center: [2],
+        summary_text_align_right: [1, 2, 4],
+        summary_header_text_align_right: [1, 2, 4]
     };
     var headers = ["Sr.No.", "Voucher ID", "Voucher No.", "Society Name", "Payment Amount"];
-    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Payment Amount"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Payment Amount"];
     var report_title = "Periodical Payment Register";
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>From Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>To Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
@@ -5393,7 +6263,7 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
 
                         for (item of results) {
                             curr_id = item.aid;
-                            if(curr_id in sdata) {
+                            if (curr_id in sdata) {
                                 sdata[curr_id]["total"] += parseFloat(item.tamount);
                             }
                             else {
@@ -5406,7 +6276,7 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                                 rdate: item.rdate,
                                 rnum: item.rnum,
                                 aname: item.aname,
-                                total: parseFloat(item.tamount).toLocaleString('en-IN',{
+                                total: parseFloat(item.tamount).toLocaleString('en-IN', {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })
@@ -5416,13 +6286,13 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                             data_entry.push(single_entry);
                         }
                         data_total = `
-                            <tr style="text-align: center;background-color: silver;">
-                                <td colspan="3"></td>
-                                <td><strong>Total</strong></td>
-                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN',{
-                                    maximumFractionDigits: 2,
-                                    minimumFractionDigits: 2
-                                })}</strong></td>
+                            <tr style="background-color: silver;">
+                                <td colspan="2"></td>
+                                <td colspan="2" style="text-align: center;"><strong>Total</strong></td>
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN', {
+                            maximumFractionDigits: 2,
+                            minimumFractionDigits: 2
+                        })}</strong></td>
                             </tr>
                         `;
                         entry = {
@@ -5430,12 +6300,12 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                             data_total
                         };
                         datarows.push(entry);
-                        for(var key in sdata) {
+                        for (var key in sdata) {
                             sentry = {
                                 snum: summary_counter,
                                 aid: key,
                                 aname: sdata[key]["name"],
-                                total: sdata[key]["total"].toLocaleString('en-IN',{
+                                total: sdata[key]["total"].toLocaleString('en-IN', {
                                     maximumFractionDigits: 2,
                                     minimumFractionDigits: 2
                                 })
@@ -5444,13 +6314,13 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                             summary.summary_data.push(sentry);
                         }
                         summary.summary_total = `
-                            <tr style="text-align: center;background-color: silver;">
-                                <td colspan="2"></td>
-                                <td><strong>Total</strong></td>
-                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN',{
-                                    maximumFractionDigits: 2,
-                                    minimumFractionDigits: 2
-                                })}</strong></td>
+                            <tr style="background-color: silver;">
+                                <td></td>
+                                <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN', {
+                            maximumFractionDigits: 2,
+                            minimumFractionDigits: 2
+                        })}</strong></td>
                             </tr>
                         `;
                     }
@@ -5459,6 +6329,7 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                         headers,
                         len: headers.length,
                         report_title,
+                        report_information,
                         date: sdate,
                         username,
                         settings
@@ -5481,13 +6352,21 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                             var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
                             var client_link = new URL(fullUrl);
                             var link = new URL(String(resheaders.headers['permanent-link']));
-                            link.hostname = client_link.hostname;
-                            //var pdf_id = link.split('/').slice(-2)[0];
-                            //console.log(pdf_id);
-                            res.send({
-                                status: true,
-                                link
-                            });
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
                         }
                     });
                 }

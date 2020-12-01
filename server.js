@@ -63,13 +63,15 @@ db.connect((err) => {
     db.end();
 });
 
-// Routes
-app.get('/', (req, res) => {
-    res.render('index');
-});
-
 // Auth passport configuration
 require('./controllers/auth/auth_passport');
+
+const middleware = require("./controllers/auth/auth_middleware");
+
+// Routes
+app.get('/',middleware.loggedin_as_superuser,(req, res) => {
+    res.render('home');  
+});
 
 // Auth Routes
 app.use('/auth', require('./controllers/auth/auth_routes'));

@@ -40,7 +40,7 @@
                                     <td class="label-text">Resource Person</td>
                                     <td><b>:</b></td>
                                     <td>
-                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="org_id_list" id="id_list" multiple>
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5" data-dropup-auto="false" data-width="300px" name="rp_id_list" id="id_list" multiple>
                                             <% for(id of rp_id_list) { %>
                                                 <option><%= id %></option>
                                             <% } %>
@@ -50,13 +50,13 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="label-text">From Date</td>
+                                    <td class="label-text">Join Date From</td>
                                     <td><b>:</b></td>
                                     <td>
                                         <input type="date" name="from_date" required>
                                     </td>
                                     <td></td>
-                                    <td class="label-text">To Date</td>
+                                    <td class="label-text">Join Date To</td>
                                     <td><b>:</b></td>
                                     <td>
                                         <input type="date" name="to_date" required>
