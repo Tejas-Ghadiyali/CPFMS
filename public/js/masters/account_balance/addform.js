@@ -1,5 +1,7 @@
 $(document).ready(function () {
 
+    $(".loading").hide();
+
     // Account Head Detail Fetch
     $("form table select[name=account_id]").on('change', function () {
         var id = this.value;

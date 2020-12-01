@@ -1,5 +1,14 @@
 var counter = 0;
 
+$(document).on({
+    ajaxStart: function() {
+        $('.loading').show();
+    },
+    ajaxSuccess: function() {
+        $('.loading').hide();
+    }
+});
+
 $(document).ready(function () {
 
     /*var targetOffset = $(".navbar").offset().top;
@@ -12,6 +21,8 @@ $(document).ready(function () {
       }
     });
     */
+
+    $(".loading").hide();
 
     $(".navbar .nav .dropdown").hover(
         function () {

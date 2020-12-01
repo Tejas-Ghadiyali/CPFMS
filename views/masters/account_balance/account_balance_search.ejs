@@ -37,6 +37,8 @@
 
         $(document).ready(function () {
 
+            $(".loading").hide();
+
             $("#paginationform").on('submit', function (e) {
                 e.preventDefault();
                 var pvalue = $("#paginationform #pageno").val();
