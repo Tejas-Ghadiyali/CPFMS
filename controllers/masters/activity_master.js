@@ -3,6 +3,16 @@ const router = express.Router();
 const getConnection = require('../../connection');
 const middleware = require('../auth/auth_middleware');
 
+const field_mapping = {
+    "join_date": "Join Date",
+    "birth_date": "Birth Date",
+    "heifer_date": "Heifer Date",
+    "calwing_date": "Calwing Date",
+    "issue_date": "Issue Date",
+    "cancel_date": "Cancel Date",
+    "death_date": "Death Date"
+}
+
 router.get('/', middleware.loggedin_as_superuser, (req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
@@ -18,8 +28,8 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
             console.log(err);
-            req.flash('danger', 'Error while getting data from Master-Account Head!');
-            res.render('masters/account_head/account_head', {
+            req.flash('danger', 'Error while getting data from Master-Activity!');
+            res.render('masters/activity_master/activity_master', {
                 data: [],
                 totalpages: 0,
                 pagenum: 0,
@@ -30,13 +40,13 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
             });
         }
         else {
-            var sql1 = 'SELECT COUNT(*) as ahcount FROM `Account_Head`';
+            var sql1 = 'SELECT COUNT(*) as ahcount FROM `Activity_Master`';
             connection.query(sql1, (err, results) => {
                 if (err) {
                     connection.release();
-                    req.flash('danger', 'Error while getting count of Account Head!');
+                    req.flash('danger', 'Error while getting count of Activity Master!');
                     console.log(err);
-                    res.render('masters/account_head/account_head', {
+                    res.render('masters/activity_master/activity_master', {
                         data: [],
                         totalpages: 0,
                         pagenum: 0,
@@ -55,14 +65,14 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
                     else if (pagenum <= 0) {
                         pagenum = 1;
                     }
-                    var sql2 = "SELECT * FROM `Account_Head` LIMIT ? , ?; SELECT village_id FROM Village;";
+                    var sql2 = "SELECT * FROM `Activity_Master` LIMIT ? , ?; SELECT (MAX(activity_num)+1) AS maxn FROM `Activity_Master`;";
                     var offset = (pagenum - 1) * entries_per_page;
                     connection.query(sql2, [offset, entries_per_page], (err, results) => {
                         connection.release();
                         if (err) {
-                            req.flash('danger', 'Error while getting data from Master-Account Head!');
+                            req.flash('danger', 'Error while getting data from Master-Activity!');
                             console.log(err);
-                            res.render('masters/account_head/account_head', {
+                            res.render('masters/activity_master/activity_master', {
                                 data: [],
                                 totalpages: 0,
                                 pagenum: 0,
@@ -73,9 +83,17 @@ router.get('/', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            res.render('masters/account_head/account_head', {
+                            /*
+                            var data_to_hold = {};
+                            for(data of results[0]) {
+                                data_to_hold[data.activity_num] = data.remark;
+                            }
+                            console.log(data_to_hold);
+                            */
+                            res.render('masters/activity_master/activity_master', {
                                 data: results[0],
-                                villages: results[1],
+                                activity_num: results[1][0].maxn,
+                                field_mapping,
                                 totalpages,
                                 pagenum,
                                 entries_per_page,
@@ -96,14 +114,14 @@ router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
         if (err) {
             console.log(err);
             req.flash('danger', 'Error in searching Master-Account Head!');
-            res.redirect('/accounthead');
+            res.redirect('/activity');
         }
         else {
             var ob = req.query;
             var searcht = '%' + ob['searchtext'].trim() + '%';
-            var sql = "SELECT * FROM Account_Head";
+            var sql = "SELECT * FROM Activity Master";
             var flag = false;
-            var arr = ['searchtext', 'account_type', 'is_society'];
+            var arr = ['searchtext', 'activity_field', 'activity_amount', 'member_debit_amount', 'member_debit'];
             for (key in ob) {
                 if (ob[key] !== "false" && key !== "searchtext") {
                     if (arr.includes(key)) {
@@ -124,19 +142,19 @@ router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
                     }
                 }
             }
-            sql = sql + "; SELECT village_id FROM Village;"
+            sql = sql + "; SELECT (MAX(activity_num)+1) AS maxn FROM `Activity_Master`;"
             connection.query(sql, (err, results) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    req.flash('danger', 'Error in searching Master-Account Head with given parameters!');
-                    res.redirect('/accounthead');
+                    req.flash('danger', 'Error in searching Master-Activity with given parameters!');
+                    res.redirect('/activity');
                 }
                 else {
-                    res.render('masters/account_head/account_head_search', {
+                    res.render('masters/activity_master/activity_master_search', {
                         data: results[0],
-                        villages: results[1],
-                        searchtext: req.query.searchtext,
+                        activity_num: results[1][0].maxn,
+                        field_mapping,
                         flash: res.locals.flash,
                         user_type: req.user.user_type
                     });
@@ -149,28 +167,23 @@ router.get('/search', middleware.loggedin_as_superuser, (req, res) => {
 router.post('/', middleware.loggedin_as_superuser, (req, res) => {
     getConnection((err, connection) => {
         if (err) {
-            req.flash('danger', 'Error in Adding Master-Account Head!');
+            req.flash('danger', 'Error in Adding Master-Activity!');
             console.log(err);
-            res.redirect('/accounthead');
+            res.redirect('/activity');
         }
         else {
-            console.log(req.body);
-            var { account_id, account_name, account_type, is_society, village_id } = req.body;
-            account_id = account_id.trim();
-            var sql = 'INSERT INTO `Account_Head` (`account_id`, `account_name`, `account_type`, `is_society`, `village_id`) VALUES (?, ?, ?, ?, ?)'
-            connection.query(sql, [account_id, account_name, account_type, is_society, village_id], (err, result) => {
+            var { activity_id, activity_name, activity_amount, activity_field, remark, member_debit, member_debit_amount } = req.body;
+            var sql = 'INSERT INTO `Activity_Master` (`activity_id`, `activity_name`, `activity_amount`, `activity_field`, `remark`, `member_debit`, `member_debit_amount`) VALUES (?, ?, ?, ?, ?, ?, ?)';
+            connection.query(sql, [activity_id, activity_name, activity_amount, activity_field, remark, member_debit, member_debit_amount], (err, result) => {
                 connection.release();
                 if (err) {
                     console.log(err);
-                    if (err.code == 'ER_DUP_ENTRY')
-                        req.flash('danger', 'Account with A/c Id ' + account_id + ' already exists!');
-                    else
-                        req.flash('danger', 'Error while adding account in Master-Account Head!');
-                    res.redirect('/accounthead');
+                    req.flash('danger', 'Error while adding account in Master-Activity!');
+                    res.redirect('/activity');
                 }
                 else {
-                    req.flash('success', 'Account with A/c Id ' + account_id + ' added.');
-                    res.redirect('/accounthead');
+                    req.flash('success', 'Activity with Id ' + activity_id + ' added.');
+                    res.redirect('/activity');
                 }
             });
         }
@@ -182,22 +195,21 @@ router.post('/edit', middleware.loggedin_as_admin, (req, res) => {
         if (err) {
             console.log(err);
             req.flash('danger', 'Error while editing record !');
-            res.redirect('/accounthead');
+            res.redirect('/activity');
         }
         else {
-            var { account_id, account_name, account_type, is_society, village_id } = req.body;
-            account_id = account_id.trim();
-            var sql = " UPDATE `Account_Head` SET `account_name` = ?, `account_type` = ?, `is_society` = ?, `village_id` = ? WHERE `Account_Head`.`account_id` = ? ";
-            connection.query(sql, [account_name, account_type, is_society, village_id, account_id], (err, results) => {
+            var { activity_id, activity_name, activity_amount, activity_field, remark, member_debit, member_debit_amount, activity_num } = req.body;
+            var sql = " UPDATE `Activity_Master` SET `activity_id` = ?, `activity_name` = ?, `activity_amount` = ?, `activity_field` = ?, `remark` = ?, `member_debit` = ?, `member_debit_amount` = ? WHERE `Activity_Master`.`activity_num` = ? ";
+            connection.query(sql, [activity_id, activity_name, activity_amount, activity_field, remark, member_debit, member_debit_amount, activity_num], (err, results) => {
                 connection.release();
                 if (err) {
-                    req.flash('danger', 'Error while editing record with id ' + account_id);
+                    req.flash('danger', 'Error while editing record with id ' + activity_id);
                     console.log(err);
-                    res.redirect('/accounthead');
+                    res.redirect('/activity');
                 }
                 else {
-                    req.flash('success', 'Successfully edited record with id ' + account_id);
-                    res.redirect('/accounthead');
+                    req.flash('success', 'Successfully edited record with id ' + activity_id);
+                    res.redirect('/activity');
                 }
             });
         }
@@ -209,16 +221,16 @@ router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
         if (err) {
             console.log(err);
             req.flash('danger', 'Error while deleting the record!');
-            res.redirect('/accounthead');
+            res.redirect('/activity');
         }
         else {
-            var sql = "DELETE FROM `Account_Head` WHERE account_id IN (?)";
+            var sql = "DELETE FROM `Activity_Master` WHERE activity_num IN (?)";
             connection.query(sql, [req.body.ids], (err, results) => {
                 connection.release();
                 if (err) {
                     req.flash('danger', 'Error while deleting the record!');
                     console.log(err);
-                    res.redirect('/accounthead');
+                    res.redirect('/activity');
                 }
                 else {
                     if (results.affectedRows > 0) {
@@ -228,11 +240,11 @@ router.post('/delete', middleware.loggedin_as_admin, (req, res) => {
                         else {
                             req.flash('success', 'Successfully deleted selected records!');
                         }
-                        res.redirect('/accounthead');
+                        res.redirect('/activity');
                     }
                     else {
                         req.flash('danger', 'Error while deleting the record!');
-                        res.redirect('/accounthead');
+                        res.redirect('/activity');
                     }
                 }
             });

@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('full-icu');
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -22,6 +23,7 @@ app.use(session({
         maxAge: 12 * 3600 * 1000
     }
 }));
+
 // Passport Setup
 app.use(passport.initialize());
 app.use(passport.session());
@@ -88,6 +90,7 @@ app.use('/cowcast', require('./controllers/masters/cow_cast'));
 app.use('/subaccount', require('./controllers/masters/sub_account'));
 app.use('/resourceperson', require('./controllers/masters/resource_person'));
 app.use('/accountbalance', require('./controllers/masters/account_balance'));
+app.use('/activity', require('./controllers/masters/activity_master'));
 
 // API Routes
 app.use('/api/master', require('./controllers/api/master-api'));

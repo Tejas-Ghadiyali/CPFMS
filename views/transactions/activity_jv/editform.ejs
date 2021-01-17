@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>CPFMS</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="/css/master-index.css">
+    <link rel="stylesheet" href="/css/master/receipt.css">
+    <script src="/js/master-index.js"></script>
+
+</head>
+
+<body>
+    <%- include('../../partials/navbar.ejs') %>
+
+    <main>
+        <div class="container" style="background-color: #DBFFFB; width: 98%">
+            <%- include('../../partials/err.ejs') %>
+            <h2 class="heading-text">Journal Voucher</h2>
+            <form class="form-horizontal" id="main-form" action="/jv/edit/<%= document_number %>" method="POST">
+                <div class="row">
+                    <div class="table-responsive">
+                        <table class="table info-table">
+                            <tbody>
+                                <tr>
+                                    <td class="label-text">Document Number</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_document_number">
+                                        <input type="number" name="document_number" class="input-disabled"
+                                            value="<%= document_number %>" readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">JV Number</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_jv_number">
+                                        <input type="text" name="jv_number" value="<%= jv.jv_number %>" required>
+                                    </td>
+                                    <td></td>
+                                    <td class="label-text">JV Date</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_jv_date">
+                                        <input type="date" name="jv_date" value="<%= jv.jv_nice_date %>">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">Narration</td>
+                                    <td><b>:</b></td>
+                                    <td colspan="2" id="table_narration">
+                                        <textarea name="acc_narration" cols="30" rows="4"><%= jv.narration %></textarea>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="table-responsive">
+                        <table class="table receipt-details-table">
+                            <colgroup>
+                                <col style="width: 5%;">
+                                <col style="width: 15%;">
+                                <col style="width: 30%;">
+                                <col style="width: 10%;">
+                                <col style="width: 10%;">
+                                <col style="width: 20%;">
+                                <col style="width: 10%;">
+                            </colgroup>
+                            <thead>
+                                <th>SR.</th>
+                                <th>Society</th>
+                                <th>Member</th>
+                                <th>Credit</th>
+                                <th>Debit</th>
+                                <th>Narration</th>
+                                <th>Actions</th>
+                            </thead>
+                            <tbody id="entries">
+                            </tbody>
+                            <tfoot>
+                                <tr id="addentryform">
+                                    <td></td>
+                                    <td id="addentryform_account_id_select">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="account_id" id="account_id_select" required>
+                                            <% for(item of account_head){ %>
+                                            <option><%= item.account_id %></option>
+                                            <% } %>
+                                        </select><br /><br />
+                                        <input type="text" style="text-align: center;" name="account_name_res"
+                                            id="account_name_res" disabled>
+                                    </td>
+                                    <td id="addentryform_sub_account_id_select" style="white-space: true;">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="sub_account_id" id="sub_account_id_select" required>
+                                        </select><br /><br />
+                                        <input type="text" style="text-align: center;" name="sub_account_name_res"
+                                            id="sub_account_name_res" disabled>
+                                    </td>
+                                    </td>
+                                    <td><input type="number" step="0.01" value="0" name="cr_amount" class="right-align">
+                                    </td>
+                                    <td><input type="number" step="0.01" value="0" name="dr_amount" class="right-align">
+                                    </td>
+                                    <td><textarea name="narration" cols="25" rows="4"></textarea></td>
+                                    <td>
+                                        <button id="addentry" type="button" class="btn btn-success">
+                                            <i class="material-icons" style="vertical-align: middle;">&#xe147;</i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2"><b>Total</b></td>
+                                    <td id="cr_totalentry" class="right-align"></td>
+                                    <td id="dr_totalentry" class="right-align"></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <!-- 
+                    <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: left; float: left;">
+                        <button class="btn btn-lg btn-primary" type="button" id="saveentry"><b>Save</b></button>
+                        <button class="btn btn-lg btn-success" type="button" id="restoreentry"><b>Restore Last Saved
+                                Data</b></button>
+                        <button class="btn btn-lg btn-danger" type="button" id="removedata"><b>Remove Saved
+                                Data</b></button>
+                    </div>
+                 -->
+                <div style="margin: 10px; padding: 0px 15px 0px 0px;height: 50px; text-align: right; float: right;">
+                    <button class="btn btn-lg btn-warning" type="button" id="clearentry"><b>Clear All</b></button>
+                    <button class="btn btn-lg btn-success" type="submit"><b>Submit</b></button>
+                    <a href="/jv"><button class="btn btn-lg btn-danger" type="button"><b>Cancel</b></button></a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        var entries = <%- JSON.stringify(jv_details) %>;
+        var account_head_list = <%- JSON.stringify(account_head_list) %>;
+        var account_options = "";
+        var lastindex = <%= jv_details.length %>;
+        var cr_total_gb = 0.00;
+        var dr_total_gb = 0.00;
+        var eflag = false;
+
+        function fillallentries() {
+            if (entries.length === 0) {
+                cr_total_gb = 0.00;
+                dr_total_gb = 0.00;
+                $("#entries").empty();
+                $("#cr_totalentry").empty();
+                $("#dr_totalentry").empty();
+            }
+            else {
+                var cr_total = 0.00;
+                var dr_total = 0.00;
+                var counter = 0;
+                $("#entries").empty();
+                for (i = 0; i < entries.length; i++) {
+                    entryob = entries[i];
+                    counter++;
+                    var inhtml = `
+                        <tr id=${counter}>
+                            <td>${counter}</td>
+                            <td style="white-space: true;">${entryob.account_id}<br/>${entryob.account_name}</td>
+                            <td style="white-space: true;">${entryob.sub_account_id}<br/>${entryob.sub_account_name}</td>
+                            <td class="right-align">${parseFloat(entryob.cr_amount).toLocaleString('en-IN')}</td>
+                            <td class="right-align">${parseFloat(entryob.dr_amount).toLocaleString('en-IN')}</td>
+                            <td>${entryob.narration}</td>
+                            <td>
+                                <span style="cursor: pointer; color: yellow;" onclick="editentry(${counter})"><i class="material-icons">&#xE254;</i></span>
+                                <span style="cursor: pointer; color: red;" onclick="deleteentry(${counter})"><i class="material-icons">&#xE872;</i></span>
+                            </td>
+                            <input type="hidden" name="account_ids[${counter - 1}]" value="${entryob.account_id}">
+                            <input type="hidden" name="sub_account_ids[${counter - 1}]" value="${entryob.sub_account_id}">
+                            <input type="hidden" name="cr_amounts[${counter - 1}]" value="${entryob.cr_amount}">
+                            <input type="hidden" name="dr_amounts[${counter - 1}]" value="${entryob.dr_amount}">
+                            <input type="hidden" name="narrations[${counter - 1}]" value="${entryob.narration}">
+                        </tr>
+                    `;
+                    cr_total += parseFloat(entryob.cr_amount);
+                    dr_total += parseFloat(entryob.dr_amount);
+                    $("#entries").append(inhtml);
+                }
+                $("#cr_totalentry").html("&#8377; " + cr_total.toLocaleString('en-IN'));
+                $("#dr_totalentry").html("&#8377; " + dr_total.toLocaleString('en-IN'));
+                cr_total_gb = cr_total;
+                dr_total_gb = dr_total;
+            }
+        }
+
+        function editentry(entryindex) {
+            if (eflag)
+                return false;
+            eflag = true;
+            var edit_entry = entries[entryindex - 1];
+            var rowid = "#entries #" + entryindex;
+            var row = $(rowid);
+            var sub_account_list = [];
+            var sub_account_options = "";
+            $.ajax({
+                url: '/api/transaction/account_details/' + edit_entry.account_id,
+                async: false,
+                success: function (res) {
+                    if (res.status === true) {
+                        for(item of res.sub_account_id) {
+                            sub_account_list.push(item.sub_account_id);
+                        }
+                    }
+                }
+            });
+            for(option of sub_account_list) {
+                sub_account_options = sub_account_options + `<option>${option}</option>`;
+            }
+            var inhtml = `
+                <td>${entryindex}</td>
+                <td id="addentryform_account_id_select_copy">
+                    <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                        name="account_id_copy" id="account_id_select_copy" onchange="optionchange(true)" data-dropup-auto="false" required>
+                    ${account_options}
+                    </select><br /><br />
+                    <input type="text" style="text-align: center;" name="account_name_res_copy"
+                        id="account_name_res_copy" value="${edit_entry.account_name}" disabled>
+                </td>
+                <td id="addentryform_sub_account_id_select_copy" style="white-space: true;">
+                    <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                        name="sub_account_id_copy" id="sub_account_id_select_copy" data-dropup-auto="false" onchange="sub_optionchange(true)" required>
+                        ${sub_account_options}
+                    </select><br /><br />
+                    <input type="text" style="text-align: center;" name="sub_account_name_res_copy"
+                        id="sub_account_name_res_copy" value="${edit_entry.sub_account_name}" disabled>
+                </td>
+                <td>
+                    <input type="number" step="0.01" value="${edit_entry.cr_amount}" name="cr_amount_copy" class="right-align">
+                </td>
+                <td>
+                    <input type="number" step="0.01" value="${edit_entry.dr_amount}" name="dr_amount_copy" class="right-align">
+                </td>
+                <td>
+                    <textarea name="narration_copy" cols="25" rows="4">${edit_entry.narration}</textarea></td>
+                <td>
+                    <span style="cursor: pointer; color: green;" onclick="submit_editentry(${entryindex})">
+                        <i class="material-icons" style="transform: scale(2);" >&#xe834;</i>
+                    </span>
+                </td>
+            `;
+            row.html(inhtml);
+            $("#account_id_select_copy").selectpicker('refresh');
+            $("#sub_account_id_select_copy").selectpicker('refresh');
+            $("#account_id_select_copy").selectpicker('val',edit_entry.account_id);
+            $("#sub_account_id_select_copy").selectpicker('val',edit_entry.sub_account_id);
+            $("#account_id_select_copy").selectpicker('refresh');
+            $("#sub_account_id_select_copy").selectpicker('refresh');
+            $("#account_id_select_copy").selectpicker('toggle');
+        }
+
+        function submit_editentry(entryindex) {
+            var edit_entry = entries[entryindex - 1];
+            var rowid = "#entries #" + entryindex;
+            var account_id = $(rowid + " select[name=account_id_copy]");
+            var account_name = $(rowid + " #account_name_res_copy");
+            var sub_account_id = $(rowid + " select[name=sub_account_id_copy]");
+            var sub_account_name = $(rowid + " #sub_account_name_res_copy");
+            var cr_amount = $(rowid + " input[name=cr_amount_copy]");
+            var dr_amount = $(rowid + " input[name=dr_amount_copy]")
+            var narration = $(rowid + " textarea[name=narration_copy]");
+            var cr_amount_val = parseFloat(cr_amount.val() || '0');
+            var dr_amount_val = parseFloat(dr_amount.val() || '0');
+            console.log(cr_amount_val, dr_amount_val);
+            if (cr_amount_val != 0 && dr_amount_val != 0) {
+                alert('Credit and Debit both should not be there!');
+                return false;
+            }
+            if (cr_amount_val == 0 && dr_amount_val == 0) {
+                return false;
+            }
+            if (!account_id.children("option:selected").val() || !sub_account_id.children("option:selected").val() || cr_amount_val < 0 || dr_amount_val < 0) {
+                return false;
+            }
+            var entryob = {
+                account_id: account_id.children("option:selected").val(),
+                account_name: account_name.val(),
+                sub_account_id: sub_account_id.children("option:selected").val(),
+                sub_account_name: sub_account_name.val(),
+                cr_amount: cr_amount_val,
+                dr_amount: dr_amount_val,
+                narration: narration.val()
+            }
+            var row = $("#entries #" + entryindex);
+            row.empty();
+            var inhtml = `
+                <td>${entryindex}</td>
+                <td style="white-space: true;">${entryob.account_id}<br/>${entryob.account_name}</td>
+                <td style="white-space: true;">${entryob.sub_account_id}<br/>${entryob.sub_account_name}</td>
+                <td class="right-align">${parseFloat(entryob.cr_amount).toLocaleString('en-IN')}</td>
+                <td class="right-align">${parseFloat(entryob.dr_amount).toLocaleString('en-IN')}</td>
+                <td>${entryob.narration}</td>
+                <td>
+                    <span style="cursor: pointer; color: yellow;" onclick="editentry(${entryindex})"><i class="material-icons">&#xE254;</i></span>
+                    <span style="cursor: pointer; color: red;" onclick="deleteentry(${entryindex})"><i class="material-icons">&#xE872;</i></span>
+                </td>
+                <input type="hidden" name="account_ids[${entryindex - 1}]" value="${entryob.account_id}">
+                <input type="hidden" name="sub_account_ids[${entryindex - 1}]" value="${entryob.sub_account_id}">
+                <input type="hidden" name="cr_amounts[${entryindex - 1}]" value="${entryob.cr_amount}">
+                <input type="hidden" name="dr_amounts[${entryindex - 1}]" value="${entryob.dr_amount}">
+                <input type="hidden" name="narrations[${entryindex - 1}]" value="${entryob.narration}">
+            `;
+            row.html(inhtml);
+            cr_total_gb = cr_total_gb - edit_entry.cr_amount + entryob.cr_amount;
+            dr_total_gb = dr_total_gb - edit_entry.dr_amount + entryob.dr_amount;
+            $("#cr_totalentry").html("&#8377; " + cr_total_gb.toLocaleString('en-IN'));
+            $("#dr_totalentry").html("&#8377; " + dr_total_gb.toLocaleString('en-IN'));
+            entries[entryindex-1] = entryob;
+            eflag = false;
+        }
+
+        function deleteentry(entryindex) {
+            var flag = confirm('Do you want to delete this entry ?');
+            if (flag == true) {
+                lastindex--;
+                entries.splice(entryindex - 1, 1);
+                fillallentries();
+            }
+            else
+                return false;
+        }
+
+        function optionchange(flag) {
+            var ajax_account_id = "#account_id_select";
+            var ajax_account_name = "#account_name_res";
+            var ajax_sub_account_id = "#sub_account_id_select";
+            var ajax_sub_account_name = "#sub_account_name_res";
+            if (flag == true) {
+                ajax_account_id = "#account_id_select_copy";
+                ajax_account_name = "#account_name_res_copy";
+                ajax_sub_account_id = "#sub_account_id_select_copy";
+                ajax_sub_account_name = "#sub_account_name_res_copy";
+            }
+            var account_id = $(ajax_account_id).children("option:selected").val();
+            $.ajax({
+                url: '/api/transaction/account_details/' + account_id,
+                success: function (res) {
+                    if (res.status === true) {
+                        $(ajax_account_name).val(res.account_name);
+                        var select_ele = $(ajax_sub_account_id), options = "";
+                        select_ele.empty();
+                        select_ele.selectpicker('refresh');
+                        for (sid of res.sub_account_id) {
+                            options = options + "<option>" + sid.sub_account_id + "</option>";
+                        }
+                        $(select_ele).append(options);
+                        $(select_ele).selectpicker('refresh');
+                        sub_optionchange(flag);
+                    }
+                    else {
+                        $(ajax_account_id).empty();
+                        $(ajax_sub_account_id).empty();
+                        $(ajax_account_id).selectpicker('refresh');
+                        $(ajax_sub_account_id).selectpicker('refresh');
+                        $(ajax_account_name).val("--------NO NAME FOUND--------");
+                        $(ajax_sub_account_name).val("--------NO NAME FOUND--------");
+                    }
+                }
+            });
+        }
+
+        function sub_optionchange(flag) {
+            var ajax_url_id = "#sub_account_id_select";
+            var ajax_name_id = "#sub_account_name_res";
+            if (flag == true) {
+                ajax_url_id = "#sub_account_id_select_copy";
+                ajax_name_id = "#sub_account_name_res_copy";
+            }
+            if ($(ajax_url_id).children("option").length > 0) {
+                $.ajax({
+                    url: '/api/transaction/membername/' + $(ajax_url_id).children("option:selected").val(),
+                    success: function (res) {
+                        if (res.status === true)
+                            $(ajax_name_id).val(res.data.sub_account_name);
+                        else
+                            $(ajax_name_id).val("--------NO NAME FOUND--------");
+                    }
+                });
+            }
+            else {
+                $(ajax_name_id).val("--------NO NAME FOUND--------");
+            }
+        }
+
+        /*
+        function fillmainparameters() {
+        }
+
+        function savemainparameters() {
+        }
+
+        function restoremainparameters() {
+        }
+        */
+
+        $(document).ready(function () {
+
+            fillallentries();
+
+            $("#table_jv_number input[name=jv_number]").focus();
+            /*
+            if (localStorage.getItem('savedEntries')) {
+                entries = JSON.parse(localStorage.getItem('savedEntries'));
+                fillallentries();
+            }
+            */
+            for(option of account_head_list) {
+                account_options = account_options + `<option>${option}</option>`; 
+            }
+            optionchange();
+            /*
+            $("#saveentry").click(function (e) {
+                e.preventDefault();
+                if (entries.length != 0)
+                    localStorage.setItem('savedEntries', JSON.stringify(entries));
+                alert('Data saved locally !');
+            });
+
+            $("#restoreentry").click(function (e) {
+                e.preventDefault();
+                entries = JSON.parse(localStorage.getItem('savedEntries'));
+                fillallentries();
+            });
+
+            $("#removedata").click(function (e) {
+                localStorage.removeItem('savedEntries');
+            });
+            */
+
+            $("#clearentry").click(function (e) {
+                entries = [];
+                lastindex = 0;
+                fillallentries();
+            });
+
+            $("#account_id_select").on("change", function () {
+                optionchange();
+            });
+
+            $("#sub_account_id_select").change(function () {
+                sub_optionchange();
+            });
+
+            $("#addentry").click(function () {
+                var account_id = $("#addentryform select[name=account_id]");
+                var account_name = $("#account_name_res");
+                var sub_account_id = $("#addentryform select[name=sub_account_id]");
+                var sub_account_name = $("#sub_account_name_res");
+                var cr_amount = $("#addentryform input[name=cr_amount]");
+                var dr_amount = $("#addentryform input[name=dr_amount]")
+                var narration = $("#addentryform textarea[name=narration]");
+                var cr_amount_val = parseFloat(cr_amount.val() || '0');
+                var dr_amount_val = parseFloat(dr_amount.val() || '0');
+                console.log(cr_amount_val, dr_amount_val);
+                if (cr_amount_val != 0 && dr_amount_val != 0) {
+                    alert('Credit and Debit both should not be there!');
+                    return false;
+                }
+                if (cr_amount_val == 0 && dr_amount_val == 0) {
+                    return false;
+                }
+                if (!account_id.children("option:selected").val() || !sub_account_id.children("option:selected").val() || cr_amount_val < 0 || dr_amount_val < 0) {
+                    return false;
+                }
+                /*
+                if (!sub_account_id.children("option:selected").val() || !receipt_amount.val() || receipt_amount.val() <= 0)
+                    return false;
+                */
+                var entryob = {
+                    account_id: account_id.children("option:selected").val(),
+                    account_name: account_name.val(),
+                    sub_account_id: sub_account_id.children("option:selected").val(),
+                    sub_account_name: sub_account_name.val(),
+                    cr_amount: cr_amount_val,
+                    dr_amount: dr_amount_val,
+                    narration: narration.val()
+                }
+                entries.push(entryob);
+                lastindex++;
+                var inhtml = `
+                    <tr id=`+ lastindex + `>
+                        <td>`+ lastindex + `</td>
+                        <td style="white-space: true;">${entryob.account_id}<br/>${entryob.account_name}</td>
+                        <td style="white-space: true;">${entryob.sub_account_id}<br/>${entryob.sub_account_name}</td>
+                        <td class="right-align">${parseFloat(entryob.cr_amount).toLocaleString('en-IN')}</td>
+                        <td class="right-align">${parseFloat(entryob.dr_amount).toLocaleString('en-IN')}</td>
+                        <td>${entryob.narration}</td>
+                        <td>
+                            <span style="cursor: pointer; color: yellow;" onclick="editentry(`+ lastindex + `)"><i class="material-icons">&#xE254;</i></span>
+                            <span style="cursor: pointer; color: red;" onclick="deleteentry(`+ lastindex + `)"><i class="material-icons">&#xE872;</i></span>
+                        </td>
+                        <input type="hidden" name="account_ids[${lastindex - 1}]" value="${entryob.account_id}">
+                        <input type="hidden" name="sub_account_ids[${lastindex - 1}]" value="${entryob.sub_account_id}">
+                        <input type="hidden" name="cr_amounts[${lastindex - 1}]" value="${entryob.cr_amount}">
+                        <input type="hidden" name="dr_amounts[${lastindex - 1}]" value="${entryob.dr_amount}">
+                        <input type="hidden" name="narrations[${lastindex - 1}]" value="${entryob.narration}">
+                    </tr>
+                `;
+                cr_total_gb += entryob.cr_amount;
+                dr_total_gb += entryob.dr_amount;
+                $("#cr_totalentry").html("&#8377; " + cr_total_gb.toLocaleString('en-IN'));
+                $("#dr_totalentry").html("&#8377; " + dr_total_gb.toLocaleString('en-IN'));
+                $("#addentryform select[name=account_id] option:first").attr('selected', true).change();
+                account_name.val('');
+                sub_account_name.val('');
+                cr_amount.val('');
+                dr_amount.val('');
+                narration.val('');
+                $("#entries").append(inhtml);
+                $("#account_id_select").selectpicker('toggle');
+            });
+
+            $("#main-form").submit(function (e) {
+                if ($("#entries td").length <= 1) {
+                    e.preventDefault();
+                    alert('Enter atleast two entry before submitting the form!');
+                }
+                else if (cr_total_gb != dr_total_gb) {
+                    e.preventDefault();
+                    alert('Credit Amount and Debit Amount should be same!');
+                }
+            });
+
+        });
+    </script>
+
+</body>
+
+</html>

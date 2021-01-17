@@ -105,3 +105,5 @@ dist
 
 # Master Generator
 master-generator.py
+
+data_import.sql

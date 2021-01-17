@@ -7,8 +7,39 @@ const reportGenerator = require('./report_generator_module');
 
 const beautifyDate = (date) => {
     var arr = date.split('-');
+    if (arr[0].length == 1)
+        arr[0] = "0" + arr[0];
+    if (arr[1].length == 1)
+        arr[1] = "0" + arr[1];
     var bdate = arr[2] + "/" + arr[1] + "/" + arr[0];
     return bdate;
+}
+
+const getFormatedDate = (date) => {
+    var dd = date.getDate().toString();
+    var mm = (date.getMonth() + 1).toString();
+    var yyyy = (date.getFullYear()).toString();
+    if (dd.length == 1)
+        dd = "0" + dd;
+    if (mm.length == 1)
+        mm = "0" + mm;
+    var date_str = dd + "/" + mm + "/" + yyyy;
+    return date_str;
+}
+
+const _DAYS_CONST = 1000 * 3600 * 24;
+
+const calculateDays = (date1, date2, st_date) => {
+    if (date1.getTime() == date2.getTime())
+        return 0;
+    else if (date1.getTime() > date2.getTime())
+        return calculateDays(date2, date1, st_date);
+    else if (date1.getTime() >= st_date.getTime())
+        return Math.floor((date2.getTime() - date1.getTime()) / _DAYS_CONST);
+    else if (st_date.getTime() >= date2.getTime())
+        return 0;
+    else
+        return Math.floor((date2.getTime() - st_date.getTime()) / _DAYS_CONST);
 }
 
 // Listing Report
@@ -127,8 +158,8 @@ router.get('/talukalistsummary', middleware.loggedin_as_superuser, (req, res) =>
                     (@count_taluka_list:=@count_taluka_list+1) AS serial_number,
                     X.taluka_id,
                     X.taluka_name,
-                    X.account_id_count,
-                    Y.sub_account_count,
+                    X.account_id_count AS sos,
+                    Y.sub_account_count AS mem,
                     X.district_id
                 FROM
                     (
@@ -176,9 +207,28 @@ router.get('/talukalistsummary', middleware.loggedin_as_superuser, (req, res) =>
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
+                    var sos_total = 0;
+                    var mem_total = 0;
+
+                    for (item of results[1]) {
+                        sos_total += parseInt(item.sos);
+                        mem_total += parseInt(item.mem);
+                    }
+
+                    var data_total = `
+                        <tr style="background-color: grey">
+                            <td></td>
+                            <td style="text-align: center" colspan="2"><strong>Total</strong></td>
+                            <td style="text-align: right"><strong>${sos_total}</strong></td>
+                            <td style="text-align: right"><strong>${mem_total}</strong></td>
+                            <td></td>
+                        </tr>
+                    `;
+
                     var username = req.user.user_name;
                     var dataobject = {
                         headers,
+                        data_total,
                         settings,
                         datarows: results[1],
                         report_title,
@@ -241,8 +291,8 @@ router.get('/districtlistsummary', middleware.loggedin_as_superuser, (req, res) 
                     (@count_district_list:=@count_district_list+1) AS serial_number,
                     X.district_id,
                     X.district_name,
-                    X.account_id_count,
-                    Y.sub_account_count
+                    X.account_id_count AS sos,
+                    Y.sub_account_count AS mem
                 FROM
                     (
                         SELECT 
@@ -293,9 +343,27 @@ router.get('/districtlistsummary', middleware.loggedin_as_superuser, (req, res) 
                     var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
+                    var sos_total = 0;
+                    var mem_total = 0;
+
+                    for (item of results[1]) {
+                        sos_total += parseInt(item.sos);
+                        mem_total += parseInt(item.mem);
+                    }
+
+                    var data_total = `
+                        <tr style="background-color: grey">
+                            <td></td>
+                            <td style="text-align: center" colspan="2"><strong>Total</strong></td>
+                            <td style="text-align: right"><strong>${sos_total}</strong></td>
+                            <td style="text-align: right"><strong>${mem_total}</strong></td>
+                        </tr>
+                    `;
+
                     var username = req.user.user_name;
                     var dataobject = {
                         headers,
+                        data_total,
                         settings,
                         datarows: results[1],
                         report_title,
@@ -933,7 +1001,7 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                     <tr style="text-align: center;border-top: 2px solid black;border-bottom: 2px solid black;background-color: white;">
                                         <td></td>
                                         <td colspan="3"><strong>Total</strong></td>
-                                        <td colspan="2" style="text-align: right;"><strong>${Math.abs(total_balance).toLocaleString('en-IN', {
+                                        <td colspan="2" style="text-align: right;"><strong>${Math.abs(total_balance).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }) + " " + data_total_crdr}</strong></td>
@@ -959,7 +1027,7 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                     mname: item.sub_account_name,
                                     jdate: item.join_date,
                                     rp: item.resource_person_id,
-                                    abalance: parseFloat(item.cl_balance).toLocaleString('en-IN', {
+                                    abalance: parseFloat(item.cl_balance).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }) + " " + item.cl_crdr
@@ -972,7 +1040,7 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                 <tr style="text-align: center;border-top: 2px solid black;border-bottom: 2px solid black;background-color: white;">
                                     <td></td>
                                     <td colspan="3"><strong>Total</strong></td>
-                                    <td colspan="2" style="text-align: right;"><strong>${Math.abs(total_balance).toLocaleString('en-IN', {
+                                    <td colspan="2" style="text-align: right;"><strong>${Math.abs(total_balance).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " " + data_total_crdr}</strong></td>
@@ -1001,7 +1069,7 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                     scode: item.account_id,
                                     sname: item.account_name,
                                     tm: item.total_members,
-                                    tb: Math.abs(total_balance).toLocaleString('en-IN', {
+                                    tb: Math.abs(total_balance).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }) + " " + total_balance_crdr
@@ -1015,7 +1083,7 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                     <td></td>
                                     <td colspan="2" style="text-align: center;"><strong>Total</strong></td>
                                     <td style="text-align: right;"><strong>${final_total_members}</<strong></td>
-                                    <td style="text-align: right;">${Math.abs(final_total_balance).toLocaleString('en-IN', {
+                                    <td style="text-align: right;">${Math.abs(final_total_balance).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " " + final_total_balance_crdr}</td>
@@ -1025,7 +1093,7 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                                 <tr style="background-color: gray;text-align: center;">
                                     <td><strong>Total Societies&nbsp;:&nbsp;&nbsp;${results[1].length}</strong></td>
                                     <td><strong>Total Members&nbsp;:&nbsp;&nbsp;${final_total_members}</strong></td>
-                                    <td><strong>Total Balance&nbsp;:&nbsp;&nbsp;${Math.abs(final_total_balance).toLocaleString('en-IN', {
+                                    <td><strong>Total Balance&nbsp;:&nbsp;&nbsp;${Math.abs(final_total_balance).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " " + final_total_balance_crdr}</strong></td>
@@ -2160,14 +2228,14 @@ router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => 
 router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 2, 5],
-        header_text_align_right: [1, 2, 5],
+        text_align_right: [1, 2],
+        header_text_align_right: [1, 2],
         text_align_center: [4],
         header_text_align_center: [4],
         summary_text_align_right: [1, 2, 4],
         summary_header_text_align_right: [1, 2, 4],
     };
-    var headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Taluka"];
     var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
     var report_title = "Taluka Wise Society Detail Report";
     var taluka_list;
@@ -2223,10 +2291,12 @@ router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
                         Account_Balance.sub_account_id,
                         Sub_Account.sub_account_name,
                         DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
-                        Account_Balance.resource_person_id
+                        Village.taluka_id
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Village
+                            ON Account_Head.village_id = Village.village_id
                         INNER JOIN Sub_Account
                             ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
                     WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
@@ -2252,7 +2322,7 @@ router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
                         Account_Balance.sub_account_id,
                         Sub_Account.sub_account_name,
                         DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
-                        Account_Balance.resource_person_id
+                        Village.taluka_id
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
@@ -2331,7 +2401,7 @@ router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
                                 mid: item.sub_account_id,
                                 mname: item.sub_account_name,
                                 jdate: item.join_date,
-                                rp: item.resource_person_id,
+                                rp: item.taluka_id,
                             };
                             data_entry.push(single_entry);
                             data_counter++;
@@ -2428,14 +2498,14 @@ router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
 router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
     var data = req.query;
     var settings = {
-        text_align_right: [1, 2, 5],
-        header_text_align_right: [1, 2, 5],
+        text_align_right: [1, 2],
+        header_text_align_right: [1, 2],
         text_align_center: [4],
         header_text_align_center: [4],
         summary_text_align_right: [1, 2, 4],
         summary_header_text_align_right: [1, 2, 4],
     };
-    var headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "Resource Person"];
+    var headers = ["Sr.No.", "Member ID", "Member Name", "Join Date", "District"];
     var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total Members"];
     var report_title = "District Wise Society Detail Report";
     var district_list;
@@ -2491,10 +2561,14 @@ router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
                         Account_Balance.sub_account_id,
                         Sub_Account.sub_account_name,
                         DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
-                        Account_Balance.resource_person_id
+                        Taluka.district_id
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Village
+                            ON Account_Head.village_id = Village.village_id
+                        INNER JOIN Taluka
+                            ON Village.taluka_id = Taluka.taluka_id
                         INNER JOIN Sub_Account
                             ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
                     WHERE Account_Balance.join_date >= ? AND Account_Balance.join_date <= ?
@@ -2520,7 +2594,7 @@ router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
                         Account_Balance.sub_account_id,
                         Sub_Account.sub_account_name,
                         DATE_FORMAT(Account_Balance.join_date,'%d/%m/%Y') AS join_date,
-                        Account_Balance.resource_person_id
+                        Taluka.district_id
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
@@ -2599,7 +2673,7 @@ router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
                                 mid: item.sub_account_id,
                                 mname: item.sub_account_name,
                                 jdate: item.join_date,
-                                rp: item.resource_person_id,
+                                rp: item.district_id,
                             };
                             data_entry.push(single_entry);
                             data_counter++;
@@ -2702,7 +2776,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
         summary_header_text_align_right: [1, 2, 4, 5, 6, 7]
     };
     var headers = ["Member ID", "Member Name", "Opening Balance", "Credit", "Debit", "Closing Balance"];
-    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Total OP", "Total CR", "Total DR", "Total CL"];
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Opening Balance", "Credit", "Debit", "Closing Balance"];
     var report_title = "Society Wise Periodical Balance Report";
     var soc_led_list;
     if (data.select_all == '1')
@@ -2890,25 +2964,25 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             new_id = item.aid;
                             if (curr_id != new_id) {
                                 if (s_op >= 0) {
-                                    op_string = Math.abs(s_op).toLocaleString('en-IN', {
+                                    op_string = Math.abs(s_op).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }) + " CR";
                                 }
                                 else {
-                                    op_string = Math.abs(s_op).toLocaleString('en-IN', {
+                                    op_string = Math.abs(s_op).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }) + " DR";
                                 }
                                 if (s_cl >= 0) {
-                                    cl_string = Math.abs(s_cl).toLocaleString('en-IN', {
+                                    cl_string = Math.abs(s_cl).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }) + " CR";
                                 }
                                 else {
-                                    cl_string = Math.abs(s_cl).toLocaleString('en-IN', {
+                                    cl_string = Math.abs(s_cl).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }) + " DR";
@@ -2916,16 +2990,16 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
                                         <td colspan="2"></td>
-                                        <td><strong>${op_string}</strong></td>
-                                        <td style="text-align: right;"><strong>${s_cr.toLocaleString('en-IN', {
+                                        <td style="text-align: right;"><strong>${op_string}</strong></td>
+                                        <td style="text-align: right;"><strong>${s_cr.toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
-                                        <td style="text-align: right;"><strong>${s_dr.toLocaleString('en-IN', {
+                                        <td style="text-align: right;"><strong>${s_dr.toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
-                                        <td><strong>${cl_string}</strong></td>
+                                        <td style="text-align: right;"><strong>${cl_string}</strong></td>
                                     </tr>
                                 `;
                                 sentry = {
@@ -2933,11 +3007,11 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                     aid: last_aid,
                                     aname: last_aname,
                                     op: op_string,
-                                    cr: s_cr.toLocaleString('en-IN', {
+                                    cr: s_cr.toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }),
-                                    dr: s_dr.toLocaleString('en-IN', {
+                                    dr: s_dr.toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }),
@@ -2978,25 +3052,25 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             dr = parseFloat(item.dr) || 0.00;
                             cl = parseFloat(op) + parseFloat(cr) - parseFloat(dr);
                             if (op >= 0) {
-                                op_string = Math.abs(op).toLocaleString('en-IN', {
+                                op_string = Math.abs(op).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + " CR";
                             }
                             else {
-                                op_string = Math.abs(op).toLocaleString('en-IN', {
+                                op_string = Math.abs(op).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + " DR";
                             }
                             if (cl >= 0) {
-                                cl_string = Math.abs(cl).toLocaleString('en-IN', {
+                                cl_string = Math.abs(cl).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + " CR";
                             }
                             else {
-                                cl_string = Math.abs(cl).toLocaleString('en-IN', {
+                                cl_string = Math.abs(cl).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + " DR";
@@ -3005,11 +3079,11 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 mid: item.sid,
                                 mname: item.sname,
                                 op: op_string,
-                                cr: cr.toLocaleString('en-IN', {
+                                cr: cr.toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }),
-                                dr: dr.toLocaleString('en-IN', {
+                                dr: dr.toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }),
@@ -3033,25 +3107,25 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             }
                         }
                         if (s_op >= 0) {
-                            op_string = Math.abs(s_op).toLocaleString('en-IN', {
+                            op_string = Math.abs(s_op).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " CR";
                         }
                         else {
-                            op_string = Math.abs(s_op).toLocaleString('en-IN', {
+                            op_string = Math.abs(s_op).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " DR";
                         }
                         if (s_cl >= 0) {
-                            cl_string = Math.abs(s_cl).toLocaleString('en-IN', {
+                            cl_string = Math.abs(s_cl).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " CR";
                         }
                         else {
-                            cl_string = Math.abs(s_cl).toLocaleString('en-IN', {
+                            cl_string = Math.abs(s_cl).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " DR";
@@ -3079,25 +3153,25 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                         s_cl_global += parseFloat(s_cl);
                         var s_op_string, s_cl_string;
                         if (s_op_global >= 0) {
-                            s_op_string = Math.abs(s_op_global).toLocaleString('en-IN', {
+                            s_op_string = Math.abs(s_op_global).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " CR";
                         }
                         else {
-                            s_op_string = Math.abs(s_op_global).toLocaleString('en-IN', {
+                            s_op_string = Math.abs(s_op_global).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " DR";
                         }
                         if (s_cl_global >= 0) {
-                            s_cl_string = Math.abs(s_cl_global).toLocaleString('en-IN', {
+                            s_cl_string = Math.abs(s_cl_global).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " CR";
                         }
                         else {
-                            s_cl_string = Math.abs(s_cl_global).toLocaleString('en-IN', {
+                            s_cl_string = Math.abs(s_cl_global).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " DR";
@@ -3106,11 +3180,11 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             <tr style="background-color: silver;">
                                 <td colspan="2"></td>
                                 <td style="text-align: right;"><strong>${op_string}</strong></td>
-                                <td style="text-align: right;"><strong>${s_cr.toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${s_cr.toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                <td style="text-align: right;"><strong>${s_dr.toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${s_dr.toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
@@ -3122,11 +3196,11 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             <tr style="text-align: center;background-color: gray;">
                                 <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
                                 <td style="text-align: right;"><strong>${s_op_string}</strong></td>
-                                <td style="text-align: right;"><strong>${s_cr_global.toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${s_cr_global.toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                <td style="text-align: right;"><strong>${s_dr_global.toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${s_dr_global.toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
@@ -3147,11 +3221,11 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             <tr style="background-color: gray;">
                                 <td colspan="3" style="text-align: center;"><strong>Grand Total</strong></td>
                                 <td style="text-align: right;"><strong>${s_op_string}</strong></td>
-                                <td style="text-align: right;"><strong>${s_cr_global.toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${s_cr_global.toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                <td style="text-align: right;"><strong>${s_dr_global.toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${s_dr_global.toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
@@ -3220,7 +3294,7 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
     };
     var headers = ["Member ID", "Member Name", "Credit", "Debit"];
     var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Credit", "Debit"];
-    var report_title = "Society Wise Periodical Balance Detail Report";
+    var report_title = "Society Wise Balance Report";
     var soc_led_list;
     if (data.select_all == '1')
         soc_led_list = 'All';
@@ -3373,11 +3447,11 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
                                         <td colspan="2"></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
@@ -3387,11 +3461,11 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                     snum: summary_counter,
                                     aid: last_aid,
                                     aname: last_aname,
-                                    cr: Math.abs(s_cr).toLocaleString('en-IN', {
+                                    cr: Math.abs(s_cr).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }),
-                                    dr: Math.abs(s_dr).toLocaleString('en-IN', {
+                                    dr: Math.abs(s_dr).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     })
@@ -3430,7 +3504,7 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                 single_entry = {
                                     mid: item.sid,
                                     mname: item.sname,
-                                    cr: Math.abs(cl).toLocaleString('en-IN', {
+                                    cr: Math.abs(cl).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }),
@@ -3446,7 +3520,7 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                     mid: item.sid,
                                     mname: item.sname,
                                     cr: ' ',
-                                    dr: Math.abs(cl).toLocaleString('en-IN', {
+                                    dr: Math.abs(cl).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     })
@@ -3474,11 +3548,11 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             snum: summary_counter,
                             aid: last_aid,
                             aname: last_aname,
-                            cr: Math.abs(s_cr).toLocaleString('en-IN', {
+                            cr: Math.abs(s_cr).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }),
-                            dr: Math.abs(s_dr).toLocaleString('en-IN', {
+                            dr: Math.abs(s_dr).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             })
@@ -3496,11 +3570,11 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         data_total = `
                             <tr style="background-color: silver;">
                                 <td colspan="2"></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
@@ -3510,11 +3584,11 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             </tr>
                             <tr style="background-color: gray;">
                                 <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
@@ -3535,14 +3609,14 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                 </tr>
                                 <tr style="background-color: gray;">
                                     <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
-                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}</strong></td>
-                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
                                 </tr>
                             `;
                             entry = {
@@ -3554,11 +3628,11 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         summary.summary_total = `
                             <tr style="background-color: gray;">
                                 <td colspan="3" style="text-align: center;"><strong>Grand Total</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
@@ -3629,8 +3703,8 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
         summary_header_text_align_right: [1, 2, 4, 5]
     };
     var headers = ["Date", "Narration", "Credit", "Debit"];
-    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "CR", "DR"];
-    var report_title = "Society Account Ledger Report";
+    var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Credit", "Debit"];
+    var report_title = "Society Ledger";
     var soc_led_list;
     if (data.select_all == '1')
         soc_led_list = 'All';
@@ -3790,7 +3864,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                             single_entry = {
                                 date: fr_date,
                                 narration: "Opening Balance",
-                                cr: Math.abs(op).toLocaleString('en-IN', {
+                                cr: Math.abs(op).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }),
@@ -3803,7 +3877,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                 date: fr_date,
                                 narration: "Opening Balance",
                                 cr: ' ',
-                                dr: Math.abs(op).toLocaleString('en-IN', {
+                                dr: Math.abs(op).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }),
@@ -3822,56 +3896,63 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                         date: to_date,
                                         narration: "Closing Balance",
                                         cr: ' ',
-                                        dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         }) + ' CR'
                                     }
                                     s_dr += Math.abs(parseFloat(cl_balance));
+                                    sentry = {
+                                        snum: summary_counter,
+                                        aid: curr_id,
+                                        aname: last_aname,
+                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ''
+                                    };
+                                    s_cr_global += parseFloat(Math.abs(cl_balance));
                                 }
                                 else {
                                     single_entry = {
                                         date: to_date,
                                         narration: "Closing Balance",
-                                        cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         }) + ' DR',
                                         dr: ' '
                                     }
                                     s_cr += Math.abs(parseFloat(cl_balance));
+                                    sentry = {
+                                        snum: summary_counter,
+                                        aid: curr_id,
+                                        aname: last_aname,
+                                        cr: '',
+                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    s_dr_global += parseFloat(Math.abs(cl_balance));
                                 }
                                 data_entry.push(single_entry);
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
                                         <td colspan="2"></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
                                     </tr>
                                 `;
-                                sentry = {
-                                    snum: summary_counter,
-                                    aid: curr_id,
-                                    aname: last_aname,
-                                    cr: Math.abs(s_cr).toLocaleString('en-IN', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    }),
-                                    dr: Math.abs(s_dr).toLocaleString('en-IN', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })
-                                };
                                 summary_counter++;
                                 summary.summary_data.push(sentry);
-                                s_cr_global += parseFloat(s_cr);
-                                s_dr_global += parseFloat(s_dr);
                                 if (data_entry.length > 0) {
                                     entry = {
                                         data_title: sub_title,
@@ -3890,7 +3971,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                     single_entry = {
                                         date: fr_date,
                                         narration: "Opening Balance",
-                                        cr: Math.abs(op).toLocaleString('en-IN', {
+                                        cr: Math.abs(op).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         }),
@@ -3903,7 +3984,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                         date: fr_date,
                                         narration: "Opening Balance",
                                         cr: ' ',
-                                        dr: Math.abs(op).toLocaleString('en-IN', {
+                                        dr: Math.abs(op).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         })
@@ -3919,7 +4000,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                     date: item.tc_date,
                                     narration: item.narration,
                                     cr: ' ',
-                                    dr: Math.abs(dr).toLocaleString('en-IN', {
+                                    dr: Math.abs(dr).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     })
@@ -3930,7 +4011,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                 single_entry = {
                                     date: item.tc_date,
                                     narration: item.narration,
-                                    cr: Math.abs(cr).toLocaleString('en-IN', {
+                                    cr: Math.abs(cr).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }),
@@ -3947,56 +4028,63 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                                 date: to_date,
                                 narration: "Closing Balance",
                                 cr: ' ',
-                                dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + ' CR'
                             }
                             s_dr += Math.abs(parseFloat(cl_balance));
+                            sentry = {
+                                snum: summary_counter,
+                                aid: curr_id,
+                                aname: last_aname,
+                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: ''
+                            };
+                            s_cr_global += parseFloat(Math.abs(cl_balance));
                         }
                         else {
                             single_entry = {
                                 date: to_date,
                                 narration: "Closing Balance",
-                                cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + ' DR',
                                 dr: ' '
                             }
                             s_cr += Math.abs(parseFloat(cl_balance));
+                            sentry = {
+                                snum: summary_counter,
+                                aid: curr_id,
+                                aname: last_aname,
+                                cr: '',
+                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                            };
+                            s_dr_global += parseFloat(Math.abs(cl_balance));
                         }
                         data_entry.push(single_entry);
                         data_total = `
-                                    <tr style="text-align: center;background-color: silver;">
-                                        <td colspan="2"></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                            <tr style="text-align: center;background-color: silver;">
+                                <td colspan="2"></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                    </tr>
-                                `;
-                        sentry = {
-                            snum: summary_counter,
-                            aid: curr_id,
-                            aname: last_aname,
-                            cr: Math.abs(s_cr).toLocaleString('en-IN', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }),
-                            dr: Math.abs(s_dr).toLocaleString('en-IN', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })
-                        };
+                            </tr>
+                        `;
                         summary_counter++;
                         summary.summary_data.push(sentry);
-                        s_cr_global += parseFloat(s_cr);
-                        s_dr_global += parseFloat(s_dr);
                         if (data_entry.length > 0) {
                             entry = {
                                 data_title: sub_title,
@@ -4006,19 +4094,61 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                             datarows.push(entry);
                         }
                         // Summary Generation
-                        summary.summary_total = `
-                            <tr style="text-align: center;background-color: gray;">
-                                <td colspan="3"></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                            </tr>
-                        `;
+                        var net_balance = parseFloat(s_cr_global) - parseFloat(s_dr_global);
+                        if (net_balance >= 0) {
+                            summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td colspan="3"></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                                <tr style="background-color: white">
+                                    <td></td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Net Balance</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(net_balance).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td></td>
+                                </tr>
+                            `;
+                        }
+                        else {
+                            summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td colspan="3"></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                                <tr style="background-color: white">
+                                    <td></td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Net Balance</strong></td>
+                                    <td></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(net_balance).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                            `;
+                        }
                     }
                     var username = req.user.user_name;
                     var dataobject = {
@@ -4082,8 +4212,8 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
         summary_header_text_align_right: [1, 2, 4, 5]
     };
     var headers = ["Date", "Narration", "Credit", "Debit"];
-    var summary_headers = ["Sr.No.", "Member ID", "Member Name", "CR", "DR"];
-    var report_title = "Member Account Ledger Report";
+    var summary_headers = ["Sr.No.", "Member ID", "Member Name", "Credit", "Debit"];
+    var report_title = "Member Ledger";
     var mem_led_list;
     if (data.select_all == '1')
         mem_led_list = 'All';
@@ -4243,7 +4373,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                             single_entry = {
                                 date: fr_date,
                                 narration: "Opening Balance",
-                                cr: Math.abs(op).toLocaleString('en-IN', {
+                                cr: Math.abs(op).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }),
@@ -4256,7 +4386,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                 date: fr_date,
                                 narration: "Opening Balance",
                                 cr: ' ',
-                                dr: Math.abs(op).toLocaleString('en-IN', {
+                                dr: Math.abs(op).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }),
@@ -4275,56 +4405,63 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                         date: to_date,
                                         narration: "Closing Balance",
                                         cr: ' ',
-                                        dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         }) + " CR"
                                     }
                                     s_dr += Math.abs(parseFloat(cl_balance));
+                                    sentry = {
+                                        snum: summary_counter,
+                                        aid: curr_id,
+                                        aname: last_aname,
+                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ''
+                                    };
+                                    s_cr_global += parseFloat(Math.abs(cl_balance));
                                 }
                                 else {
                                     single_entry = {
                                         date: to_date,
                                         narration: "Closing Balance",
-                                        cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         }) + " DR",
                                         dr: ' '
                                     }
                                     s_cr += Math.abs(parseFloat(cl_balance));
+                                    sentry = {
+                                        snum: summary_counter,
+                                        aid: curr_id,
+                                        aname: last_aname,
+                                        cr: '',
+                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    s_dr_global += parseFloat(Math.abs(cl_balance));
                                 }
                                 data_entry.push(single_entry);
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
                                         <td colspan="2"></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
                                     </tr>
                                 `;
-                                sentry = {
-                                    snum: summary_counter,
-                                    aid: curr_id,
-                                    aname: last_aname,
-                                    cr: Math.abs(s_cr).toLocaleString('en-IN', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    }),
-                                    dr: Math.abs(s_dr).toLocaleString('en-IN', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })
-                                };
                                 summary_counter++;
                                 summary.summary_data.push(sentry);
-                                s_cr_global += parseFloat(s_cr);
-                                s_dr_global += parseFloat(s_dr);
                                 if (data_entry.length > 0) {
                                     entry = {
                                         data_title: sub_title,
@@ -4343,7 +4480,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                     single_entry = {
                                         date: fr_date,
                                         narration: "Opening Balance",
-                                        cr: Math.abs(op).toLocaleString('en-IN', {
+                                        cr: Math.abs(op).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         }),
@@ -4356,7 +4493,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                         date: fr_date,
                                         narration: "Opening Balance",
                                         cr: ' ',
-                                        dr: Math.abs(op).toLocaleString('en-IN', {
+                                        dr: Math.abs(op).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         })
@@ -4372,7 +4509,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                     date: item.tc_date,
                                     narration: item.narration,
                                     cr: ' ',
-                                    dr: Math.abs(dr).toLocaleString('en-IN', {
+                                    dr: Math.abs(dr).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     })
@@ -4383,7 +4520,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                 single_entry = {
                                     date: item.tc_date,
                                     narration: item.narration,
-                                    cr: Math.abs(cr).toLocaleString('en-IN', {
+                                    cr: Math.abs(cr).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }),
@@ -4400,56 +4537,63 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                                 date: to_date,
                                 narration: "Closing Balance",
                                 cr: ' ',
-                                dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + " CR"
                             }
                             s_dr += Math.abs(parseFloat(cl_balance));
+                            sentry = {
+                                snum: summary_counter,
+                                aid: curr_id,
+                                aname: last_aname,
+                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: ''
+                            };
+                            s_cr_global += parseFloat(Math.abs(cl_balance));
                         }
                         else {
                             single_entry = {
                                 date: to_date,
                                 narration: "Closing Balance",
-                                cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + " DR",
                                 dr: ' '
                             }
                             s_cr += Math.abs(parseFloat(cl_balance));
+                            sentry = {
+                                snum: summary_counter,
+                                aid: curr_id,
+                                aname: last_aname,
+                                cr: '',
+                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                            };
+                            s_dr_global += parseFloat(Math.abs(cl_balance));
                         }
                         data_entry.push(single_entry);
                         data_total = `
                             <tr style="text-align: center;background-color: silver;">
                                 <td colspan="2"></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
                             </tr>
                         `;
-                        sentry = {
-                            snum: summary_counter,
-                            aid: curr_id,
-                            aname: last_aname,
-                            cr: Math.abs(s_cr).toLocaleString('en-IN', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }),
-                            dr: Math.abs(s_dr).toLocaleString('en-IN', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })
-                        };
                         summary_counter++;
                         summary.summary_data.push(sentry);
-                        s_cr_global += parseFloat(s_cr);
-                        s_dr_global += parseFloat(s_dr);
                         if (data_entry.length > 0) {
                             entry = {
                                 data_title: sub_title,
@@ -4459,19 +4603,61 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                             datarows.push(entry);
                         }
                         // Summary Generation
-                        summary.summary_total = `
-                            <tr style="text-align: center;background-color: gray;">
-                                <td colspan="3"></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                            </tr>
-                        `;
+                        var net_balance = parseFloat(s_cr_global) - parseFloat(s_dr_global);
+                        if (net_balance >= 0) {
+                            summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td colspan="3"></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                                <tr style="background-color: white">
+                                    <td></td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Net Balance</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(net_balance).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td></td>
+                                </tr>
+                            `;
+                        }
+                        else {
+                            summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td colspan="3"></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                                <tr style="background-color: white">
+                                    <td></td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Net Balance</strong></td>
+                                    <td></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(net_balance).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                            `;
+                        }
                     }
                     var username = req.user.user_name;
                     var dataobject = {
@@ -4717,7 +4903,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                             single_entry = {
                                 date: fr_date,
                                 narration: "Opening Balance",
-                                cr: Math.abs(op).toLocaleString('en-IN', {
+                                cr: Math.abs(op).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }),
@@ -4730,7 +4916,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                 date: fr_date,
                                 narration: "Opening Balance",
                                 cr: ' ',
-                                dr: Math.abs(op).toLocaleString('en-IN', {
+                                dr: Math.abs(op).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }),
@@ -4749,56 +4935,63 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                         date: to_date,
                                         narration: "Closing Balance",
                                         cr: ' ',
-                                        dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         }) + " CR"
                                     }
                                     s_dr += Math.abs(parseFloat(cl_balance));
+                                    sentry = {
+                                        snum: summary_counter,
+                                        aid: curr_id,
+                                        aname: last_aname,
+                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ''
+                                    };
+                                    s_cr_global += parseFloat(Math.abs(cl_balance));
                                 }
                                 else {
                                     single_entry = {
                                         date: to_date,
                                         narration: "Closing Balance",
-                                        cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         }) + " DR",
                                         dr: ' '
                                     }
                                     s_cr += Math.abs(parseFloat(cl_balance));
+                                    sentry = {
+                                        snum: summary_counter,
+                                        aid: curr_id,
+                                        aname: last_aname,
+                                        cr: '',
+                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    s_dr_global += parseFloat(Math.abs(cl_balance));
                                 }
                                 data_entry.push(single_entry);
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
                                         <td colspan="2"></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
                                     </tr>
                                 `;
-                                sentry = {
-                                    snum: summary_counter,
-                                    aid: curr_id,
-                                    aname: last_aname,
-                                    cr: Math.abs(s_cr).toLocaleString('en-IN', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    }),
-                                    dr: Math.abs(s_dr).toLocaleString('en-IN', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })
-                                };
                                 summary_counter++;
                                 summary.summary_data.push(sentry);
-                                s_cr_global += parseFloat(s_cr);
-                                s_dr_global += parseFloat(s_dr);
                                 if (data_entry.length > 0) {
                                     entry = {
                                         data_title: sub_title,
@@ -4817,7 +5010,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                     single_entry = {
                                         date: fr_date,
                                         narration: "Opening Balance",
-                                        cr: Math.abs(op).toLocaleString('en-IN', {
+                                        cr: Math.abs(op).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         }),
@@ -4830,7 +5023,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                         date: fr_date,
                                         narration: "Opening Balance",
                                         cr: ' ',
-                                        dr: Math.abs(op).toLocaleString('en-IN', {
+                                        dr: Math.abs(op).toLocaleString("en-IN", {
                                             minimumFractionDigits: 2,
                                             maximumFractionDigits: 2
                                         })
@@ -4846,7 +5039,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                     date: item.tc_date,
                                     narration: item.narration,
                                     cr: ' ',
-                                    dr: Math.abs(dr).toLocaleString('en-IN', {
+                                    dr: Math.abs(dr).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     })
@@ -4857,7 +5050,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                 single_entry = {
                                     date: item.tc_date,
                                     narration: item.narration,
-                                    cr: Math.abs(cr).toLocaleString('en-IN', {
+                                    cr: Math.abs(cr).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }),
@@ -4874,56 +5067,63 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                                 date: to_date,
                                 narration: "Closing Balance",
                                 cr: ' ',
-                                dr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + " CR"
                             }
                             s_dr += Math.abs(parseFloat(cl_balance));
+                            sentry = {
+                                snum: summary_counter,
+                                aid: curr_id,
+                                aname: last_aname,
+                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: ''
+                            };
+                            s_cr_global += parseFloat(Math.abs(cl_balance));
                         }
                         else {
                             single_entry = {
                                 date: to_date,
                                 narration: "Closing Balance",
-                                cr: Math.abs(cl_balance).toLocaleString('en-IN', {
+                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + " DR",
                                 dr: ' '
                             }
                             s_cr += Math.abs(parseFloat(cl_balance));
+                            sentry = {
+                                snum: summary_counter,
+                                aid: curr_id,
+                                aname: last_aname,
+                                cr: '',
+                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                            };
+                            s_dr_global += parseFloat(Math.abs(cl_balance));
                         }
                         data_entry.push(single_entry);
                         data_total = `
                             <tr style="text-align: center;background-color: silver;">
                                 <td colspan="2"></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString('en-IN', {
+                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
                             </tr>
                         `;
-                        sentry = {
-                            snum: summary_counter,
-                            aid: curr_id,
-                            aname: last_aname,
-                            cr: Math.abs(s_cr).toLocaleString('en-IN', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }),
-                            dr: Math.abs(s_dr).toLocaleString('en-IN', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })
-                        };
                         summary_counter++;
                         summary.summary_data.push(sentry);
-                        s_cr_global += parseFloat(s_cr);
-                        s_dr_global += parseFloat(s_dr);
                         if (data_entry.length > 0) {
                             entry = {
                                 data_title: sub_title,
@@ -4933,19 +5133,61 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                             datarows.push(entry);
                         }
                         // Summary Generation
-                        summary.summary_total = `
-                            <tr style="text-align: center;background-color: gray;">
-                                <td colspan="3"></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString('en-IN', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString('en-IN', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                            </tr>
-                        `;
+                        var net_balance = parseFloat(s_cr_global) - parseFloat(s_dr_global);
+                        if (net_balance >= 0) {
+                            summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td colspan="3"></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                                <tr style="background-color: white">
+                                    <td></td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Net Balance</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(net_balance).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td></td>
+                                </tr>
+                            `;
+                        }
+                        else {
+                            summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td colspan="3"></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                                <tr style="background-color: white">
+                                    <td></td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Net Balance</strong></td>
+                                    <td></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(net_balance).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                            `;
+                        }
                     }
                     var username = req.user.user_name;
                     var dataobject = {
@@ -5139,7 +5381,7 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                                     <tr style="text-align: center;background-color: silver;">
                                         <td></td>
                                         <td colspan="3"><strong>Average Calwing Period For Whole Society(in Days)</strong></td>
-                                        <td colspan="2" style="text-align: right"><strong>${avg.toLocaleString('en-IN', {
+                                        <td colspan="2" style="text-align: right"><strong>${avg.toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })}</strong></td>
@@ -5155,7 +5397,7 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                                     snum: summary_counter,
                                     sid: curr_id,
                                     sname: lname,
-                                    age: avg.toLocaleString('en-IN', {
+                                    age: avg.toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     })
@@ -5178,7 +5420,7 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                                 sname: item.sname,
                                 bdate: item.bdate,
                                 cdate: item.cdate,
-                                age: days.toLocaleString('en-IN')
+                                age: days.toLocaleString("en-IN")
                             };
                             lname = item.aname;
                             total_days += days;
@@ -5190,7 +5432,7 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                             <tr style="text-align: center;background-color: silver;">
                                 <td></td>
                                 <td colspan="3"><strong>Average Calwing Period For Whole Society(in Days)</strong></td>
-                                <td colspan="2" style="text-align: right"><strong>${avg.toLocaleString('en-IN', {
+                                <td colspan="2" style="text-align: right"><strong>${avg.toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                         })}</strong></td>
@@ -5206,7 +5448,7 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                             snum: summary_counter,
                             sid: curr_id,
                             sname: lname,
-                            age: avg.toLocaleString('en-IN', {
+                            age: avg.toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             })
@@ -5387,7 +5629,7 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                             new_id = item.aid;
                             if (new_id != curr_id) {
                                 if (cl_total >= 0) {
-                                    s_cl_total = Math.abs(cl_total).toLocaleString('en-IN', {
+                                    s_cl_total = Math.abs(cl_total).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }) + " CR";
@@ -5403,7 +5645,7 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                                     `;
                                 }
                                 else {
-                                    s_cl_total = Math.abs(cl_total).toLocaleString('en-IN', {
+                                    s_cl_total = Math.abs(cl_total).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }) + " DR";
@@ -5442,13 +5684,13 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                                 curr_id = new_id;
                             }
                             if (item.cl >= 0) {
-                                s_cl_balance = Math.abs(item.cl).toLocaleString('en-IN', {
+                                s_cl_balance = Math.abs(item.cl).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + " CR";
                             }
                             else {
-                                s_cl_balance = Math.abs(item.cl).toLocaleString('en-IN', {
+                                s_cl_balance = Math.abs(item.cl).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 }) + " DR";
@@ -5478,7 +5720,7 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                             }
                         }
                         if (cl_total >= 0) {
-                            s_cl_total = Math.abs(cl_total).toLocaleString('en-IN', {
+                            s_cl_total = Math.abs(cl_total).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " CR";
@@ -5494,7 +5736,7 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                             `;
                         }
                         else {
-                            s_cl_total = Math.abs(cl_total).toLocaleString('en-IN', {
+                            s_cl_total = Math.abs(cl_total).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " DR";
@@ -5527,13 +5769,13 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                             summary.summary_data.push(sentry);
                         }
                         if (cl_global >= 0) {
-                            s_cl_global = Math.abs(cl_global).toLocaleString('en-IN', {
+                            s_cl_global = Math.abs(cl_global).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " CR";
                         }
                         else {
-                            s_cl_global = Math.abs(cl_global).toLocaleString('en-IN', {
+                            s_cl_global = Math.abs(cl_global).toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) + " DR";
@@ -5987,9 +6229,9 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
         summary_text_align_right: [1, 2, 4],
         summary_header_text_align_right: [1, 2, 4]
     };
-    var headers = ["Sr.No.", "Receipt ID", "Receipt No.", "Society Name", "Receipt Amount"];
+    var headers = ["Sr.No.", "Receipt Date", "Receipt No.", "Society Name", "Receipt Amount"];
     var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Receipt Amount"];
-    var report_title = "Periodical Receipt Register";
+    var report_title = "Receipt Register";
     var report_information = `
         <tr style="background-color: white">
             <td></td>
@@ -6077,7 +6319,7 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                                 rdate: item.rdate,
                                 rnum: item.rnum,
                                 aname: item.aname,
-                                total: parseFloat(item.tamount).toLocaleString('en-IN', {
+                                total: parseFloat(item.tamount).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })
@@ -6090,7 +6332,7 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                             <tr style="background-color: silver;">
                                 <td colspan="2"></td>
                                 <td colspan="2" style="text-align: center;"><strong>Total</strong></td>
-                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN', {
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString("en-IN", {
                             maximumFractionDigits: 2,
                             minimumFractionDigits: 2
                         })}</strong></td>
@@ -6106,7 +6348,7 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                                 snum: summary_counter,
                                 aid: key,
                                 aname: sdata[key]["name"],
-                                total: sdata[key]["total"].toLocaleString('en-IN', {
+                                total: sdata[key]["total"].toLocaleString("en-IN", {
                                     maximumFractionDigits: 2,
                                     minimumFractionDigits: 2
                                 })
@@ -6114,11 +6356,12 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                             summary_counter++;
                             summary.summary_data.push(sentry);
                         }
+                        console.log(gtotal);
                         summary.summary_total = `
                             <tr style="background-color: silver;">
                                 <td></td>
                                 <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
-                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN', {
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString("en-IN", {
                             maximumFractionDigits: 2,
                             minimumFractionDigits: 2
                         })}</strong></td>
@@ -6186,9 +6429,9 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
         summary_text_align_right: [1, 2, 4],
         summary_header_text_align_right: [1, 2, 4]
     };
-    var headers = ["Sr.No.", "Voucher ID", "Voucher No.", "Society Name", "Payment Amount"];
+    var headers = ["Sr.No.", "Voucher Date", "Voucher No.", "Society Name", "Payment Amount"];
     var summary_headers = ["Sr.No.", "Society ID", "Society Name", "Payment Amount"];
-    var report_title = "Periodical Payment Register";
+    var report_title = "Payment Register";
     var report_information = `
         <tr style="background-color: white">
             <td></td>
@@ -6276,7 +6519,7 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                                 rdate: item.rdate,
                                 rnum: item.rnum,
                                 aname: item.aname,
-                                total: parseFloat(item.tamount).toLocaleString('en-IN', {
+                                total: parseFloat(item.tamount).toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2
                                 })
@@ -6289,7 +6532,7 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                             <tr style="background-color: silver;">
                                 <td colspan="2"></td>
                                 <td colspan="2" style="text-align: center;"><strong>Total</strong></td>
-                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN', {
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString("en-IN", {
                             maximumFractionDigits: 2,
                             minimumFractionDigits: 2
                         })}</strong></td>
@@ -6305,7 +6548,7 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                                 snum: summary_counter,
                                 aid: key,
                                 aname: sdata[key]["name"],
-                                total: sdata[key]["total"].toLocaleString('en-IN', {
+                                total: sdata[key]["total"].toLocaleString("en-IN", {
                                     maximumFractionDigits: 2,
                                     minimumFractionDigits: 2
                                 })
@@ -6317,9 +6560,545 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                             <tr style="background-color: silver;">
                                 <td></td>
                                 <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
-                                <td style="text-align: right"><strong>${gtotal.toLocaleString('en-IN', {
+                                <td style="text-align: right"><strong>${gtotal.toLocaleString("en-IN", {
                             maximumFractionDigits: 2,
                             minimumFractionDigits: 2
+                        })}</strong></td>
+                            </tr>
+                        `;
+                    }
+                    var username = req.user.user_name;
+                    var dataobject = {
+                        headers,
+                        len: headers.length,
+                        report_title,
+                        report_information,
+                        date: sdate,
+                        username,
+                        settings
+                    }
+                    if (data.show_details == '1') {
+                        dataobject.datarows = datarows;
+                    }
+                    if (data.show_summary == '1') {
+                        dataobject.summary = summary;
+                    }
+                    var template = "detail-report-main";
+                    reportGenerator(dataobject, template, (err, resheaders) => {
+                        if (err) {
+                            console.log(err);
+                            res.send({
+                                status: false
+                            });
+                        }
+                        else {
+                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                            var client_link = new URL(fullUrl);
+                            var link = new URL(String(resheaders.headers['permanent-link']));
+                            if (!link) {
+                                res.send({
+                                    status: false
+                                });
+                            }
+                            else {
+                                link.hostname = client_link.hostname;
+                                //console.log("FINAL PDF LINK : ",link.href);
+                                //var pdf_id = link.split('/').slice(-2)[0];
+                                //console.log(pdf_id);
+                                res.send({
+                                    status: true,
+                                    link: link.href
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    });
+});
+
+router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
+    var data = req.query;
+    var settings = {
+        text_align_right: [3, 4, 5, 8, 9],
+        text_align_center: [1, 6, 7],
+        header_text_align_right: [3, 4, 5, 8, 9],
+        header_text_align_center: [1, 6, 7],
+        summary_text_align_right: [1, 2, 4, 5, 6],
+        summary_header_text_align_right: [1, 2, 4, 5, 6]
+    };
+    var headers = ["Date", "Narration", "Credit", "Debit", "Closing", "From", "To", "Days", "Interest Amount"];
+    var summary_headers = ["Sr.No.", "Member ID", "Member Name", "Closing", "Interest", "Total"];
+    var report_title = "Society Wise Member Account Interest Report";
+    var mem_led_list, soc_led_list;
+    if (data.select_all == '1')
+        mem_led_list = 'All';
+    else {
+        if ("sub_account_id_list" in data) {
+            if (typeof (data.sub_account_id_list) === 'string')
+                mem_led_list = data.sub_account_id_list
+            else
+                mem_led_list = data.sub_account_id_list.join(', ');
+        }
+        else
+            mem_led_list = 'None';
+    }
+    if ("account_id_list" in data) {
+        if (typeof (data.account_id_list) === 'string')
+            soc_led_list = data.account_id_list
+        else
+            soc_led_list = data.account_id_list.join(', ');
+    }
+    else
+        soc_led_list = 'None';
+    var report_information = `
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>From Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.from_date)}</strong></td>
+            <td style="text-align: center;"><strong>-</strong></td>
+            <td style="text-align: center;"><strong>To Date</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td style="text-align: left;"><strong>${beautifyDate(data.to_date)}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Society</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${soc_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Member</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td colspan="5"><strong>${mem_led_list}</strong></td>
+        </tr>
+        <tr style="background-color: silver">
+            <td style="text-align: center;"><strong>Interest Rate</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td><strong>${data.interest_rate.toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    })} %</strong></td>
+            <td></td>
+            <td style="text-align: center;"><strong>Interest Free Months</strong></td>
+            <td style="text-align: center;"><strong>:</strong></td>
+            <td><strong>${data.interest_free_month}</strong></td>
+        </tr>
+        <tr style="background-color: white">
+            <td></td>
+        </tr>
+    `;
+    getConnection((err, connection) => {
+        if (err) {
+            console.log(err);
+            res.send({
+                status: false
+            });
+        }
+        else {
+            var sql, sql_arr = [];
+            if (data.select_all == '1') {
+                sql_arr = [data.account_id_list, data.account_id_list, data.from_date, data.from_date, data.to_date, data.account_id_list];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Balance.sub_account_id AS sid,
+                        Account_Head.account_name AS aname,
+                        Sub_Account.sub_account_name AS sname,
+                        Account_Balance.birth_date AS bdate,
+                        IF(Account_Balance.op_crdr = "DR", Account_Balance.cr_amount - Account_Balance.op_balance - Account_Balance.dr_amount, Account_Balance.cr_amount + Account_Balance.op_balance - Account_Balance.dr_amount) AS op1
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Account_Balance.account_id = ?
+                    ORDER BY Account_Balance.sub_account_id ASC;
+                    SELECT
+                        Ledger.sub_account_id AS sid,
+                        IFNULL(
+                            (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
+                        ,0) AS op2
+                    FROM Ledger
+                        WHERE Ledger.account_id = ? AND Ledger.transaction_date < ?
+                        GROUP BY Ledger.sub_account_id
+                        ORDER BY Ledger.sub_account_id ASC;
+                    SELECT
+                        Ledger.sub_account_id AS sid,
+                        Ledger.transaction_date AS tc_date_r,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr
+                    FROM Ledger
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id = ?
+                        ORDER BY Ledger.sub_account_id ASC, Ledger.transaction_date ASC;
+                `;
+            }
+            else {
+                sql_arr = [data.account_id_list, data.sub_account_id_list, data.account_id_list, data.sub_account_id_list, data.from_date, data.from_date, data.to_date, data.account_id_list, data.sub_account_id_list];
+                sql = `
+                    SELECT
+                        Account_Balance.account_id AS aid,
+                        Account_Balance.sub_account_id AS sid,
+                        Account_Head.account_name AS aname,
+                        Sub_Account.sub_account_name AS sname,
+                        Account_Balance.birth_date AS bdate,
+                        IF(Account_Balance.op_crdr = "DR", Account_Balance.cr_amount - Account_Balance.op_balance - Account_Balance.dr_amount, Account_Balance.cr_amount + Account_Balance.op_balance - Account_Balance.dr_amount) AS op1
+                    FROM Account_Balance
+                        INNER JOIN Account_Head
+                            ON Account_Head.account_id = Account_Balance.account_id
+                        INNER JOIN Sub_Account
+                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
+                    WHERE Account_Balance.account_id = ? AND Account_Balance.sub_account_id IN (?)
+                    ORDER BY Account_Balance.sub_account_id ASC;
+                    SELECT
+                        Ledger.sub_account_id AS sid,
+                        IFNULL(
+                            (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
+                        ,0) AS op2
+                    FROM Ledger
+                        WHERE Ledger.account_id = ? AND Ledger.sub_account_id IN (?) AND Ledger.transaction_date < ?
+                        GROUP BY Ledger.sub_account_id
+                        ORDER BY Ledger.sub_account_id ASC;
+                    SELECT
+                        Ledger.sub_account_id AS sid,
+                        Ledger.transaction_date AS tc_date_r,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr
+                    FROM Ledger
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id = ? AND Ledger.sub_account_id IN (?)
+                        ORDER BY Ledger.sub_account_id ASC, Ledger.transaction_date ASC;
+                `;
+            }
+            connection.query(sql, sql_arr, (err, results) => {
+                connection.release();
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        status: false
+                    });
+                }
+                else {
+                    //console.log(results);
+
+                    var date = new Date();
+                    var dd = ('0' + date.getDate()).slice(-2);
+                    var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+                    var yyyy = date.getFullYear();
+                    var time = date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds();
+                    var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
+
+                    var datarows = [], summary = {};
+                    if (results.length <= 0) {
+                        datarows = [];
+                        summary = [];
+                        data_global_total = `
+                            <tr style="text-align: center;background-color: gray;">
+                                <td colspan="2"></td>
+                                <td><strong>0</strong></td>
+                                <td><strong>0</strong></td>
+                            </tr>
+                        `;
+                    }
+                    else {
+                        var i = 0, j = 0, itemMain, itemSub, op2 = 0.00, op = 0.00;
+                        var main = results[0];
+                        var main_op = results[1];
+                        var sub = results[2];
+                        var sub_title, s_cr = 0.00, s_dr = 0.00, s_cl_balance = 0.00, cr = 0.00, dr = 0.00, cl_balance = 0.00, payable = 0.00, data_extra, s_grand_total = 0.00;
+                        var total_interest = 0.00, interest = 0.00, s_interest = 0.00, diff_days, st_date, date1, date2;
+
+                        var data_entry, entry;
+
+                        var s_counter = 1, sentry;
+                        summary.summary_headers = summary_headers;
+                        summary.summary_len = summary_headers.length;
+                        summary.summary_data = [];
+
+                        var fr_date = beautifyDate(data.from_date);
+                        var to_date = beautifyDate(data.to_date);
+
+                        var st_date;
+
+                        for (itemMain of main) {
+
+                            data_entry = [];
+
+                            sub_title = itemMain.sid + " - " + itemMain.sname;
+                            st_date = new Date(itemMain.bdate);
+                            st_date.setMonth(st_date.getMonth() + parseInt(data.interest_free_month));
+                            data_extra = "INTEREST STARTING DATE : " + getFormatedDate(st_date);
+
+                            if (i < main_op.length && main_op[i].sid == itemMain.sid)
+                                op2 = main_op[i].op2;
+                            else
+                                op2 = 0.00;
+
+                            op = (parseFloat(itemMain.op1) + parseFloat(op2)) || 0.00;
+
+                            if (j < sub.length && sub[j].sid == itemMain.sid)
+                                date2 = new Date(sub[j].tc_date_r);
+                            else
+                                date2 = new Date(data.to_date);
+
+                            if (op >= 0) {
+                                diff_days = 0;
+                                interest = 0;
+                                if (op != 0)
+                                    op = op * -1;
+                                single_entry = {
+                                    date: fr_date,
+                                    narration: "Opening Balance",
+                                    cr: Math.abs(op).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: '',
+                                    cl: op.toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    fr: fr_date,
+                                    to: getFormatedDate(date2),
+                                    days: diff_days,
+                                    ia: interest.toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_cr += Math.abs(parseFloat(op));
+                                cl_balance -= Math.abs(parseFloat(op));
+                            }
+                            else {
+                                date1 = new Date(data.from_date);
+                                diff_days = calculateDays(date1, date2, st_date);
+                                interest = Math.round((Math.abs(op) * data.interest_rate * diff_days) / (365 * 100));
+                                single_entry = {
+                                    date: fr_date,
+                                    narration: "Opening Balance",
+                                    cr: '',
+                                    dr: Math.abs(op).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    cl: Math.abs(op).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    fr: fr_date,
+                                    to: getFormatedDate(date2),
+                                    days: diff_days,
+                                    ia: interest.toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                total_interest += parseFloat(interest);
+                                s_dr += Math.abs(parseFloat(op));
+                                cl_balance += Math.abs(parseFloat(op));
+                            }
+
+                            data_entry.push(single_entry);
+
+                            while (j < sub.length && sub[j].sid == itemMain.sid) {
+
+                                itemSub = sub[j];
+                                date1 = new Date(itemSub.tc_date_r);
+
+                                if (j != sub.length - 1 && sub[j + 1].sid == itemSub.sid)
+                                    date2 = new Date(sub[j + 1].tc_date_r);
+                                else
+                                    date2 = new Date(data.to_date);
+
+                                diff_days = calculateDays(date1, date2, st_date);
+
+                                cr = Math.abs(parseFloat(itemSub.cr)) || 0.00;
+                                dr = Math.abs(parseFloat(itemSub.dr)) || 0.00;
+
+                                if (dr > 0) {
+                                    cl_balance += dr;
+
+                                    if (cl_balance <= 0)
+                                        interest = 0.00;
+                                    else
+                                        interest = Math.round((Math.abs(cl_balance) * data.interest_rate * diff_days) / (365 * 100));
+
+                                    single_entry = {
+                                        date: itemSub.tc_date,
+                                        narration: itemSub.narration,
+                                        cr: '',
+                                        dr: dr.toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        cl: cl_balance.toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        fr: itemSub.tc_date,
+                                        to: getFormatedDate(date2),
+                                        days: diff_days,
+                                        ia: interest.toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    total_interest += interest;
+                                    s_dr += dr;
+                                }
+                                else {
+                                    cl_balance -= cr;
+                                    if (cl_balance <= 0)
+                                        interest = 0.00;
+                                    else
+                                        interest = Math.round((Math.abs(cl_balance) * data.interest_rate * diff_days) / (365 * 100));
+
+                                    single_entry = {
+                                        date: itemSub.tc_date,
+                                        narration: itemSub.narration,
+                                        cr: cr.toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: '',
+                                        cl: cl_balance.toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        fr: itemSub.tc_date,
+                                        to: getFormatedDate(date2),
+                                        days: diff_days,
+                                        ia: interest.toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    total_interest += interest;
+                                    s_cr += cr;
+                                }
+                                data_entry.push(single_entry);
+                                j++;
+
+                            }
+
+                            if (cl_balance >= 0) {
+                                single_entry = {
+                                    date: to_date,
+                                    narration: "Closing Balance",
+                                    cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " DR",
+                                    dr: '',
+                                    cl: '',
+                                    fr: '',
+                                    to: '',
+                                    days: '',
+                                    ia: ''
+                                };
+                                s_cr += cl_balance;
+                            }
+                            else {
+                                single_entry = {
+                                    date: to_date,
+                                    narration: "Closing Balance",
+                                    cr: '',
+                                    dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + " CR",
+                                    cl: '',
+                                    fr: '',
+                                    to: '',
+                                    days: '',
+                                    ia: ''
+                                };
+                                s_dr += Math.abs(cl_balance);
+                            }
+                            data_entry.push(single_entry);
+
+                            data_total = `
+                                <tr style="text-align: center;background-color: silver;">
+                                    <td colspan="2"></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td colspan="4"></td>
+                                    <td style="text-align: right;"><strong>${total_interest.toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                            `;
+                            entry = {
+                                data_title: sub_title,
+                                data: data_entry,
+                                data_total,
+                                data_extra
+                            };
+                            datarows.push(entry);
+
+                            payable = cl_balance + total_interest;
+
+                            // Summary entry
+                            sentry = {
+                                snum: s_counter,
+                                sid: itemMain.sid,
+                                sname: itemMain.sname,
+                                s_cl: cl_balance.toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                s_i: total_interest.toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                total: payable.toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                            };
+
+                            s_cl_balance += cl_balance;
+                            s_interest += total_interest;
+                            s_grand_total += payable;
+
+                            summary.summary_data.push(sentry);
+                            s_counter++;
+
+                            cl_balance = 0.00;
+                            s_cr = 0.00;
+                            s_dr = 0.00;
+                            total_interest = 0.00;
+
+                        }
+
+                        summary.summary_total = `
+                            <tr style="background-color: gray;">
+                                <td></td>
+                                <td colspan="2" style="text-align: center;"><strong>Total</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_cl_balance).toLocaleString("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_interest).toLocaleString("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}</strong></td>
+                                <td style="text-align: right;"><strong>${Math.abs(s_grand_total).toLocaleString("en-IN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
                         })}</strong></td>
                             </tr>
                         `;

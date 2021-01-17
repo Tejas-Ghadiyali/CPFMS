@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CPFMS</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/js/bootstrap-select.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.10.0/css/bootstrap-select.min.css"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="/css/master-index.css">
+
+    <script type="text/javascript" src="/js/masters/activity_master/activity_master.js"></script>
+    <script type="text/javascript" src="/js/master-index.js"></script>
+
+    <link rel="stylesheet" href="/css/navbar/navbar.css">
+
+    <script>
+
+        function submitform(pagenum) {
+            totalpages = parseInt("<%= totalpages %>")
+            if (pagenum > totalpages)
+                return false;
+            if (pagenum <= 0)
+                return false;
+            $("#paginationform #pageno").val(parseInt(pagenum));
+            $("#paginationform").submit();
+        }
+
+        $(document).ready(function () {
+
+            // Pagination Form Submit
+            $(".entries #entryid").change(function () {
+                $(".entries").submit();
+            });
+
+        });
+
+    </script>
+
+</head>
+
+<body>
+
+    <%- include('../../partials/navbar.ejs') %>
+        <main>
+            <div class="container">
+                <%- include('../../partials/err.ejs') %>
+                    <div class="table-wrapper">
+                        <div class="table-title">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <h2>Master - <b>Activity</b></h2>
+                                </div>
+                                <div class="col-sm-6" id="shortcut">
+                                    <a href="#addEmployeeModal" class="btn btn-success" data-toggle="modal"
+                                        id="addnew"><i class="material-icons">&#xE147;</i> <span><b>Add
+                                                New</b></span></a>
+                                    <% if(user_type==='ADMIN' ) { %>
+                                        <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal"
+                                            id="multipledelete"><i class="material-icons">&#xE15C;</i>
+                                            <span><b>Delete</b></span></a>
+                                        <% } %>
+                                            <a href="#searchEmployeeModal" class="btn btn-warning" data-toggle="modal"
+                                                id="search"><i class="material-icons">&#xe8b6;</i>
+                                                <span><b>Search</b></span></a>
+                                </div>
+                            </div>
+                        </div>
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <form action="/activity" class="entries">
+                                            <span>
+                                                <select id="entryid" name="entries_per_page">
+                                                    <% if(entries_per_page==25) { %>
+                                                        <option selected>25</option>
+                                                    <% } else { %>
+                                                        <option>25</option>
+                                                    <% } %>
+                                                    <% if(entries_per_page==50) { %>
+                                                        <option selected>50</option>
+                                                    <% } else { %>
+                                                        <option>50</option>
+                                                    <% } %>
+                                                    <% if(entries_per_page==100) { %>
+                                                        <option selected>100</option>
+                                                    <% } else { %>
+                                                        <option>100</option>
+                                                    <% } %>
+                                                </select>
+                                            </span>
+                                        </form>
+                                    </th>
+                                    <th>Activity No.</th>
+                                    <th>Activity ID</th>
+                                    <th>Activity Name</th>
+                                    <th>Activity Amount</th>
+                                    <th>Activity Field</th>
+                                    <th>Remark</th>
+                                    <th>Member Debit</th>
+                                    <th>Member Debit Amount</th>
+                                    <% if(user_type==='ADMIN' ) { %>
+                                        <th>Actions</th>
+                                    <% } %>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% for(var item of data) { %>
+                                    <tr id="<%= item.activity_num%>">
+                                        <td>
+                                            <% if(user_type==='ADMIN' ) { %>
+                                                <span class="custom-checkbox">
+                                                    <input type="checkbox" id="<%= item.activity_num %>">
+                                                    <label for="<%= item.activity_num %>"></label>
+                                                </span>
+                                                <% } %>
+                                        </td>
+                                        <td>
+                                            <%= item.activity_num %>
+                                        </td>
+                                        <td>
+                                            <%= item.activity_id %>
+                                        </td>
+                                        <td>
+                                            <%= item.activity_name %>
+                                        </td>
+                                        <td>
+                                            <%= parseFloat(item.activity_amount) .toLocaleString("en-IN", {
+                                                maximumFractionDigits: 2, minimumFractionDigits: 2 }) %>
+                                        </td>
+                                        <% if(item.activity_field in field_mapping) { %>
+                                            <td data-id="<%= item.activity_field %>"><%= field_mapping[item.activity_field] %></td>
+                                        <% } else { %>
+                                            <td data-id="<%= item.activity_field %>"><%= item.activity_field %></td>
+                                        <% } %>
+                                        <td style="white-space: pre-wrap;">
+                                            <%= item.remark %>
+                                        </td>
+                                        <td>
+                                            <% if(item.member_debit) { %>
+                                                Yes
+                                                <% } else{ %>
+                                                    No
+                                                    <% } %>
+                                        </td>
+                                        <td>
+                                            <% if(item.member_debit) { %>
+                                                <%= parseFloat(item.member_debit_amount) .toLocaleString("en-IN", {
+                                                    maximumFractionDigits: 2, minimumFractionDigits: 2 }) %>
+                                                    <% } else{ %>
+                                                        0.00
+                                                        <% } %>
+                                        </td>
+                                        <% if(user_type==='ADMIN' ) { %>
+                                            <td>
+                                                <a href="#editEmployeeModal" class="edit" data-toggle="modal"
+                                                    id="<%= item.activity_num %>"><i class="material-icons"
+                                                        data-toggle="tooltip" title="Edit">&#xE254;</i></a>
+                                                <a href="#deleteEmployeeModal" class="delete" data-toggle="modal"
+                                                    id="<%= item.activity_num %>"><i class="material-icons"
+                                                        data-toggle="tooltip" title="Delete">&#xE872;</i></a>
+                                            </td>
+                                        <% } %>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                        <div class="clearfix">
+                            <% var starting=(pagenum-1)*entries_per_page + 1 %>
+                                <% var ending=starting + data.length - 1 %>
+                                    <% if(totalentries>0) { %>
+                                        <div class="hint-text">Showing entries from <b>
+                                                <%= starting %>
+                                            </b> to <b>
+                                                <%= ending %>
+                                            </b> out of
+                                            <b>
+                                                <%= totalentries %>
+                                            </b> entries
+                                        </div>
+                                        <% } %>
+                                            <form action="/accounthead" id="paginationform" method="GET">
+                                                <ul class="pagination">
+                                                    <li class="page-item">
+                                                        <span class="a page-link">
+                                                            <% if(pagenum <=1) { %>
+                                                                <span class="a a-disabled" id="first">
+                                                                    <i class="material-icons">&#xe045;</i>
+                                                                </span>
+                                                                <span class="a a-disabled" id="previous">
+                                                                    <i
+                                                                        class="material-icons flip-to-left one-change">&#xe037;</i>
+                                                                </span>
+                                                                <% } else { %>
+                                                                    <span class="a" id="first" onclick="submitform(1)">
+                                                                        <i class="material-icons">&#xe045;</i>
+                                                                    </span>
+                                                                    <span class="a" id="previous"
+                                                                        onclick="submitform('<%= pagenum-1 %>')">
+                                                                        <i
+                                                                            class="material-icons flip-to-left one-change">&#xe037;</i>
+                                                                    </span>
+                                                                    <% } %>
+                                                                        <input type="number" name="pagenum" id="pageno"
+                                                                            value="<%= pagenum %>"
+                                                                            max="<%= totalpages %>" min="1"
+                                                                            style="text-align: center;">
+                                                                        <input type="hidden" name="entries_per_page"
+                                                                            value="<%= entries_per_page %>">
+                                                                        / <%= totalpages %>
+                                                                            <% if(pagenum>= totalpages) { %>
+                                                                                <span class="a a-disabled">
+                                                                                    <i class="material-icons one-change"
+                                                                                        id="next">&#xe037;</i>
+                                                                                </span>
+                                                                                <span class="a a-disabled" id="last">
+                                                                                    <i
+                                                                                        class="material-icons">&#xe044;</i>
+                                                                                </span>
+                                                                                <% } else { %>
+                                                                                    <span class="a" id="next"
+                                                                                        onclick="submitform('<%= pagenum+1 %>')">
+                                                                                        <i
+                                                                                            class="material-icons one-change">&#xe037;</i>
+                                                                                    </span>
+                                                                                    <span class="a" id="last"
+                                                                                        onclick="submitform('<%= totalpages %>')">
+                                                                                        <i
+                                                                                            class="material-icons">&#xe044;</i>
+                                                                                    </span>
+                                                                                    <% } %>
+                                                        </span>
+                                                    </li>
+                                            </form>
+                        </div>
+                    </div>
+            </div>
+        </main>
+        <!-- Search Modal HTML -->
+        <div id="searchEmployeeModal" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form action="/activity/search" class="form-horizontal" method="GET">
+                        <div class="modal-header">
+                            <h3 class="modal-title"><b><u>Search Activity Master</u></b></h3>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <input type="text" style="width: 100%;" name="searchtext" id="search-text" placeholder="Search Text...">
+                            </div>
+                            <div class="form-group">
+                                <h4><b><i>Search For :</i></b></h4>
+                                <div>
+                                    <span class="custom-checkbox">
+                                        <input type="checkbox" id="activity_id" name="activity_id" value="activity_id"
+                                            checked>
+                                        <label for="activity_id">Activity ID</label>
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="custom-checkbox">
+                                        <input type="checkbox" id="activity_name" name="activity_name"
+                                            value="activity_name">
+                                        <label for="activity_name">Activity Name</label>
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="custom-checkbox">
+                                        <input type="checkbox" id="remark" name="remark" value="remark">
+                                        <label for="remark">Remark</label>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label><i>Activity Field</i></label>
+                                <select class="form-control selectpicker" id="select-account_type_search"
+                                    data-live-search="true" name="activity_field">
+                                    <option data-tokens="All" value="false" selected>All</option>
+                                    <% for(var key in field_mapping) { %>
+                                        <option value="<%= key %>">
+                                            <%= field_mapping[key] %>
+                                        </option>
+                                        <% } %>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i><b>Activity Amount</b></i></label>
+                                <input type="number" min="0" step="0.01" class="form-control" placeholder="Activity Amount" name="activity_amount">
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <h4 style="text-align: left; padding: 0px !important;"><b><i>Member Debit? :</i></b>
+                                    </h4>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="radio">
+                                        <label class="radio-inline"><input type="radio" name="member_debit"
+                                                value="false" checked>Both</label>
+                                        <label class="radio-inline"><input type="radio" name="member_debit"
+                                                value="1">Yes</label>
+                                        <label class="radio-inline"><input type="radio" name="member_debit"
+                                                value="0">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label><i><b>Member Debit Amount</b></i></label>
+                                <input type="number" min="0" step="0.01" class="form-control" placeholder="Member Debit Amount" name="member_debit_amount">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+                            <input type="submit" class="btn btn-warning" value="Search">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Add Modal HTML -->
+        <div id="addEmployeeModal" class="modal fade">
+            <form action="/activity" class="form-horizontal" method="POST">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title"><b><u>Add Activity</u></b></h3>
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label><i>Activity Num</i></label>
+                                <input type="number" class="form-control" name="activity_num" maxlength="10"
+                                    value="<%= activity_num %>" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label><i>Activity ID</i></label>
+                                <input type="text" class="form-control" name="activity_id"
+                                    placeholder="Enter Activity ID" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i>Activity Name</i></label>
+                                <input type="text" class="form-control" name="activity_name"
+                                    placeholder="Enter Activity Name" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i>Activity Amount</i></label>
+                                <input type="number" step="0.01" min="0.00" class="form-control" name="activity_amount"
+                                    placeholder="0.00" required>
+                            </div>
+                            <div class="form-group">
+                                <label><i>Activity Field</i></label>
+                                <select class="form-control selectpicker" data-live-search="true" name="activity_field">
+                                    <% for(var key in field_mapping) { %>
+                                        <option value="<%= key %>">
+                                            <%= field_mapping[key] %>
+                                        </option>
+                                        <% } %>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i>Remark</i></label>
+                                <textarea name="remark" cols="30" rows="3" class="form-control"
+                                    placeholder="Enter Remark"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label><i>Member Debit ?</i></label>
+                                <div class="radio">
+                                    <label class="radio-inline"><input type="radio" name="member_debit" value="1"
+                                            checked>Yes</label>
+                                    <label class="radio-inline"><input type="radio" name="member_debit"
+                                            value="0">No</label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label><i>Member Debit Amount</i></label>
+                                <input type="number" step="0.01" min="0.00" class="form-control"
+                                    name="member_debit_amount" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+                        <input type="submit" class="btn btn-success" value="Add">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <% if(user_type==='ADMIN' ) { %>
+            <!-- Edit Modal HTML -->
+            <div id="editEmployeeModal" class="modal fade">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="/activity/edit" method="POST">
+                            <div class="modal-header">
+                                <h3 class="modal-title"><b><u>Edit Account Head</u></b></h3>
+                                <button type="button" class="close" data-dismiss="modal"
+                                    aria-hidden="true">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label><i>Activity Num</i></label>
+                                    <input type="number" class="form-control" name="activity_num" maxlength="10"
+                                        readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label><i>Activity ID</i></label>
+                                    <input type="text" class="form-control" name="activity_id"
+                                        placeholder="Enter Activity ID" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i>Activity Name</i></label>
+                                    <input type="text" class="form-control" name="activity_name"
+                                        placeholder="Enter Activity Name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i>Activity Amount</i></label>
+                                    <input type="number" step="0.01" min="0.00" class="form-control"
+                                        name="activity_amount" placeholder="0.00" required>
+                                </div>
+                                <div class="form-group">
+                                    <label><i>Activity Field</i></label>
+                                    <select class="form-control selectpicker" data-live-search="true" name="activity_field">
+                                        <% for(var key in field_mapping) { %>
+                                            <option value="<%= key %>">
+                                                <%= field_mapping[key] %>
+                                            </option>
+                                            <% } %>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label><i>Remark</i></label>
+                                    <textarea name="remark" cols="30" rows="3" class="form-control"
+                                        placeholder="Enter Remark"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label><i>Member Debit ?</i></label>
+                                    <div class="radio">
+                                        <label class="radio-inline"><input type="radio" name="member_debit" value="1"
+                                                checked>Yes</label>
+                                        <label class="radio-inline"><input type="radio" name="member_debit"
+                                                value="0">No</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label><i>Member Debit Amount</i></label>
+                                    <input type="number" step="0.01" min="0.00" class="form-control"
+                                        name="member_debit_amount" placeholder="0.00">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+                                <input type="submit" class="btn btn-info" value="Save">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Delete Modal HTML -->
+            <div id="deleteEmployeeModal" class="modal fade">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="/activity/delete" method="POST">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Delete Activity Master</h4>
+                                <button type="button" class="close" data-dismiss="modal"
+                                    aria-hidden="true">&times;</button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Are you sure ...?<br>Do want to delete these Records ?</p>
+                                <p class="text-warning"><small>This action cannot be undone.</small></p>
+                            </div>
+                            <div class="modal-footer">
+                                <div id="hidden-input"></div>
+                                <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel"
+                                    id="cancel">
+                                <input type="submit" class="btn btn-danger" value="Delete">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+</body>
+
+</html>

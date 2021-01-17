@@ -3,7 +3,7 @@ body {
     /*background      : #f8f8f8;*/
     /*background      : #ADD8E6;*/
     /*background-image: url('/images/body/background.jpg');*/
-    background-image  : url('/images/body/bg2.jpg');
+    background-image  : url('/images/body/bg5.jpg');
     font-family       : Arial, Helvetica, sans-serif;
     font-size         : 18px;
     margin-top        : 70px;
@@ -375,13 +375,14 @@ table.table .avatar {
 }
 
 .dropdown-menu {
-    background-color: #DBFFFB
+    background-color: #DBFFFB;
 }
 
 .dropdown-menu>li>a:hover,
 .dropdown-menu>li>a:focus {
     background-color: #05178A
 }
+
 
 .navbar-inverse {
     background-image: none;
@@ -455,7 +456,34 @@ table.table .avatar {
 }
 
 .fs-18 {
-    font-size: 18px;
+    font-family  : Arial, Helvetica, sans-serif !important;
+    font-size    : 18px !important;
+    display: block;
+    padding: 3px 20px;
+    clear: both;
+    font-weight: 400;
+    line-height: 1.42857143;
+    white-space: nowrap;
+}
+
+.dropdown-submenu {
+    padding-top   : 5px;
+    padding-bottom: 5px;
+}
+
+.dropdown-submenu:hover,
+.dropdown-submenu:focus {
+    background-color: #05178A !important;
+}
+
+.dropdown-submenu>li:hover,
+.dropdown-submenu>li:focus {
+    background-color: #05178A !important;
+}
+
+.dropdown-submenu>li>a:hover,
+.dropdown-submenu>li>a:focus {
+    background-color: #05178A !important;
 }
 
 .caret-right {
@@ -470,7 +498,10 @@ table.table .avatar {
     display : none;
 }
 
-.right-align {}
+.right-align {
+    text-align: right;
+}
+
 
 /*
 .dropdown ul li {
@@ -526,3 +557,92 @@ hr {
         transform: rotate(360deg);
     }
 }
+
+.fs-small {
+    display: inline-block !important;
+}
+
+/* Navbar CSS */
+
+/*
+nav .logo {
+    color       : white;
+    font-size   : 33px;
+    font-weight : bold;
+    line-height : 70px;
+    padding-left: 100px;
+}
+
+nav {
+    height    : 60px;
+    background: #063247;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, .4);
+}
+
+nav ul {
+    list-style-type: none;
+    float          : right;
+    margin-right   : 30px;
+}
+
+nav ul li {
+    display: inline-block;
+}
+
+nav ul li a {
+    color      : white;
+    display    : block;
+    padding    : 0 15px;
+    line-height: 60px;
+    font-size  : 20px;
+    background : #063247;
+    transition : .5s;
+}
+
+nav ul li a:hover,
+nav ul li a.active {
+    color: #23dbdb;
+}
+
+nav ul ul {
+    position  : absolute;
+    top       : 75px;
+    border-top: 3px solid #23dbdb;
+    opacity   : 0;
+    visibility: hidden;
+}
+
+nav ul li:hover>ul {
+    top       : 60px;
+    opacity   : 1;
+    visibility: visible;
+    transition: .3s linear;
+}
+
+nav ul ul li {
+    width     : 150px;
+    display   : list-item;
+    position  : relative;
+    border    : 1px solid #042331;
+    border-top: none;
+}
+
+nav ul ul li a {
+    line-height: 50px;
+}
+
+nav ul ul ul {
+    border-top: none;
+}
+
+nav ul ul ul li {
+    position: relative;
+    top     : -70px;
+    left    : 150px;
+}
+
+nav ul ul li a i {
+    margin-left: 45px;
+}
+*/
+/* Navbar CSS */
