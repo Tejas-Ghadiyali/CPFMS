@@ -30,7 +30,7 @@
     <main>
         <div class="container" style="background-color: #DBFFFB; width: 98%">
             <%- include('../../partials/err.ejs') %>
-            <h2 class="heading-text">Journal Voucher</h2>
+            <h2 class="heading-text">Activity JV</h2>
             <form class="form-horizontal" id="main-form" action="/jv" method="POST">
                 <div class="row">
                     <div class="table-responsive">
@@ -43,18 +43,57 @@
                                         <input type="number" name="document_number" class="input-disabled"
                                             value="<%= document_number %>" readonly>
                                     </td>
-                                </tr>
-                                <tr>
+                                    <td></td>
                                     <td class="label-text">JV Number</td>
                                     <td><b>:</b></td>
                                     <td id="table_jv_number">
-                                        <input type="text" name="jv_number" value="<%= document_number %>" required>
+                                        <input type="number" name="jv_number" class="input-disabled" value="" readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">Activity JV Date</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_activity_jv_date">
+                                        <input type="date" name="activity_jv_date" value="<%= today_date %>">
                                     </td>
                                     <td></td>
-                                    <td class="label-text">JV Date</td>
+                                    <td class="label-text">Activity Date</td>
                                     <td><b>:</b></td>
-                                    <td id="table_jv_date">
-                                        <input type="date" name="jv_date" value="<%= today_date %>">
+                                    <td id="table_activity_date">
+                                        <input type="date" name="activity_date" class="input-disabled" readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">Society ID</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_account_id" colspan="5">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="account_id" id="account_id_select" required>
+                                            <% for(item of account_head){ %>
+                                                <option><%= item.account_id %></option>
+                                            <% } %>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">Member ID</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_sub_account_id" colspan="5">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="sub_account_id" id="sub_account_id_select" required>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-text">Activity</td>
+                                    <td><b>:</b></td>
+                                    <td id="table_activity_id" colspan="5">
+                                        <select class="form-control selectpicker" data-live-search="true" data-size="5"
+                                            name="activity_id" id="activity_id_select" required>
+                                            <% for(item of activity_id){ %>
+                                                <option><%= item.activity_id %></option>
+                                            <% } %>
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>

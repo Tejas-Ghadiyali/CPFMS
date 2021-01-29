@@ -101,6 +101,7 @@ app.use('/api/reportmaster', require('./controllers/api/report-api/report_master
 app.use('/receipt', require('./controllers/transactions/receipt'));
 app.use('/payment', require('./controllers/transactions/payment'));
 app.use('/jv', require('./controllers/transactions/jv'));
+app.use('/activity-jv', require('./controllers/transactions/activity_jv'));
 
 // Reports Routes
 app.use('/report', require('./controllers/reports/report_master'));

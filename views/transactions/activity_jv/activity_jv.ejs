@@ -219,7 +219,7 @@
             var documennum = data_local[index].document_number;
             var url = window.location.href;
             var arr = url.split("/");
-            var req_url = arr[0] + "//" + arr[2] + "/jv/edit/" + documennum;
+            var req_url = arr[0] + "//" + arr[2] + "/activity-jv/edit/" + documennum;
             window.location.href = req_url;
         }
 
@@ -244,10 +244,10 @@
                         <div class="table-title">
                             <div class="row">
                                 <div class="col-sm-6">
-                                    <h2><b>Journal Voucher</b></h2>
+                                    <h2><b>Activity JV</b></h2>
                                 </div>
                                 <div class="col-sm-6" id="shortcut">
-                                    <a href="/jv/add" class="btn btn-success" id="addnew"><i
+                                    <a href="/activity-jv/add" class="btn btn-success" id="addnew"><i
                                             class="material-icons">&#xE147;</i> <span><b>Add New</b></span></a>
                                     <% if(user_type==='ADMIN' ) { %>
                                         <a href="#deleteEmployeeModal" class="btn btn-danger" data-toggle="modal"
@@ -264,32 +264,35 @@
                             <thead>
                                 <tr>
                                     <th>
-                                        <form action="/jv" class="entries">
+                                        <form action="/activity-jv" class="entries">
                                             <span>
                                                 <select id="entryid" name="entries_per_page">
                                                     <% if(entries_per_page==25) { %>
                                                         <option selected>25</option>
-                                                        <% } else { %>
-                                                            <option>25</option>
-                                                            <% } %>
-                                                                <% if(entries_per_page==50) { %>
-                                                                    <option selected>50</option>
-                                                                    <% } else { %>
-                                                                        <option>50</option>
-                                                                        <% } %>
-                                                                            <% if(entries_per_page==100) { %>
-                                                                                <option selected>100</option>
-                                                                                <% } else { %>
-                                                                                    <option>100</option>
-                                                                                    <% } %>
+                                                    <% } else { %>
+                                                        <option>25</option>
+                                                    <% } %>
+                                                    <% if(entries_per_page==50) { %>
+                                                        <option selected>50</option>
+                                                    <% } else { %>
+                                                        <option>50</option>
+                                                    <% } %>
+                                                    <% if(entries_per_page==100) { %>
+                                                        <option selected>100</option>
+                                                    <% } else { %>
+                                                        <option>100</option>
+                                                    <% } %>
                                                 </select>
                                             </span>
                                         </form>
                                     </th>
                                     <th>Document Number</th>
-                                    <th>JV Number</th>
-                                    <th>JV Date</th>
-                                    <th>JV Amount</th>
+                                    <th>Activity ID</th>
+                                    <th>Activity JV Date</th>
+                                    <th>Society ID</th>
+                                    <th>Member ID</th>
+                                    <th>Resource Person ID</th>
+                                    <th>Total Amount</th>
                                     <th style="width: 140px !important;">Actions</th>
                                 </tr>
                             </thead>
@@ -308,13 +311,25 @@
                                             <%= item.document_number %>
                                         </td>
                                         <td>
-                                            <%= item.jv_number %>
+                                            <%= item.activity_id %>
                                         </td>
                                         <td>
-                                            <%= item.jv_nice_date %>
+                                            <%= item.activity_jv_nice_date %>
                                         </td>
                                         <td>
-                                            <%= parseFloat(item.amount).toLocaleString('en-IN') %>
+                                            <%= item.account_id %>
+                                        </td>
+                                        <td>
+                                            <%= item.sub_account_id %>
+                                        </td>
+                                        <td>
+                                            <%= item.resource_person_id %>
+                                        </td>
+                                        <td>
+                                            <%= parseFloat(item.amount).toLocaleString("en-IN", {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }) %>
                                         </td>
                                         <td>
                                             <a href="#viewEmployeeModal" class="view" data-toggle="modal""><i class="
@@ -333,7 +348,7 @@
                                                 <% } %>
                                         </td>
                                     </tr>
-                                    <% }) %>
+                                <% }) %>
                             </tbody>
                         </table>
                         <div class="clearfix">
@@ -350,7 +365,7 @@
                                             </b> entries
                                         </div>
                                         <% } %>
-                                            <form action="/jv" id="paginationform" method="GET">
+                                            <form action="/activity-jv" id="paginationform" method="GET">
                                                 <ul class="pagination">
                                                     <li class="page-item">
                                                         <span class="a page-link">
@@ -411,7 +426,7 @@
         <div id="searchEmployeeModal" class="modal fade">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <form action="/jv/search" class="form-horizontal" method="GET">
+                    <form action="/activity-jv/search" class="form-horizontal" method="GET">
                         <div class="modal-header">
                             <h3 class="modal-title"><b><u>Search Journal Voucher</u></b></h3>
                             <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -513,7 +528,7 @@
             <div id="deleteEmployeeModal" class="modal fade">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <form action="/jv/delete" method="POST">
+                        <form action="/activity-jv/delete" method="POST">
                             <div class="modal-header">
                                 <h4 class="modal-title">Delete Member</h4>
                                 <button type="button" class="close" data-dismiss="modal"
@@ -533,7 +548,7 @@
                     </div>
                 </div>
             </div>
-            <% } %>
+        <% } %>
 </body>
 
 </html>

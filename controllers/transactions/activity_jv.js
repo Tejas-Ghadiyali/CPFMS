@@ -3,6 +3,16 @@ const router = express.Router();
 const getConnection = require("../../connection");
 const middleware = require("../auth/auth_middleware");
 
+const field_mapping = {
+    "join_date": "Join Date",
+    "birth_date": "Birth Date",
+    "heifer_date": "Heifer Date",
+    "calwing_date": "Calwing Date",
+    "issue_date": "Issue Date",
+    "cancel_date": "Cancel Date",
+    "death_date": "Death Date"
+}
+
 router.get("/", middleware.loggedin_as_superuser, (req, res) => {
     var entries_per_page, pagenum, totalentries, totalpages;
     if (!req.query.entries_per_page)
@@ -20,9 +30,9 @@ router.get("/", middleware.loggedin_as_superuser, (req, res) => {
             console.log(err);
             req.flash(
                 "danger",
-                "Error while getting data from JV!"
+                "Error while getting data from Activity JV!"
             );
-            res.render("transactions/jv/jv", {
+            res.render("transactions/activity_jv/activity_jv", {
                 data: [],
                 totalpages: 0,
                 pagenum: 0,
@@ -33,13 +43,13 @@ router.get("/", middleware.loggedin_as_superuser, (req, res) => {
             });
         }
         else {
-            var sql1 = "SELECT COUNT(*) as ahcount FROM `JV`";
+            var sql1 = "SELECT COUNT(*) as ahcount FROM `Activity_JV`";
             connection.query(sql1, (err, results) => {
                 if (err) {
                     connection.release();
-                    req.flash("danger", "Error while getting count of JV!");
+                    req.flash("danger", "Error while getting count of Activity JV!");
                     console.log(err);
-                    res.render("transactions/jv/jv", {
+                    res.render("transactions/activity_jv/activity_jv", {
                         data: [],
                         totalpages: 0,
                         pagenum: 0,
@@ -58,10 +68,10 @@ router.get("/", middleware.loggedin_as_superuser, (req, res) => {
                     }
                     var sql2 = `
                         SELECT
-                            JV.*,
-                            DATE_FORMAT(JV.jv_date,'%d/%m/%Y') AS jv_nice_date
-                        FROM JV
-                        ORDER BY JV.document_number DESC
+                            Activity_JV.*,
+                            DATE_FORMAT(Activity_JV.activity_jv_date,'%d/%m/%Y') AS activity_jv_nice_date
+                        FROM Activity_JV
+                        ORDER BY Activity_JV.document_number DESC
                         LIMIT ? , ?;
                     `;
                     var offset = (pagenum - 1) * entries_per_page;
@@ -72,10 +82,10 @@ router.get("/", middleware.loggedin_as_superuser, (req, res) => {
                         if (err) {
                             req.flash(
                                 "danger",
-                                "Error while getting data from JV!"
+                                "Error while getting data from Activity JV!"
                             );
                             console.log(err);
-                            res.render("transactions/jv/jv", {
+                            res.render("transactions/activity_jv/activity_jv", {
                                 data: [],
                                 totalpages: 0,
                                 pagenum: 0,
@@ -86,7 +96,7 @@ router.get("/", middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            res.render("transactions/jv/jv", {
+                            res.render("transactions/activity_jv/activity_jv", {
                                 data: results,
                                 totalpages,
                                 pagenum,
@@ -219,7 +229,7 @@ router.get("/add", middleware.loggedin_as_superuser, (req, res) => {
         if (err) {
             console.log(err);
             req.flash("danger", "Error while adding new entry!");
-            res.redirect("/jv");
+            res.redirect("/activity-jv");
         } else {
             var sql = `
                 SELECT account_id FROM Account_Head;
@@ -230,22 +240,19 @@ router.get("/add", middleware.loggedin_as_superuser, (req, res) => {
                 if (err) {
                     console.log(err);
                     req.flash("danger", "Error while adding new entry!");
-                    res.redirect("/jv");
+                    res.redirect("/activity-jv");
                 } else {
                     var d = new Date();
                     var dd = ('0' + d.getDate()).slice(-2);
                     var mm = ('0' + (d.getMonth() + 1)).slice(-2);
                     var yyyy = d.getFullYear();
                     var date = yyyy + "-" + mm + "-" + dd;
-                    var account_head_list = [];
-                    for (item of results[0]) {
-                        account_head_list.push(item.account_id);
-                    }
-                    res.render("transactions/jv/addform", {
-                        account_head: results[0],
-                        document_number: results[1][0].maxcount + 1,
+                    res.render("transactions/activity_jv/addform", {
+                        account_head: [],
+                        activity_id: [],
+                        document_number: '2',
                         today_date: date,
-                        account_head_list
+                        account_head_list: []
                     });
                 }
             });
