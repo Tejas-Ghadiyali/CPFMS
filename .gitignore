@@ -107,3 +107,13 @@ dist
 master-generator.py
 
 data_import.sql
+
+csv_data_import*
+
+web.config
+
+sql_installer.js
+
+sql_uninstaller.js
+
+LICENSE
