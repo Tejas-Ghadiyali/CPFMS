@@ -2908,6 +2908,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
             }
             connection.query(sql, sql_arr, (err, results) => {
                 connection.release();
+                console.log("Query Completed!");
                 if (err) {
                     console.log(err);
                     res.send({
@@ -2976,6 +2977,9 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             main_op2 = results[1];
                             ledger = results[2];
                         }
+                        console.log("MAIN OP1 SIZE : ",main_op1.length);
+                        console.log("MAIN OP2 SIZE : ",main_op2.length);
+                        console.log("LEDGER SIZE : ",ledger.length);
                         last_aid = main_op1[0].aid;
                         for (i = 0; i < main_op1.length; i++) {
                             item_op1 = main_op1[i];
