@@ -1,5 +1,5 @@
-const { localsName } = require('ejs');
 const express = require('express');
+const passport = require('passport');
 const router = express.Router();
 const getConnection = require('../../../connection');
 const middleware = require('../../auth/auth_middleware');
@@ -2823,43 +2823,23 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
         else {
             var sql, sql_arr = [];
             if (data.select_all == '1') {
-                sql_arr = [data.from_date, data.from_date, data.to_date, data.from_date, data.to_date];
+                sql_arr = [data.from_date, data.from_date, data.to_date];
                 sql = `
                     SELECT
+                        Account_Head.account_id AS aid
+                    FROM Account_Head
+                    WHERE Account_Head.is_society = 0;
+                    SELECT
                         Account_Balance.account_id AS aid,
-                        Account_Head.account_name AS aname,
                         Account_Balance.sub_account_id AS sid,
+                        Account_Head.account_name AS aname,
                         Sub_Account.sub_account_name AS sname,
-                        (
-                            CASE
-                                WHEN Account_Balance.op_crdr = "DR" THEN (-1)*Account_Balance.op_balance
-                                ELSE Account_Balance.op_balance
-                            END
-                        ) AS op1,
                         IFNULL(
-                            (
-                                SELECT
-                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
-                                FROM Ledger
-                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date < ?
+                            IF(
+                                Account_Balance.op_crdr = "DR", 
+                                Account_Balance.cr_amount - Account_Balance.op_balance - Account_Balance.dr_amount, Account_Balance.cr_amount + Account_Balance.op_balance - Account_Balance.dr_amount
                             )
-                        ,0) AS op2,
-                        IFNULL(
-                            (
-                                SELECT
-                                    SUM(Ledger.cr_amount)
-                                FROM Ledger
-                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
-                            )
-                        ,0) AS cr,
-                        IFNULL(
-                            (
-                                SELECT
-                                    SUM(Ledger.dr_amount)
-                                FROM Ledger
-                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
-                            )
-                        ,0) AS dr
+                        ,0) AS op1
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
@@ -2867,53 +2847,63 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
                     WHERE Account_Head.is_society = 1
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                    SELECT
+                        Ledger.account_id AS aid,
+                        Ledger.sub_account_id AS sid,
+                        (IFNULL(SUM(Ledger.cr_amount),0) - IFNULL(SUM(Ledger.dr_amount),0)) AS op2
+                    FROM Ledger
+                        WHERE Ledger.transaction_date < ?
+                        GROUP BY Ledger.account_id,Ledger.sub_account_id
+                        ORDER BY Ledger.account_id ASC,Ledger.sub_account_id ASC;
+                    SELECT
+                        Ledger.account_id AS aid,
+                        Ledger.sub_account_id AS sid,
+                        IFNULL(SUM(Ledger.cr_amount),0) AS cr,
+                        IFNULL(SUM(Ledger.dr_amount),0) AS dr
+                    FROM Ledger
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ?
+                        GROUP BY Ledger.account_id, Ledger.sub_account_id
+                        ORDER BY Ledger.account_id ASC, Ledger.sub_account_id ASC;
                 `;
             }
             else {
-                sql_arr = [data.from_date, data.from_date, data.to_date, data.from_date, data.to_date, data.account_id_list];
+                sql_arr = [data.account_id_list, data.from_date, data.account_id_list, data.from_date, data.to_date, data.account_id_list];
                 sql = `
                     SELECT
                         Account_Balance.account_id AS aid,
-                        Account_Head.account_name AS aname,
                         Account_Balance.sub_account_id AS sid,
+                        Account_Head.account_name AS aname,
                         Sub_Account.sub_account_name AS sname,
-                        (
-                            CASE
-                                WHEN Account_Balance.op_crdr = "DR" THEN (-1)*Account_Balance.op_balance
-                                ELSE Account_Balance.op_balance
-                            END
-                        ) AS op1,
                         IFNULL(
-                            (
-                                SELECT
-                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
-                                FROM Ledger
-                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date < ?
+                            IF(
+                                Account_Balance.op_crdr = "DR", 
+                                Account_Balance.cr_amount - Account_Balance.op_balance - Account_Balance.dr_amount, Account_Balance.cr_amount + Account_Balance.op_balance - Account_Balance.dr_amount
                             )
-                        ,0) AS op2,
-                        IFNULL(
-                            (
-                                SELECT
-                                    SUM(Ledger.cr_amount)
-                                FROM Ledger
-                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
-                            )
-                        ,0) AS cr,
-                        IFNULL(
-                            (
-                                SELECT
-                                    SUM(Ledger.dr_amount)
-                                FROM Ledger
-                                WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
-                            )
-                        ,0) AS dr
+                        ,0) AS op1
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
                         INNER JOIN Sub_Account
                             ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
-                    WHERE Account_Balance.account_id IN (?) AND Account_Head.is_society = 1
+                    WHERE Account_Head.is_society = 1 AND Account_Head.account_id IN (?)
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                    SELECT
+                        Ledger.account_id AS aid,
+                        Ledger.sub_account_id AS sid,
+                        (IFNULL(SUM(Ledger.cr_amount),0) - IFNULL(SUM(Ledger.dr_amount),0)) AS op2
+                    FROM Ledger
+                        WHERE Ledger.transaction_date < ? AND Ledger.account_id IN (?)
+                        GROUP BY Ledger.account_id,Ledger.sub_account_id
+                        ORDER BY Ledger.account_id ASC,Ledger.sub_account_id ASC;
+                    SELECT
+                        Ledger.account_id AS aid,
+                        Ledger.sub_account_id AS sid,
+                        IFNULL(SUM(Ledger.cr_amount),0) AS cr,
+                        IFNULL(SUM(Ledger.dr_amount),0) AS dr
+                    FROM Ledger
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id IN (?)
+                        GROUP BY Ledger.account_id, Ledger.sub_account_id
+                        ORDER BY Ledger.account_id ASC, Ledger.sub_account_id ASC;
                 `;
             }
             connection.query(sql, sql_arr, (err, results) => {
@@ -2925,8 +2915,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                     });
                 }
                 else {
-                    //console.log(results);
-
+                    // console.log(results);
                     var date = new Date();
                     var dd = ('0' + date.getDate()).slice(-2);
                     var mm = ('0' + (date.getMonth() + 1)).slice(-2);
@@ -2935,7 +2924,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
                     var datarows = [], summary = {}, data_global_total;
-                    if (results.length <= 0) {
+                    if (results[0].length <= 0) {
                         datarows = [];
                         summary = [];
                         data_global_total = `
@@ -2949,20 +2938,49 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_op = 0.00, s_cr = 0.00, s_dr = 0.00, s_cl = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_op_global = 0.00, s_cr_global = 0.00, s_dr_global = 0.00, s_cl_global = 0.00, op_string, cl_string, last_aid, last_aname;
+                        var i = 0, j = 0, k = 0;
+                        var item_op1, item_op2, item_ledger;
+                        var main_op1 = [], main_op2 = [], ledger = [];
+
+                        var data_entry = [], single_entry, sub_title, entry, s_op = 0.00, s_cr = 0.00, s_dr = 0.00, s_cl = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_op_global = 0.00, s_cr_global = 0.00, s_dr_global = 0.00, s_cl_global = 0.00, op_string, cl_string, last_aid, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
                         summary.summary_len = summary_headers.length;
                         summary.summary_data = [];
 
-                        last_aid = curr_id;
-                        last_aname = results[0].aname;
-
-                        // DataRows Generation
-                        for (item of results) {
-                            new_id = item.aid;
-                            if (curr_id != new_id) {
+                        if (data.select_all == '1') {
+                            var acc_list = results[0];
+                            var non_sos = [];
+                            var l;
+                            for (l = 0; l < acc_list.length; l++)
+                                non_sos.push(acc_list[l].aid);
+                            main_op1 = results[1];
+                            var main_op2_pre = results[2];
+                            var ledger_pre = results[3];
+                            for (j = 0; j < main_op2_pre.length; j++) {
+                                item_op2 = main_op2_pre[j];
+                                if (!non_sos.includes(item_op2.aid))
+                                    main_op2.push(item_op2);
+                            }
+                            for (k = 0; k < ledger_pre.length; k++) {
+                                item_ledger = ledger_pre[k];
+                                if (!non_sos.includes(item_ledger.aid))
+                                    ledger.push(item_ledger);
+                            }
+                            j = 0;
+                            k = 0;
+                        }
+                        else {
+                            main_op1 = results[0];
+                            main_op2 = results[1];
+                            ledger = results[2];
+                        }
+                        last_aid = main_op1[0].aid;
+                        for (i = 0; i < main_op1.length; i++) {
+                            item_op1 = main_op1[i];
+                            if (last_aid != item_op1.aid && data_entry.length > 0) {
+                                sub_title = last_aid + " - " + last_aname;
                                 if (s_op >= 0) {
                                     op_string = Math.abs(s_op).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
@@ -3031,25 +3049,150 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 s_cr_global += parseFloat(s_cr);
                                 s_dr_global += parseFloat(s_dr);
                                 s_cl_global += parseFloat(s_cl);
-                                if (data_entry.length > 0) {
-                                    entry = {
-                                        data_title: sub_title,
-                                        data: data_entry,
-                                        data_total
-                                    };
-                                    datarows.push(entry);
-                                }
-                                sub_title = item.aid + " - " + item.aname;
-                                curr_id = new_id;
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry,
+                                    data_total
+                                };
+                                datarows.push(entry);
                                 s_op = 0.00;
                                 s_cr = 0.00;
                                 s_dr = 0.00;
                                 s_cl = 0.00;
                                 data_entry = [];
                             }
-                            op = (parseFloat(item.op1) + parseFloat(item.op2)) || 0.00;
-                            cr = parseFloat(item.cr) || 0.00;
-                            dr = parseFloat(item.dr) || 0.00;
+                            if (k < ledger.length) {
+                                item_ledger = ledger[k];
+                                if (item_ledger.sid == item_op1.sid && item_ledger.aid == item_op1.aid) {
+                                    // console.log("Match Found! -> ", k);
+                                    cr = parseFloat(item_ledger.cr);
+                                    dr = parseFloat(item_ledger.dr);
+                                    k++;
+                                }
+                                else if (item_op1.aid < item_ledger.aid) {
+                                    // console.log("OP1.aid < Ledger.aid : ", item_op1.aid, " < ", item_ledger.aid);
+                                    cr = 0.00;
+                                    dr = 0.00;
+                                }
+                                else {
+                                    // console.log("OP1.aid > Ledger.aid : ", item_op1.aid, " > ", item_ledger.aid);
+                                    var prev_k = k;
+                                    while (k < ledger.length && item_op1.aid > ledger[k].aid) {
+                                        // console.log(item_op1.aid, " - ", ledger[k].aid);
+                                        k++;
+                                    }
+                                    if (k >= ledger.length) {
+                                        // console.log("OUTER CHECK LOOP FINISHED!");
+                                        k = prev_k;
+                                        cr = 0.00;
+                                        dr = 0.00;
+                                    }
+                                    else {
+                                        // console.log("OUTER CHECK LOOP NOT FINISHED!");
+                                        item_ledger = ledger[k];
+                                        if (item_ledger.aid == item_op1.aid) {
+                                            // console.log("AID matched ! ",item_ledger.aid," - ",item_op1.aid);
+                                            if (item_ledger.sid == item_op1.sid) {
+                                                // console.log("SID matched ! ",item_ledger.sid," - ",item_op1.sid);
+                                                cr = parseFloat(item_ledger.cr);
+                                                dr = parseFloat(item_ledger.dr);
+                                                k++;
+                                            }
+                                            else if (item_op1.sid < item_ledger.sid) {
+                                                // console.log("LESS THAN INNER");
+                                                cr = 0.00;
+                                                dr = 0.00;
+                                            }
+                                            else {
+                                                // console.log("GREATER THAN INNER: ",item_op1.sid," - ",item_ledger.sid);
+                                                var prev_k_sub = k;
+                                                while (k < ledger.length && item_op1.sid > ledger[k].sid) {
+                                                    k++;
+                                                }
+                                                if (k >= ledger.length) {
+                                                    k = prev_k_sub;
+                                                    cr = 0.00;
+                                                    dr = 0.00;
+                                                }
+                                                else {
+                                                    item_ledger = ledger[k];
+                                                    if (item_op1.sid == ledger[k].sid){
+                                                        cr = parseFloat(item_ledger.cr);
+                                                        dr = parseFloat(item_ledger.dr);
+                                                        k++;
+                                                    }
+                                                    else {
+                                                        cr = 0.00;
+                                                        dr = 0.00;
+                                                    }
+                                                } 
+                                            }
+                                        }
+                                        else {
+                                            cr = 0.00;
+                                            dr = 0.00;
+                                        }
+
+                                    }
+                                }
+                            }
+                            else {
+                                cr = 0.00;
+                                dr = 0.00;
+                            }
+                            if (j < main_op2.length) {
+                                item_op2 = main_op2[j];
+                                if (item_op2.sid == item_op1.sid && item_op2.aid == item_op1.aid) {
+                                    op2 = parseFloat(item_op2.op2);
+                                    j++;
+                                }
+                                else if (item_op2.aid < item_op1.aid)
+                                    op2 = 0.00;
+                                else {
+                                    var prev_j = item_op2.aid;
+                                    while (j < item_op2.length && item_op2.aid > item_op1.aid)
+                                        j++;
+                                    if (j >= item_op2.length) {
+                                        j = prev_j;
+                                        op2 = 0.00;
+                                    }
+                                    else {
+                                        item_op2 = main_op2[j];
+                                        if (item_op2.aid == item_op1.aid) {
+                                            if (item_op2.sid == item_op1.sid) {
+                                                op2 = parseFloat(item_op2.op2);
+                                                j++;
+                                            }
+                                            else if (item_op2.sid < item_op1.sid)
+                                                j++;
+                                            else {
+                                                var prev_j_sub = j;
+                                                while (j < item_op2.length && item_op2.sid > item_op1.sid)
+                                                    j++;
+                                                if (j >= item_op2.length) {
+                                                    j = prev_j_sub;
+                                                    op2 = 0.00;
+                                                }
+                                                else {
+                                                    item_op2 = main_op2[j];
+                                                    if (item_op2.sid == item_op1.sid) {
+                                                        op2 = parseFloat(item_op2.op2);
+                                                        j++;
+                                                    }
+                                                    else
+                                                        op2 = 0.00;
+                                                }
+                                            }
+                                        }
+                                        else
+                                            op2 = 0.00;
+                                    }
+                                }
+                            }
+                            else
+                                op2 = 0.00;
+                            op1 = parseFloat(item_op1.op1);
+                            op = op1 + op2;
                             cl = parseFloat(op) + parseFloat(cr) - parseFloat(dr);
                             if (op >= 0) {
                                 op_string = Math.abs(op).toLocaleString("en-IN", {
@@ -3076,8 +3219,8 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 }) + " DR";
                             }
                             single_entry = {
-                                mid: item.sid,
-                                mname: item.sname,
+                                sid: item_op1.sid,
+                                sname: item_op1.sname,
                                 op: op_string,
                                 cr: cr.toLocaleString("en-IN", {
                                     minimumFractionDigits: 2,
@@ -3095,62 +3238,94 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             s_cl += parseFloat(cl);
                             if (data.show_zero == '0') {
                                 if (op != 0 || cr != 0 || dr != 0) {
-                                    last_aid = item.aid;
-                                    last_aname = item.aname;
+                                    last_aid = item_op1.aid;
+                                    last_aname = item_op1.aname;
                                     data_entry.push(single_entry);
                                 }
                             }
                             else {
-                                last_aid = item.aid;
-                                last_aname = item.aname;
+                                last_aid = item_op1.aid;
+                                last_aname = item_op1.aname;
                                 data_entry.push(single_entry);
                             }
                         }
-                        if (s_op >= 0) {
-                            op_string = Math.abs(s_op).toLocaleString("en-IN", {
+                        if (data_entry.length > 0) {
+                            sub_title = last_aid + " - " + last_aname;
+                            if (s_op >= 0) {
+                                op_string = Math.abs(s_op).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + " CR";
+                            }
+                            else {
+                                op_string = Math.abs(s_op).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + " DR";
+                            }
+                            if (s_cl >= 0) {
+                                cl_string = Math.abs(s_cl).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + " CR";
+                            }
+                            else {
+                                cl_string = Math.abs(s_cl).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }) + " DR";
+                            }
+                            data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td colspan="2"></td>
+                                        <td style="text-align: right;"><strong>${op_string}</strong></td>
+                                        <td style="text-align: right;"><strong>${s_cr.toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
-                            }) + " CR";
-                        }
-                        else {
-                            op_string = Math.abs(s_op).toLocaleString("en-IN", {
+                            })}</strong></td>
+                                        <td style="text-align: right;"><strong>${s_dr.toLocaleString("en-IN", {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
-                            }) + " DR";
-                        }
-                        if (s_cl >= 0) {
-                            cl_string = Math.abs(s_cl).toLocaleString("en-IN", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }) + " CR";
-                        }
-                        else {
-                            cl_string = Math.abs(s_cl).toLocaleString("en-IN", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }) + " DR";
-                        }
-                        sentry = {
-                            snum: summary_counter,
-                            aid: last_aid,
-                            aname: last_aname,
-                            op: op_string,
-                            cr: s_cr,
-                            dr: s_dr,
-                            cl: cl_string
-                        };
-                        if (data.show_zero == '0') {
-                            if (s_op != 0 || s_cr != 0 || s_dr != 0) {
+                            })}</strong></td>
+                                        <td style="text-align: right;"><strong>${cl_string}</strong></td>
+                                    </tr>
+                                `;
+                            sentry = {
+                                snum: summary_counter,
+                                aid: last_aid,
+                                aname: last_aname,
+                                op: op_string,
+                                cr: s_cr.toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: s_dr.toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                cl: cl_string
+                            };
+                            if (data.show_zero == '0') {
+                                if (s_op != 0 || s_cr != 0 || s_dr != 0) {
+                                    summary_counter++;
+                                    summary.summary_data.push(sentry);
+                                }
+                            }
+                            else {
+                                summary_counter++;
                                 summary.summary_data.push(sentry);
                             }
+                            s_op_global += parseFloat(s_op);
+                            s_cr_global += parseFloat(s_cr);
+                            s_dr_global += parseFloat(s_dr);
+                            s_cl_global += parseFloat(s_cl);
+                            entry = {
+                                data_title: sub_title,
+                                data: data_entry,
+                                data_total
+                            };
+                            datarows.push(entry);
                         }
-                        else {
-                            summary.summary_data.push(sentry);
-                        }
-                        s_op_global += parseFloat(s_op);
-                        s_cr_global += parseFloat(s_cr);
-                        s_dr_global += parseFloat(s_dr);
-                        s_cl_global += parseFloat(s_cl);
                         var s_op_string, s_cl_string;
                         if (s_op_global >= 0) {
                             s_op_string = Math.abs(s_op_global).toLocaleString("en-IN", {
@@ -3176,46 +3351,6 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 maximumFractionDigits: 2
                             }) + " DR";
                         }
-                        data_total = `
-                            <tr style="background-color: silver;">
-                                <td colspan="2"></td>
-                                <td style="text-align: right;"><strong>${op_string}</strong></td>
-                                <td style="text-align: right;"><strong>${s_cr.toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${s_dr.toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${cl_string}</strong></td>
-                            </tr>
-                            <tr style="height: 20px !important;background-color: #FFFFFF;">
-                                <td colspan="7"></td>
-                            </tr>
-                            <tr style="text-align: center;background-color: gray;">
-                                <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
-                                <td style="text-align: right;"><strong>${s_op_string}</strong></td>
-                                <td style="text-align: right;"><strong>${s_cr_global.toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${s_dr_global.toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${s_cl_string}</strong></td>
-                            </tr>
-                        `;
-                        if (data_entry.length > 0) {
-                            entry = {
-                                data_title: sub_title,
-                                data: data_entry,
-                                data_total
-                            }
-                            datarows.push(entry);
-                        }
-
                         // Summary Generation
                         summary.summary_total = `
                             <tr style="background-color: gray;">
@@ -6795,7 +6930,7 @@ router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
                     var sdate = dd + '/' + mm + '/' + yyyy + ' ' + time;
 
                     var datarows = [], summary = {};
-                    if (results.length <= 0) {
+                    if (results[0].length <= 0) {
                         datarows = [];
                         summary = [];
                         data_global_total = `
