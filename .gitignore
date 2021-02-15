@@ -113,3 +113,5 @@ csv_data_import*
 web.config
 
 LICENSE
+
+package-lock.*
