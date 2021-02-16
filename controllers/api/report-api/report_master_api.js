@@ -2834,12 +2834,11 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                         Account_Balance.sub_account_id AS sid,
                         Account_Head.account_name AS aname,
                         Sub_Account.sub_account_name AS sname,
-                        IFNULL(
-                            IF(
-                                Account_Balance.op_crdr = "DR", 
-                                Account_Balance.cr_amount - Account_Balance.op_balance - Account_Balance.dr_amount, Account_Balance.cr_amount + Account_Balance.op_balance - Account_Balance.dr_amount
-                            )
-                        ,0) AS op1
+                        IF(
+                            Account_Balance.op_crdr = "DR", 
+                            -1*Account_Balance.op_balance,
+                            Account_Balance.op_balance
+                        ) AS op1
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
@@ -2874,12 +2873,11 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                         Account_Balance.sub_account_id AS sid,
                         Account_Head.account_name AS aname,
                         Sub_Account.sub_account_name AS sname,
-                        IFNULL(
-                            IF(
-                                Account_Balance.op_crdr = "DR", 
-                                Account_Balance.cr_amount - Account_Balance.op_balance - Account_Balance.dr_amount, Account_Balance.cr_amount + Account_Balance.op_balance - Account_Balance.dr_amount
-                            )
-                        ,0) AS op1
+                        IF(
+                            Account_Balance.op_crdr = "DR", 
+                            -1*Account_Balance.op_balance,
+                            Account_Balance.op_balance
+                        ) AS op1
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
@@ -2908,7 +2906,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
             }
             connection.query(sql, sql_arr, (err, results) => {
                 connection.release();
-                console.log("Query Completed!");
+                //console.log("Query Completed!");
                 if (err) {
                     console.log(err);
                     res.send({
@@ -2977,9 +2975,9 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             main_op2 = results[1];
                             ledger = results[2];
                         }
-                        console.log("MAIN OP1 SIZE : ",main_op1.length);
-                        console.log("MAIN OP2 SIZE : ",main_op2.length);
-                        console.log("LEDGER SIZE : ",ledger.length);
+                        //console.log("MAIN OP1 SIZE : ",main_op1.length);
+                        //console.log("MAIN OP2 SIZE : ",main_op2.length);
+                        //console.log("LEDGER SIZE : ",ledger.length);
                         last_aid = main_op1[0].aid;
                         for (i = 0; i < main_op1.length; i++) {
                             item_op1 = main_op1[i];
@@ -6848,7 +6846,11 @@ router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
                         Account_Head.account_name AS aname,
                         Sub_Account.sub_account_name AS sname,
                         Account_Balance.birth_date AS bdate,
-                        IF(Account_Balance.op_crdr = "DR", Account_Balance.cr_amount - Account_Balance.op_balance - Account_Balance.dr_amount, Account_Balance.cr_amount + Account_Balance.op_balance - Account_Balance.dr_amount) AS op1
+                        IF(
+                            Account_Balance.op_crdr = "DR", 
+                            -1*Account_Balance.op_balance,
+                            Account_Balance.op_balance
+                        ) AS op1
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
@@ -6886,7 +6888,11 @@ router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
                         Account_Head.account_name AS aname,
                         Sub_Account.sub_account_name AS sname,
                         Account_Balance.birth_date AS bdate,
-                        IF(Account_Balance.op_crdr = "DR", Account_Balance.cr_amount - Account_Balance.op_balance - Account_Balance.dr_amount, Account_Balance.cr_amount + Account_Balance.op_balance - Account_Balance.dr_amount) AS op1
+                        IF(
+                            Account_Balance.op_crdr = "DR", 
+                            -1*Account_Balance.op_balance,
+                            Account_Balance.op_balance
+                        ) AS op1
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
