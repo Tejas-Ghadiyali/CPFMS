@@ -6980,10 +6980,24 @@ router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
                             st_date.setMonth(st_date.getMonth() + parseInt(data.interest_free_month));
                             data_extra = "INTEREST STARTING DATE : " + getFormatedDate(st_date);
 
-                            if (i < main_op.length && main_op[i].sid == itemMain.sid)
+                            if (i < main_op.length && main_op[i].sid == itemMain.sid) {
                                 op2 = main_op[i].op2;
-                            else
-                                op2 = 0.00;
+                                i++;
+                            }
+                            else {
+                                if(itemMain.sid < main_op[i].sid)
+                                    op2 = 0.00;
+                                else {
+                                    while(itemMain.sid > main_op[i].sid )
+                                        i++;
+                                    if(itemMain.sid == main_op[i].sid) {
+                                        op2 = main_op[i].op2;
+                                        i++;
+                                    }
+                                    else
+                                        op2 = 0.00;
+                                }
+                            }
 
                             op = (parseFloat(itemMain.op1) + parseFloat(op2)) || 0.00;
 
