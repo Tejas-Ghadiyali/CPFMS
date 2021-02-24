@@ -3050,7 +3050,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 s_cl = 0.00;
                                 data_entry = [];
                             }
-                            if (k < ledger.length && ledger[k].sid == item_op1.sid && ledger[k].aid == item_op1.aid ) {
+                            if (k < ledger.length && ledger[k].sid == item_op1.sid && ledger[k].aid == item_op1.aid) {
                                 item_ledger = ledger[k];
                                 cr = parseFloat(item_ledger.cr);
                                 dr = parseFloat(item_ledger.dr);
@@ -4740,77 +4740,75 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
         else {
             var sql, sql_arr = [];
             if (data.select_all == '1') {
-                sql_arr = [data.from_date, data.from_date, data.to_date, data.account_id_list];
+                sql_arr = [data.account_id_list, data.from_date, data.account_id_list, data.from_date, data.to_date, data.account_id_list];
                 sql = `
                     SELECT
-                        Account_Balance.account_id,
-                        Account_Head.account_name,
-                        Account_Balance.sub_account_id AS aid,
+                        DISTINCT Account_Balance.sub_account_id AS aid,
                         Sub_Account.sub_account_name AS aname,
-                        (
-                            SELECT
-                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
-                            FROM Account_Balance
-                            WHERE Account_Balance.sub_account_id = aid
-                        ) AS op1,
-                        IFNULL(
-                            (
-                                SELECT
-                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
-                                FROM Ledger
-                                WHERE Ledger.sub_account_id = aid AND Ledger.transaction_date <= ?
-                            )
-                        ,0) AS op2,
-                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
-                        Ledger.narration AS narration,
-                        IFNULL(Ledger.cr_amount,0) AS cr,
-                        IFNULL(Ledger.dr_amount,0) AS dr
-                        FROM Account_Balance
-                        INNER JOIN Account_Head
-                            ON Account_Head.account_id = Account_Balance.account_id
+                        SUM(
+                            IF(
+                                Account_Balance.op_crdr = "DR", 
+                                -1*Account_Balance.op_balance,
+                                Account_Balance.op_balance
+                            ) 
+                        ) AS op1
+                    FROM Account_Balance
                         INNER JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
-                        INNER JOIN Ledger
-                            ON Ledger.sub_account_id = Account_Balance.sub_account_id
-                    WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id = ?
-                    ORDER BY Account_Balance.sub_account_id ASC, Ledger.transaction_date ASC;
+                    WHERE Account_Balance.account_id = ?
+                    GROUP BY Account_Balance.sub_account_id;
+                    SELECT
+                        Ledger.sub_account_id AS aid,
+                        (IFNULL(SUM(Ledger.cr_amount),0) - IFNULL(SUM(Ledger.dr_amount),0)) AS op2
+                    FROM Ledger
+                        WHERE Ledger.transaction_date < ? AND Ledger.account_id = ?
+                        GROUP BY Ledger.sub_account_id
+                        ORDER BY Ledger.sub_account_id ASC;
+                    SELECT
+                        Ledger.sub_account_id AS aid,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration
+                    FROM Ledger
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id = ?
+                        ORDER BY Ledger.sub_account_id ASC;
                 `;
             }
             else {
-                sql_arr = [data.from_date, data.from_date, data.to_date, data.account_id_list, data.sub_account_id_list];
+                sql_arr = [data.account_id_list, data.sub_account_id_list, data.account_id_list, data.sub_account_id_list, data.from_date, data.from_date, data.to_date, data.account_id_list, data.sub_account_id_list];
                 sql = `
                     SELECT
-                        Account_Balance.account_id,
-                        Account_Head.account_name,
-                        Account_Balance.sub_account_id AS aid,
+                        DISTINCT Account_Balance.sub_account_id AS aid,
                         Sub_Account.sub_account_name AS aname,
-                        (
-                            SELECT
-                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
-                            FROM Account_Balance
-                            WHERE Account_Balance.sub_account_id = aid
-                        ) AS op1,
-                        IFNULL(
-                            (
-                                SELECT
-                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
-                                FROM Ledger
-                                WHERE Ledger.sub_account_id = aid AND Ledger.transaction_date <= ?
-                            )
-                        ,0) AS op2,
-                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
-                        Ledger.narration AS narration,
-                        IFNULL(Ledger.cr_amount,0) AS cr,
-                        IFNULL(Ledger.dr_amount,0) AS dr
-                        FROM Account_Balance
-                        INNER JOIN Account_Head
-                            ON Account_Head.account_id = Account_Balance.account_id
+                        SUM(
+                            IF(
+                                Account_Balance.op_crdr = "DR", 
+                                -1*Account_Balance.op_balance,
+                                Account_Balance.op_balance
+                            ) 
+                        ) AS op1
+                    FROM Account_Balance
                         INNER JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
-                        INNER JOIN Ledger
-                            ON Ledger.sub_account_id = Account_Balance.sub_account_id
-                    WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id = ? AND Ledger.sub_account_id IN (?)
-                    ORDER BY Account_Balance.sub_account_id ASC, Ledger.transaction_date ASC;
+                    WHERE Account_Balance.account_id = ? AND Sub_Account.sub_account_id IN (?)
+                    GROUP BY Account_Balance.sub_account_id;
+                    SELECT
+                        Ledger.sub_account_id AS aid,
+                        (IFNULL(SUM(Ledger.cr_amount),0) - IFNULL(SUM(Ledger.dr_amount),0)) AS op2
+                    FROM Ledger
+                        WHERE Ledger.account_id = ? AND Ledger.sub_account_id IN (?) AND Ledger.transaction_date < ?
+                        GROUP BY Ledger.sub_account_id
+                        ORDER BY Ledger.sub_account_id ASC;
+                    SELECT
+                        Ledger.sub_account_id AS aid,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration
+                    FROM Ledger
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id = ? AND Ledger.sub_account_id IN (?)
+                        ORDER BY Ledger.sub_account_id ASC;
                 `;
             }
             connection.query(sql, sql_arr, (err, results) => {
@@ -4844,7 +4842,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
+                        var data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
@@ -4858,239 +4856,162 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                         var to_date = to_date_arr[2] + "/" + to_date_arr[1] + "/" + to_date_arr[0];
                         op = (parseFloat(results[0].op1) + parseFloat(results[0].op2)) || 0.00;
                         last_aname = results[0].aname;
-                        if (op >= 0) {
-                            single_entry = {
-                                date: fr_date,
-                                narration: "Opening Balance",
-                                cr: Math.abs(op).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }),
-                                dr: ' '
-                            };
-                            s_cr += Math.abs(parseFloat(op));
-                        }
-                        else {
-                            single_entry = {
-                                date: fr_date,
-                                narration: "Opening Balance",
-                                cr: ' ',
-                                dr: Math.abs(op).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }),
-                            };
-                            s_dr += Math.abs(parseFloat(op));
-                        }
-                        data_entry.push(single_entry);
 
-                        // DataRows Generation
-                        for (item of results) {
-                            new_id = item.aid;
-                            if (curr_id != new_id) {
-                                cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
-                                if (cl_balance >= 0) {
-                                    single_entry = {
-                                        date: to_date,
-                                        narration: "Closing Balance",
-                                        cr: ' ',
-                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }) + " CR"
-                                    }
-                                    s_dr += Math.abs(parseFloat(cl_balance));
-                                    sentry = {
-                                        snum: summary_counter,
-                                        aid: curr_id,
-                                        aname: last_aname,
-                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }),
-                                        dr: ''
-                                    };
-                                    s_cr_global += parseFloat(Math.abs(cl_balance));
-                                }
-                                else {
-                                    single_entry = {
-                                        date: to_date,
-                                        narration: "Closing Balance",
-                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }) + " DR",
-                                        dr: ' '
-                                    }
-                                    s_cr += Math.abs(parseFloat(cl_balance));
-                                    sentry = {
-                                        snum: summary_counter,
-                                        aid: curr_id,
-                                        aname: last_aname,
-                                        cr: '',
-                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        })
-                                    };
-                                    s_dr_global += parseFloat(Math.abs(cl_balance));
-                                }
-                                data_entry.push(single_entry);
-                                data_total = `
-                                    <tr style="text-align: center;background-color: silver;">
-                                        <td colspan="2"></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}</strong></td>
-                                    </tr>
-                                `;
-                                summary_counter++;
-                                summary.summary_data.push(sentry);
-                                if (data_entry.length > 0) {
-                                    entry = {
-                                        data_title: sub_title,
-                                        data: data_entry,
-                                        data_total
-                                    };
-                                    datarows.push(entry);
-                                }
-                                sub_title = item.aid + " - " + item.aname;
-                                curr_id = new_id;
-                                s_cr = 0.00;
-                                s_dr = 0.00;
-                                data_entry = [];
-                                op = parseFloat(item.op1) + parseFloat(item.op2);
-                                if (op >= 0) {
-                                    single_entry = {
-                                        date: fr_date,
-                                        narration: "Opening Balance",
-                                        cr: Math.abs(op).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }),
-                                        dr: ' '
-                                    };
-                                    s_cr += Math.abs(parseFloat(op));
-                                }
-                                else {
-                                    single_entry = {
-                                        date: fr_date,
-                                        narration: "Opening Balance",
-                                        cr: ' ',
-                                        dr: Math.abs(op).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        })
-                                    };
-                                    s_dr += Math.abs(parseFloat(op));
-                                }
-                                data_entry.push(single_entry);
+                        var i = 0, j = 0;
+                        var main_op1 = [], main_op2 = [], ledger = [];
+                        var item_op1, item_ledger;
+
+                        main_op1 = results[0];
+                        main_op2 = results[1];
+                        ledger = results[2];
+
+                        for (item_op1 of main_op1) {
+                            data_entry = [];
+                            s_cr = 0.00;
+                            s_dr = 0.00;
+
+                            sub_title = item_op1.aid + " - " + item_op1.aname;
+
+                            if (i < main_op2.length && main_op2[i].aid == item_op1.aid) {
+                                op2 = main_op2[i].op2;
+                                i++;
                             }
-                            cr = Math.abs(parseFloat(item.cr)) || 0.00;
-                            dr = Math.abs(parseFloat(item.dr)) || 0.00;
-                            if (dr > 0) {
+                            else
+                                op2 = 0.00;
+
+                            op = (parseFloat(item_op1.op1) + parseFloat(op2)) || 0.00;
+
+                            if (op >= 0) {
                                 single_entry = {
-                                    date: item.tc_date,
-                                    narration: item.narration,
-                                    cr: ' ',
-                                    dr: Math.abs(dr).toLocaleString("en-IN", {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })
-                                };
-                                s_dr += dr;
-                            }
-                            else {
-                                single_entry = {
-                                    date: item.tc_date,
-                                    narration: item.narration,
-                                    cr: Math.abs(cr).toLocaleString("en-IN", {
+                                    date: fr_date,
+                                    narration: "Opening Balance",
+                                    cr: Math.abs(op).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }),
                                     dr: ' '
                                 };
-                                s_cr += cr;
+                                s_cr += Math.abs(parseFloat(op));
+                            }
+                            else {
+                                single_entry = {
+                                    date: fr_date,
+                                    narration: "Opening Balance",
+                                    cr: ' ',
+                                    dr: Math.abs(op).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_dr += Math.abs(parseFloat(op));
                             }
                             data_entry.push(single_entry);
-                            last_aname = item.aname;
-                        }
-                        cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
-                        if (cl_balance >= 0) {
-                            single_entry = {
-                                date: to_date,
-                                narration: "Closing Balance",
-                                cr: ' ',
-                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }) + " CR"
+
+                            while (j < ledger.length && ledger[j].aid == item_op1.aid) {
+                                item_ledger = ledger[j];
+                                cr = Math.abs(parseFloat(item_ledger.cr)) || 0.00;
+                                dr = Math.abs(parseFloat(item_ledger.dr)) || 0.00;
+                                if (dr > 0) {
+                                    single_entry = {
+                                        date: item_ledger.tc_date,
+                                        narration: item_ledger.narration,
+                                        cr: ' ',
+                                        dr: Math.abs(dr).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    s_dr += dr;
+                                }
+                                else {
+                                    single_entry = {
+                                        date: item_ledger.tc_date,
+                                        narration: item_ledger.narration,
+                                        cr: Math.abs(cr).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ' '
+                                    };
+                                    s_cr += cr;
+                                }
+                                data_entry.push(single_entry);
+                                j++;
+                                //last_aname = item.aname;
                             }
-                            s_dr += Math.abs(parseFloat(cl_balance));
-                            sentry = {
-                                snum: summary_counter,
-                                aid: curr_id,
-                                aname: last_aname,
-                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }),
-                                dr: ''
-                            };
-                            s_cr_global += parseFloat(Math.abs(cl_balance));
-                        }
-                        else {
-                            single_entry = {
-                                date: to_date,
-                                narration: "Closing Balance",
-                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }) + " DR",
-                                dr: ' '
+                            cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
+                            if (cl_balance >= 0) {
+                                single_entry = {
+                                    date: to_date,
+                                    narration: "Closing Balance",
+                                    cr: ' ',
+                                    dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + ' CR'
+                                }
+                                s_dr += Math.abs(parseFloat(cl_balance));
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: item_op1.aid,
+                                    aname: item_op1.aname,
+                                    cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: ''
+                                };
+                                s_cr_global += parseFloat(Math.abs(cl_balance));
                             }
-                            s_cr += Math.abs(parseFloat(cl_balance));
-                            sentry = {
-                                snum: summary_counter,
-                                aid: curr_id,
-                                aname: last_aname,
-                                cr: '',
-                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })
-                            };
-                            s_dr_global += parseFloat(Math.abs(cl_balance));
+                            else {
+                                single_entry = {
+                                    date: to_date,
+                                    narration: "Closing Balance",
+                                    cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + ' DR',
+                                    dr: ' '
+                                }
+                                s_cr += Math.abs(parseFloat(cl_balance));
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: item_op1.aid,
+                                    aname: item_op1.aname,
+                                    cr: '',
+                                    dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_dr_global += parseFloat(Math.abs(cl_balance));
+                            }
+                            data_entry.push(single_entry);
+                            data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td colspan="2"></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    </tr>
+                                `;
+                            summary_counter++;
+                            summary.summary_data.push(sentry);
+                            if (data_entry.length > 0) {
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry,
+                                    data_total
+                                };
+                                datarows.push(entry);
+                            }
                         }
-                        data_entry.push(single_entry);
-                        data_total = `
-                            <tr style="text-align: center;background-color: silver;">
-                                <td colspan="2"></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                            </tr>
-                        `;
-                        summary_counter++;
-                        summary.summary_data.push(sentry);
-                        if (data_entry.length > 0) {
-                            entry = {
-                                data_title: sub_title,
-                                data: data_entry,
-                                data_total
-                            };
-                            datarows.push(entry);
-                        }
+
                         // Summary Generation
                         var net_balance = parseFloat(s_cr_global) - parseFloat(s_dr_global);
                         if (net_balance >= 0) {
