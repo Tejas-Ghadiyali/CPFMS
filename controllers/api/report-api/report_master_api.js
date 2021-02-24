@@ -3050,133 +3050,20 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 s_cl = 0.00;
                                 data_entry = [];
                             }
-                            if (k < ledger.length) {
+                            if (k < ledger.length && ledger[k].sid == item_op1.sid && ledger[k].aid == item_op1.aid ) {
                                 item_ledger = ledger[k];
-                                if (item_ledger.sid == item_op1.sid && item_ledger.aid == item_op1.aid) {
-                                    // console.log("Match Found! -> ", k);
-                                    cr = parseFloat(item_ledger.cr);
-                                    dr = parseFloat(item_ledger.dr);
-                                    k++;
-                                }
-                                else if (item_op1.aid < item_ledger.aid) {
-                                    // console.log("OP1.aid < Ledger.aid : ", item_op1.aid, " < ", item_ledger.aid);
-                                    cr = 0.00;
-                                    dr = 0.00;
-                                }
-                                else {
-                                    // console.log("OP1.aid > Ledger.aid : ", item_op1.aid, " > ", item_ledger.aid);
-                                    var prev_k = k;
-                                    while (k < ledger.length && item_op1.aid > ledger[k].aid) {
-                                        // console.log(item_op1.aid, " - ", ledger[k].aid);
-                                        k++;
-                                    }
-                                    if (k >= ledger.length) {
-                                        // console.log("OUTER CHECK LOOP FINISHED!");
-                                        k = prev_k;
-                                        cr = 0.00;
-                                        dr = 0.00;
-                                    }
-                                    else {
-                                        // console.log("OUTER CHECK LOOP NOT FINISHED!");
-                                        item_ledger = ledger[k];
-                                        if (item_ledger.aid == item_op1.aid) {
-                                            // console.log("AID matched ! ",item_ledger.aid," - ",item_op1.aid);
-                                            if (item_ledger.sid == item_op1.sid) {
-                                                // console.log("SID matched ! ",item_ledger.sid," - ",item_op1.sid);
-                                                cr = parseFloat(item_ledger.cr);
-                                                dr = parseFloat(item_ledger.dr);
-                                                k++;
-                                            }
-                                            else if (item_op1.sid < item_ledger.sid) {
-                                                // console.log("LESS THAN INNER");
-                                                cr = 0.00;
-                                                dr = 0.00;
-                                            }
-                                            else {
-                                                // console.log("GREATER THAN INNER: ",item_op1.sid," - ",item_ledger.sid);
-                                                var prev_k_sub = k;
-                                                while (k < ledger.length && item_op1.sid > ledger[k].sid) {
-                                                    k++;
-                                                }
-                                                if (k >= ledger.length) {
-                                                    k = prev_k_sub;
-                                                    cr = 0.00;
-                                                    dr = 0.00;
-                                                }
-                                                else {
-                                                    item_ledger = ledger[k];
-                                                    if (item_op1.sid == ledger[k].sid) {
-                                                        cr = parseFloat(item_ledger.cr);
-                                                        dr = parseFloat(item_ledger.dr);
-                                                        k++;
-                                                    }
-                                                    else {
-                                                        cr = 0.00;
-                                                        dr = 0.00;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else {
-                                            cr = 0.00;
-                                            dr = 0.00;
-                                        }
-
-                                    }
-                                }
+                                cr = parseFloat(item_ledger.cr);
+                                dr = parseFloat(item_ledger.dr);
+                                k++;
                             }
                             else {
                                 cr = 0.00;
                                 dr = 0.00;
                             }
-                            if (j < main_op2.length) {
+                            if (j < main_op2.length && main_op2[j].sid == item_op1.sid && main_op2[j].aid == item_op1.aid) {
                                 item_op2 = main_op2[j];
-                                if (item_op2.sid == item_op1.sid && item_op2.aid == item_op1.aid) {
-                                    op2 = parseFloat(item_op2.op2);
-                                    j++;
-                                }
-                                else if (item_op2.aid < item_op1.aid)
-                                    op2 = 0.00;
-                                else {
-                                    var prev_j = item_op2.aid;
-                                    while (j < item_op2.length && item_op2.aid > item_op1.aid)
-                                        j++;
-                                    if (j >= item_op2.length) {
-                                        j = prev_j;
-                                        op2 = 0.00;
-                                    }
-                                    else {
-                                        item_op2 = main_op2[j];
-                                        if (item_op2.aid == item_op1.aid) {
-                                            if (item_op2.sid == item_op1.sid) {
-                                                op2 = parseFloat(item_op2.op2);
-                                                j++;
-                                            }
-                                            else if (item_op2.sid < item_op1.sid)
-                                                j++;
-                                            else {
-                                                var prev_j_sub = j;
-                                                while (j < item_op2.length && item_op2.sid > item_op1.sid)
-                                                    j++;
-                                                if (j >= item_op2.length) {
-                                                    j = prev_j_sub;
-                                                    op2 = 0.00;
-                                                }
-                                                else {
-                                                    item_op2 = main_op2[j];
-                                                    if (item_op2.sid == item_op1.sid) {
-                                                        op2 = parseFloat(item_op2.op2);
-                                                        j++;
-                                                    }
-                                                    else
-                                                        op2 = 0.00;
-                                                }
-                                            }
-                                        }
-                                        else
-                                            op2 = 0.00;
-                                    }
-                                }
+                                op2 = parseFloat(item_op2.op2);
+                                j++;
                             }
                             else
                                 op2 = 0.00;
@@ -3581,17 +3468,11 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                 non_sos.push(acc_list[l].aid);
                             main_op = results[1];
                             var ledger_pre = results[2];
-                            for (i = 0; i < main_op_pre.length; i++) {
-                                item_op = main_op_pre[i];
-                                if (!non_sos.includes(item_op.aid))
-                                    main_op.push(item_op);
-                            }
                             for (j = 0; j < ledger_pre.length; j++) {
                                 item_ledger = ledger_pre[j];
                                 if (!non_sos.includes(item_ledger.aid))
                                     ledger.push(item_ledger);
                             }
-                            i = 0;
                             j = 0;
                         }
                         else {
@@ -3652,75 +3533,11 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                 s_dr = 0.00;
                                 data_entry = [];
                             }
-                            if (j < ledger.length) {
+                            if (j < ledger.length && ledger[j].sid == item_op.sid && ledger[j].aid == item_op.aid) {
                                 item_ledger = ledger[j];
-                                if (item_ledger.sid == item_op.sid && item_ledger.aid == item_op.aid) {
-                                    // console.log("Match Found! -> ", k);
-                                    cr = parseFloat(item_ledger.cr);
-                                    dr = parseFloat(item_ledger.dr);
-                                    j++;
-                                }
-                                else {
-                                    // console.log("OP1.aid > Ledger.aid : ", item_op1.aid, " > ", item_ledger.aid);
-                                    var prev_j = j;
-                                    while (j < ledger.length && item_op.aid > ledger[j].aid) {
-                                        // console.log(item_op1.aid, " - ", ledger[k].aid);
-                                        j++;
-                                    }
-                                    if (j >= ledger.length) {
-                                        // console.log("OUTER CHECK LOOP FINISHED!");
-                                        j = prev_j;
-                                        cr = 0.00;
-                                        dr = 0.00;
-                                    }
-                                    else {
-                                        // console.log("OUTER CHECK LOOP NOT FINISHED!");
-                                        item_ledger = ledger[j];
-                                        if (item_ledger.aid == item_op.aid) {
-                                            // console.log("AID matched ! ",item_ledger.aid," - ",item_op1.aid);
-                                            if (item_ledger.sid == item_op.sid) {
-                                                // console.log("SID matched ! ",item_ledger.sid," - ",item_op1.sid);
-                                                cr = parseFloat(item_ledger.cr);
-                                                dr = parseFloat(item_ledger.dr);
-                                                j++;
-                                            }
-                                            else if (item_op.sid < item_ledger.sid) {
-                                                // console.log("LESS THAN INNER");
-                                                cr = 0.00;
-                                                dr = 0.00;
-                                            }
-                                            else {
-                                                // console.log("GREATER THAN INNER: ",item_op1.sid," - ",item_ledger.sid);
-                                                var prev_j_sub = j;
-                                                while (j < ledger.length && item_op.sid > ledger[j].sid) {
-                                                    j++;
-                                                }
-                                                if (j >= ledger.length) {
-                                                    j = prev_j_sub;
-                                                    cr = 0.00;
-                                                    dr = 0.00;
-                                                }
-                                                else {
-                                                    item_ledger = ledger[j];
-                                                    if (item_op.sid == ledger[j].sid) {
-                                                        cr = parseFloat(item_ledger.cr);
-                                                        dr = parseFloat(item_ledger.dr);
-                                                        j++;
-                                                    }
-                                                    else {
-                                                        cr = 0.00;
-                                                        dr = 0.00;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else {
-                                            cr = 0.00;
-                                            dr = 0.00;
-                                        }
-
-                                    }
-                                }
+                                cr = parseFloat(item_ledger.cr);
+                                dr = parseFloat(item_ledger.dr);
+                                j++;
                             }
                             else {
                                 cr = 0.00;
@@ -6982,25 +6799,8 @@ router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
                                 op2 = main_op[i].op2;
                                 i++;
                             }
-                            else {
-                                if (itemMain.sid < main_op[i].sid)
-                                    op2 = 0.00;
-                                else {
-                                    var prev_i = i;
-                                    while (itemMain.sid > main_op[i].sid)
-                                        i++;
-                                    if (i >= main_op.length) {
-                                        i = prev_i;
-                                        op2 = 0.00;
-                                    }
-                                    else if (itemMain.sid == main_op[i].sid) {
-                                        op2 = main_op[i].op2;
-                                        i++;
-                                    }
-                                    else
-                                        op2 = 0.00;
-                                }
-                            }
+                            else
+                                op2 = 0.00;
 
                             op = (parseFloat(itemMain.op1) + parseFloat(op2)) || 0.00;
 
