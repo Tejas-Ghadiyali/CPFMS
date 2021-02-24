@@ -4062,7 +4062,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                     });
                 }
                 else {
-                    // console.log(results);
+                    // console.log(results[1]);
 
                     var date = new Date();
                     var dd = ('0' + date.getDate()).slice(-2);
@@ -4139,12 +4139,15 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                             sub_title = item_op1.aid + " - " + item_op1.aname;
 
                             if (i < main_op2.length && main_op2[i].aid == item_op1.aid) {
-                                op2 = main_op1[i].op2;
+                                op2 = main_op2[i].op2;
                                 i++;
                             }
                             else
                                 op2 = 0.00;
 
+                            // console.log(item_op1.aid);
+                            // console.log(item_op1.op1);
+                            // console.log(op2);
                             op = (parseFloat(item_op1.op1) + parseFloat(op2)) || 0.00;
 
                             if (op >= 0) {
@@ -4603,7 +4606,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                             sub_title = item_op1.aid + " - " + item_op1.aname;
 
                             if (i < main_op2.length && main_op2[i].aid == item_op1.aid) {
-                                op2 = main_op1[i].op2;
+                                op2 = main_op2[i].op2;
                                 i++;
                             }
                             else
