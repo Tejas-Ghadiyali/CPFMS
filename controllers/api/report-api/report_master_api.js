@@ -111,22 +111,21 @@ router.get('/accounthead', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -244,22 +243,21 @@ router.get('/talukalistsummary', middleware.loggedin_as_superuser, (req, res) =>
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -379,22 +377,21 @@ router.get('/districtlistsummary', middleware.loggedin_as_superuser, (req, res) 
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -469,22 +466,21 @@ router.get('/receiptlistsummary', middleware.loggedin_as_superuser, (req, res) =
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -558,22 +554,21 @@ router.get('/paymentlistsummary', middleware.loggedin_as_superuser, (req, res) =
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -764,22 +759,21 @@ router.get('/rpsummary', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -1208,22 +1202,21 @@ router.get('/accountheaddetails', middleware.loggedin_as_superuser, (req, res) =
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -1469,22 +1462,21 @@ router.get('/cowcastdetails', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -1729,22 +1721,21 @@ router.get('/organizationdetails', middleware.loggedin_as_superuser, (req, res) 
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -1988,22 +1979,21 @@ router.get('/rpdetails', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -2199,22 +2189,21 @@ router.get('/insurancedetails', middleware.loggedin_as_superuser, (req, res) => 
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -2469,22 +2458,21 @@ router.get('/talukadetails', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -2741,22 +2729,21 @@ router.get('/districtdetails', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -3118,7 +3105,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                                 }
                                                 else {
                                                     item_ledger = ledger[k];
-                                                    if (item_op1.sid == ledger[k].sid){
+                                                    if (item_op1.sid == ledger[k].sid) {
                                                         cr = parseFloat(item_ledger.cr);
                                                         dr = parseFloat(item_ledger.dr);
                                                         k++;
@@ -3127,7 +3114,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                                         cr = 0.00;
                                                         dr = 0.00;
                                                     }
-                                                } 
+                                                }
                                             }
                                         }
                                         else {
@@ -3395,22 +3382,21 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -3480,23 +3466,19 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                 sql_arr = [data.to_date, data.to_date];
                 sql = `
                     SELECT
+                        Account_Head.account_id AS aid
+                    FROM Account_Head
+                    WHERE Account_Head.is_society = 0;
+                    SELECT
                         Account_Balance.account_id AS aid,
                         Account_Head.account_name AS aname,
                         Account_Balance.sub_account_id AS sid,
                         Sub_Account.sub_account_name AS sname,
-                        Account_Balance.op_balance AS op,
-                        (
-                            SELECT
-                                SUM(Ledger.cr_amount)
-                            FROM Ledger
-                            WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date <= ?
-                        ) AS cr,
-                        (
-                            SELECT
-                                SUM(Ledger.dr_amount)
-                            FROM Ledger
-                            WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date <= ?
-                        ) AS dr
+                        IF(
+                            Account_Balance.op_crdr = "DR", 
+                            -1*Account_Balance.op_balance,
+                            Account_Balance.op_balance
+                        ) AS op
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
@@ -3504,29 +3486,30 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
                     WHERE Account_Head.is_society = 1
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                    SELECT
+                        Ledger.account_id AS aid,
+                        Ledger.sub_account_id AS sid,
+                        IFNULL(SUM(Ledger.cr_amount),0) AS cr,
+                        IFNULL(SUM(Ledger.dr_amount),0) AS dr
+                    FROM Ledger
+                    WHERE Ledger.transaction_date <= ?
+                    GROUP BY Ledger.account_id, Ledger.sub_account_id
+                    ORDER BY Ledger.account_id ASC, Ledger.sub_account_id ASC;
                 `;
             }
             else {
-                sql_arr = [data.to_date, data.to_date, data.account_id_list];
+                sql_arr = [data.account_id_list, data.to_date, data.account_id_list];
                 sql = `
                     SELECT
                         Account_Balance.account_id AS aid,
                         Account_Head.account_name AS aname,
                         Account_Balance.sub_account_id AS sid,
                         Sub_Account.sub_account_name AS sname,
-                        Account_Balance.op_balance AS op,
-                        (
-                            SELECT
-                                SUM(Ledger.cr_amount)
-                            FROM Ledger
-                            WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date <= ?
-                        ) AS cr,
-                        (
-                            SELECT
-                                SUM(Ledger.dr_amount)
-                            FROM Ledger
-                            WHERE Ledger.sub_account_id = sid AND Ledger.transaction_date <= ?
-                        ) AS dr
+                        IF(
+                            Account_Balance.op_crdr = "DR", 
+                            -1*Account_Balance.op_balance,
+                            Account_Balance.op_balance
+                        ) AS op
                     FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
@@ -3534,6 +3517,15 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
                     WHERE Account_Balance.account_id IN (?) AND Account_Head.is_society = 1
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
+                    SELECT
+                        Ledger.account_id AS aid,
+                        Ledger.sub_account_id AS sid,
+                        IFNULL(SUM(Ledger.cr_amount),0) AS cr,
+                        IFNULL(SUM(Ledger.dr_amount),0) AS dr
+                    FROM Ledger
+                    WHERE Ledger.transaction_date <= ? AND Ledger.account_id IN (?)
+                    GROUP BY Ledger.account_id, Ledger.sub_account_id
+                    ORDER BY Ledger.account_id ASC, Ledger.sub_account_id ASC;
                 `;
             }
             connection.query(sql, sql_arr, (err, results) => {
@@ -3567,7 +3559,7 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, last_aid, last_aname;
+                        var curr_id = results[0].aid, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, last_aid, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
@@ -3577,10 +3569,41 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         last_aid = curr_id;
                         last_aname = results[0].aname;
 
-                        // DataRows Generation
-                        for (item of results) {
-                            new_id = item.aid;
-                            if (curr_id != new_id) {
+                        var i = 0, j = 0;
+                        var main_op = [], ledger = [];
+                        var item_op, item_ledger;
+
+                        if (data.select_all == '1') {
+                            var acc_list = results[0];
+                            var non_sos = [];
+                            var l;
+                            for (l = 0; l < acc_list.length; l++)
+                                non_sos.push(acc_list[l].aid);
+                            main_op = results[1];
+                            var ledger_pre = results[2];
+                            for (i = 0; i < main_op_pre.length; i++) {
+                                item_op = main_op_pre[i];
+                                if (!non_sos.includes(item_op.aid))
+                                    main_op.push(item_op);
+                            }
+                            for (j = 0; j < ledger_pre.length; j++) {
+                                item_ledger = ledger_pre[j];
+                                if (!non_sos.includes(item_ledger.aid))
+                                    ledger.push(item_ledger);
+                            }
+                            i = 0;
+                            j = 0;
+                        }
+                        else {
+                            main_op = results[0];
+                            ledger = results[1];
+                        }
+
+                        last_aid = main_op[0].aid;
+                        for (i = 0; i < main_op.length; i++) {
+                            item_op = main_op[i];
+                            if (last_aid != item_op.aid && data_entry.length > 0) {
+                                sub_title = last_aid + " - " + last_aname;
                                 data_total = `
                                     <tr style="text-align: center;background-color: silver;">
                                         <td colspan="2"></td>
@@ -3619,28 +3642,96 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                 }
                                 s_cr_global += parseFloat(s_cr);
                                 s_dr_global += parseFloat(s_dr);
-                                if (data_entry.length > 0) {
-                                    entry = {
-                                        data_title: sub_title,
-                                        data: data_entry,
-                                        data_total
-                                    };
-                                    datarows.push(entry);
-                                }
-                                sub_title = item.aid + " - " + item.aname;
-                                curr_id = new_id;
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry,
+                                    data_total
+                                };
+                                datarows.push(entry);
                                 s_cr = 0.00;
                                 s_dr = 0.00;
                                 data_entry = [];
                             }
-                            op = parseFloat(item.op) || 0.00;
-                            cr = parseFloat(item.cr) || 0.00;
-                            dr = parseFloat(item.dr) || 0.00;
+                            if (j < ledger.length) {
+                                item_ledger = ledger[j];
+                                if (item_ledger.sid == item_op.sid && item_ledger.aid == item_op.aid) {
+                                    // console.log("Match Found! -> ", k);
+                                    cr = parseFloat(item_ledger.cr);
+                                    dr = parseFloat(item_ledger.dr);
+                                    j++;
+                                }
+                                else {
+                                    // console.log("OP1.aid > Ledger.aid : ", item_op1.aid, " > ", item_ledger.aid);
+                                    var prev_j = j;
+                                    while (j < ledger.length && item_op.aid > ledger[j].aid) {
+                                        // console.log(item_op1.aid, " - ", ledger[k].aid);
+                                        j++;
+                                    }
+                                    if (j >= ledger.length) {
+                                        // console.log("OUTER CHECK LOOP FINISHED!");
+                                        j = prev_j;
+                                        cr = 0.00;
+                                        dr = 0.00;
+                                    }
+                                    else {
+                                        // console.log("OUTER CHECK LOOP NOT FINISHED!");
+                                        item_ledger = ledger[j];
+                                        if (item_ledger.aid == item_op.aid) {
+                                            // console.log("AID matched ! ",item_ledger.aid," - ",item_op1.aid);
+                                            if (item_ledger.sid == item_op.sid) {
+                                                // console.log("SID matched ! ",item_ledger.sid," - ",item_op1.sid);
+                                                cr = parseFloat(item_ledger.cr);
+                                                dr = parseFloat(item_ledger.dr);
+                                                j++;
+                                            }
+                                            else if (item_op.sid < item_ledger.sid) {
+                                                // console.log("LESS THAN INNER");
+                                                cr = 0.00;
+                                                dr = 0.00;
+                                            }
+                                            else {
+                                                // console.log("GREATER THAN INNER: ",item_op1.sid," - ",item_ledger.sid);
+                                                var prev_j_sub = j;
+                                                while (j < ledger.length && item_op.sid > ledger[j].sid) {
+                                                    j++;
+                                                }
+                                                if (j >= ledger.length) {
+                                                    j = prev_j_sub;
+                                                    cr = 0.00;
+                                                    dr = 0.00;
+                                                }
+                                                else {
+                                                    item_ledger = ledger[j];
+                                                    if (item_op.sid == ledger[j].sid) {
+                                                        cr = parseFloat(item_ledger.cr);
+                                                        dr = parseFloat(item_ledger.dr);
+                                                        j++;
+                                                    }
+                                                    else {
+                                                        cr = 0.00;
+                                                        dr = 0.00;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            cr = 0.00;
+                                            dr = 0.00;
+                                        }
+
+                                    }
+                                }
+                            }
+                            else {
+                                cr = 0.00;
+                                dr = 0.00;
+                            }
+                            op = item_op.op;
                             cl = parseFloat(op) + parseFloat(cr) - parseFloat(dr);
                             if (cl > 0) {
                                 single_entry = {
-                                    mid: item.sid,
-                                    mname: item.sname,
+                                    mid: item_op.sid,
+                                    mname: item_op.sname,
                                     cr: Math.abs(cl).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
@@ -3648,14 +3739,14 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                     dr: ' '
                                 };
                                 s_cr += parseFloat(cl);
-                                last_aid = item.aid;
-                                last_aname = item.aname;
+                                last_aid = item_op.aid;
+                                last_aname = item_op.aname;
                                 data_entry.push(single_entry);
                             }
                             else if (cl < 0) {
                                 single_entry = {
-                                    mid: item.sid,
-                                    mname: item.sname,
+                                    mid: item_op.sid,
+                                    mname: item_op.sname,
                                     cr: ' ',
                                     dr: Math.abs(cl).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
@@ -3663,75 +3754,76 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                     })
                                 };
                                 s_dr += parseFloat(cl);
-                                last_aid = item.aid;
-                                last_aname = item.aname;
+                                last_aid = item_op.aid;
+                                last_aname = item_op.aname;
                                 data_entry.push(single_entry);
                             }
                             else {
                                 if (data.show_zero == '1') {
                                     single_entry = {
-                                        mid: item.sid,
-                                        mname: item.sname,
-                                        cr: '0',
+                                        mid: item_op.sid,
+                                        mname: item_op.sname,
+                                        cr: '0.00',
                                         dr: ' '
                                     };
-                                    last_aid = item.aid;
-                                    last_aname = item.aname;
+                                    last_aid = item_op.aid;
+                                    last_aname = item_op.aname;
                                     data_entry.push(single_entry);
                                 }
                             }
                         }
-                        sentry = {
-                            snum: summary_counter,
-                            aid: last_aid,
-                            aname: last_aname,
-                            cr: Math.abs(s_cr).toLocaleString("en-IN", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            }),
-                            dr: Math.abs(s_dr).toLocaleString("en-IN", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            })
-                        };
-                        if (data.show_zero == '0') {
-                            if (s_cr != 0 || s_dr != 0) {
+                        if (data_entry.length > 0) {
+                            sub_title = last_aid + " - " + last_aname;
+                            sentry = {
+                                snum: summary_counter,
+                                aid: last_aid,
+                                aname: last_aname,
+                                cr: Math.abs(s_cr).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                }),
+                                dr: Math.abs(s_dr).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })
+                            };
+                            if (data.show_zero == '0') {
+                                if (s_cr != 0 || s_dr != 0) {
+                                    summary.summary_data.push(sentry);
+                                }
+                            }
+                            else {
                                 summary.summary_data.push(sentry);
                             }
-                        }
-                        else {
-                            summary.summary_data.push(sentry);
-                        }
-                        s_cr_global += parseFloat(s_cr);
-                        s_dr_global += parseFloat(s_dr);
-                        data_total = `
-                            <tr style="background-color: silver;">
-                                <td colspan="2"></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                            </tr>
-                            <tr style="height: 20px !important;background-color: #FFFFFF;">
-                                <td colspan="7"></td>
-                            </tr>
-                            <tr style="background-color: gray;">
-                                <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                            </tr>
-                        `;
-                        if (data_entry.length > 0) {
+                            s_cr_global += parseFloat(s_cr);
+                            s_dr_global += parseFloat(s_dr);
+                            data_total = `
+                                <tr style="background-color: silver;">
+                                    <td colspan="2"></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                                <tr style="height: 20px !important;background-color: #FFFFFF;">
+                                    <td colspan="7"></td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td colspan="2" style="text-align: center;"><strong>Grand Total</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                            `;
                             entry = {
                                 data_title: sub_title,
                                 data: data_entry,
@@ -3801,22 +3893,21 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -3890,66 +3981,76 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                 sql_arr = [data.from_date, data.from_date, data.to_date];
                 sql = `
                     SELECT
+                        Account_Head.account_id AS aid
+                    FROM Account_Head
+                    WHERE Account_Head.is_society = 0;
+                    SELECT
                         DISTINCT Account_Balance.account_id AS aid,
                         Account_Head.account_name AS aname,
-                        (
-                            SELECT
-                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
-                            FROM Account_Balance
-                            WHERE Account_Balance.account_id = aid
-                        ) AS op1,
-                        IFNULL(
-                            (
-                                SELECT
-                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
-                                FROM Ledger
-                                WHERE Ledger.account_id = aid AND Ledger.transaction_date <= ?
-                            )
-                        ,0) AS op2,
-                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
-                        Ledger.narration AS narration,
-                        IFNULL(Ledger.cr_amount,0) AS cr,
-                        IFNULL(Ledger.dr_amount,0) AS dr
-                        FROM Account_Balance
+                        SUM(
+                            IF(
+                                Account_Balance.op_crdr = "DR", 
+                                -1*Account_Balance.op_balance,
+                                Account_Balance.op_balance
+                            ) 
+                        ) AS op1
+                    FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Ledger
-                            ON Ledger.account_id = Account_Balance.account_id
-                    WHERE Account_Head.is_society = 1 AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
-                    ORDER BY Account_Balance.account_id ASC, Ledger.transaction_date ASC;
+                    WHERE Account_Head.is_society = 1
+                    GROUP BY Account_Balance.account_id;
+                    SELECT
+                        Ledger.account_id AS aid,
+                        (IFNULL(SUM(Ledger.cr_amount),0) - IFNULL(SUM(Ledger.dr_amount),0)) AS op2
+                    FROM Ledger
+                        WHERE Ledger.transaction_date < ?
+                        GROUP BY Ledger.account_id
+                        ORDER BY Ledger.account_id ASC;
+                    SELECT
+                        Ledger.account_id AS aid,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration
+                    FROM Ledger
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ?
+                        ORDER BY Ledger.account_id ASC;
                 `;
             }
             else {
-                sql_arr = [data.from_date, data.from_date, data.to_date, data.account_id_list];
+                sql_arr = [data.account_id_list, data.account_id_list, data.from_date, data.from_date, data.to_date, data.account_id_list];
                 sql = `
                     SELECT
                         DISTINCT Account_Balance.account_id AS aid,
                         Account_Head.account_name AS aname,
-                        (
-                            SELECT
-                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
-                            FROM Account_Balance
-                            WHERE Account_Balance.account_id = aid
-                        ) AS op1,
-                        IFNULL(
-                            (
-                                SELECT
-                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
-                                FROM Ledger
-                                WHERE Ledger.account_id = aid AND Ledger.transaction_date <= ?
-                            )
-                        ,0) AS op2,
-                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
-                        Ledger.narration AS narration,
-                        IFNULL(Ledger.cr_amount,0) AS cr,
-                        IFNULL(Ledger.dr_amount,0) AS dr
-                        FROM Account_Balance
+                        SUM(
+                            IF(
+                                Account_Balance.op_crdr = "DR", 
+                                -1*Account_Balance.op_balance,
+                                Account_Balance.op_balance
+                            ) 
+                        ) AS op1
+                    FROM Account_Balance
                         INNER JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Ledger
-                            ON Ledger.account_id = Account_Balance.account_id
-                    WHERE Account_Head.is_society = 1 AND Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Account_Head.account_id IN (?)
-                    ORDER BY Account_Balance.account_id ASC, Ledger.transaction_date ASC;
+                    WHERE Account_Head.is_society = 1 AND Account_Head.account_id IN (?)
+                    GROUP BY Account_Balance.account_id;
+                    SELECT
+                        Ledger.account_id AS aid,
+                        (IFNULL(SUM(Ledger.cr_amount),0) - IFNULL(SUM(Ledger.dr_amount),0)) AS op2
+                    FROM Ledger
+                        WHERE Ledger.account_id IN (?) AND Ledger.transaction_date < ?
+                        GROUP BY Ledger.account_id
+                        ORDER BY Ledger.account_id ASC;
+                    SELECT
+                        Ledger.account_id AS aid,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration
+                    FROM Ledger
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id IN (?)
+                        ORDER BY Ledger.account_id ASC;
                 `;
             }
             connection.query(sql, sql_arr, (err, results) => {
@@ -3983,7 +4084,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
+                        var data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
@@ -3997,239 +4098,186 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         var to_date = to_date_arr[2] + "/" + to_date_arr[1] + "/" + to_date_arr[0];
                         op = (parseFloat(results[0].op1) + parseFloat(results[0].op2)) || 0.00;
                         last_aname = results[0].aname;
-                        if (op >= 0) {
-                            single_entry = {
-                                date: fr_date,
-                                narration: "Opening Balance",
-                                cr: Math.abs(op).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }),
-                                dr: ' '
-                            };
-                            s_cr += Math.abs(parseFloat(op));
+
+                        var i = 0, j = 0;
+                        var main_op1 = [], main_op2 = [], ledger = [];
+                        var item_op1, item_op2, item_ledger;
+
+                        if (data.select_all == '1') {
+                            var acc_list = results[0];
+                            var non_sos = [];
+                            var l;
+                            for (l = 0; l < acc_list.length; l++)
+                                non_sos.push(acc_list[l].aid);
+                            main_op1 = results[1];
+                            var main_op2_pre = results[2];
+                            var ledger_pre = results[3];
+                            for (i = 0; i < main_op2_pre.length; i++) {
+                                item_op2 = main_op2_pre[i];
+                                if (!non_sos.includes(item_op2.aid))
+                                    main_op2.push(item_op2);
+                            }
+                            for (j = 0; j < ledger_pre.length; j++) {
+                                item_ledger = ledger_pre[j];
+                                if (!non_sos.includes(item_ledger.aid))
+                                    ledger.push(item_ledger);
+                            }
+                            i = 0;
+                            j = 0;
                         }
                         else {
-                            single_entry = {
-                                date: fr_date,
-                                narration: "Opening Balance",
-                                cr: ' ',
-                                dr: Math.abs(op).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }),
-                            };
-                            s_dr += Math.abs(parseFloat(op));
+                            main_op1 = results[0];
+                            main_op2 = results[1];
+                            ledger = results[2];
                         }
-                        data_entry.push(single_entry);
 
-                        // DataRows Generation
-                        for (item of results) {
-                            new_id = item.aid;
-                            if (curr_id != new_id) {
-                                cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
-                                if (cl_balance >= 0) {
-                                    single_entry = {
-                                        date: to_date,
-                                        narration: "Closing Balance",
-                                        cr: ' ',
-                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }) + ' CR'
-                                    }
-                                    s_dr += Math.abs(parseFloat(cl_balance));
-                                    sentry = {
-                                        snum: summary_counter,
-                                        aid: curr_id,
-                                        aname: last_aname,
-                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }),
-                                        dr: ''
-                                    };
-                                    s_cr_global += parseFloat(Math.abs(cl_balance));
-                                }
-                                else {
-                                    single_entry = {
-                                        date: to_date,
-                                        narration: "Closing Balance",
-                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }) + ' DR',
-                                        dr: ' '
-                                    }
-                                    s_cr += Math.abs(parseFloat(cl_balance));
-                                    sentry = {
-                                        snum: summary_counter,
-                                        aid: curr_id,
-                                        aname: last_aname,
-                                        cr: '',
-                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        })
-                                    };
-                                    s_dr_global += parseFloat(Math.abs(cl_balance));
-                                }
-                                data_entry.push(single_entry);
-                                data_total = `
-                                    <tr style="text-align: center;background-color: silver;">
-                                        <td colspan="2"></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}</strong></td>
-                                    </tr>
-                                `;
-                                summary_counter++;
-                                summary.summary_data.push(sentry);
-                                if (data_entry.length > 0) {
-                                    entry = {
-                                        data_title: sub_title,
-                                        data: data_entry,
-                                        data_total
-                                    };
-                                    datarows.push(entry);
-                                }
-                                sub_title = item.aid + " - " + item.aname;
-                                curr_id = new_id;
-                                s_cr = 0.00;
-                                s_dr = 0.00;
-                                data_entry = [];
-                                op = parseFloat(item.op1) + parseFloat(item.op2);
-                                if (op >= 0) {
-                                    single_entry = {
-                                        date: fr_date,
-                                        narration: "Opening Balance",
-                                        cr: Math.abs(op).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }),
-                                        dr: ' '
-                                    };
-                                    s_cr += Math.abs(parseFloat(op));
-                                }
-                                else {
-                                    single_entry = {
-                                        date: fr_date,
-                                        narration: "Opening Balance",
-                                        cr: ' ',
-                                        dr: Math.abs(op).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        })
-                                    };
-                                    s_dr += Math.abs(parseFloat(op));
-                                }
-                                data_entry.push(single_entry);
+                        for (item_op1 of main_op1) {
+                            data_entry = [];
+                            s_cr = 0.00;
+                            s_dr = 0.00;
+
+                            sub_title = item_op1.aid + " - " + item_op1.aname;
+
+                            if (i < main_op2.length && main_op2[i].aid == item_op1.aid) {
+                                op2 = main_op1[i].op2;
+                                i++;
                             }
-                            cr = Math.abs(parseFloat(item.cr)) || 0.00;
-                            dr = Math.abs(parseFloat(item.dr)) || 0.00;
-                            if (dr > 0) {
+                            else
+                                op2 = 0.00;
+
+                            op = (parseFloat(item_op1.op1) + parseFloat(op2)) || 0.00;
+
+                            if (op >= 0) {
                                 single_entry = {
-                                    date: item.tc_date,
-                                    narration: item.narration,
-                                    cr: ' ',
-                                    dr: Math.abs(dr).toLocaleString("en-IN", {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })
-                                };
-                                s_dr += dr;
-                            }
-                            else {
-                                single_entry = {
-                                    date: item.tc_date,
-                                    narration: item.narration,
-                                    cr: Math.abs(cr).toLocaleString("en-IN", {
+                                    date: fr_date,
+                                    narration: "Opening Balance",
+                                    cr: Math.abs(op).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }),
                                     dr: ' '
                                 };
-                                s_cr += cr;
+                                s_cr += Math.abs(parseFloat(op));
+                            }
+                            else {
+                                single_entry = {
+                                    date: fr_date,
+                                    narration: "Opening Balance",
+                                    cr: ' ',
+                                    dr: Math.abs(op).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_dr += Math.abs(parseFloat(op));
                             }
                             data_entry.push(single_entry);
-                            last_aname = item.aname;
-                        }
-                        cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
-                        if (cl_balance >= 0) {
-                            single_entry = {
-                                date: to_date,
-                                narration: "Closing Balance",
-                                cr: ' ',
-                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }) + ' CR'
+
+                            while (j < ledger.length && ledger[j].aid == item_op1.aid) {
+                                item_ledger = ledger[j];
+                                cr = Math.abs(parseFloat(item_ledger.cr)) || 0.00;
+                                dr = Math.abs(parseFloat(item_ledger.dr)) || 0.00;
+                                if (dr > 0) {
+                                    single_entry = {
+                                        date: item_ledger.tc_date,
+                                        narration: item_ledger.narration,
+                                        cr: ' ',
+                                        dr: Math.abs(dr).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    s_dr += dr;
+                                }
+                                else {
+                                    single_entry = {
+                                        date: item_ledger.tc_date,
+                                        narration: item_ledger.narration,
+                                        cr: Math.abs(cr).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ' '
+                                    };
+                                    s_cr += cr;
+                                }
+                                data_entry.push(single_entry);
+                                j++;
+                                //last_aname = item.aname;
                             }
-                            s_dr += Math.abs(parseFloat(cl_balance));
-                            sentry = {
-                                snum: summary_counter,
-                                aid: curr_id,
-                                aname: last_aname,
-                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }),
-                                dr: ''
-                            };
-                            s_cr_global += parseFloat(Math.abs(cl_balance));
-                        }
-                        else {
-                            single_entry = {
-                                date: to_date,
-                                narration: "Closing Balance",
-                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }) + ' DR',
-                                dr: ' '
+                            cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
+                            if (cl_balance >= 0) {
+                                single_entry = {
+                                    date: to_date,
+                                    narration: "Closing Balance",
+                                    cr: ' ',
+                                    dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + ' CR'
+                                }
+                                s_dr += Math.abs(parseFloat(cl_balance));
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: item_op1.aid,
+                                    aname: item_op1.aname,
+                                    cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: ''
+                                };
+                                s_cr_global += parseFloat(Math.abs(cl_balance));
                             }
-                            s_cr += Math.abs(parseFloat(cl_balance));
-                            sentry = {
-                                snum: summary_counter,
-                                aid: curr_id,
-                                aname: last_aname,
-                                cr: '',
-                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })
-                            };
-                            s_dr_global += parseFloat(Math.abs(cl_balance));
+                            else {
+                                single_entry = {
+                                    date: to_date,
+                                    narration: "Closing Balance",
+                                    cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + ' DR',
+                                    dr: ' '
+                                }
+                                s_cr += Math.abs(parseFloat(cl_balance));
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: item_op1.aid,
+                                    aname: item_op1.aname,
+                                    cr: '',
+                                    dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_dr_global += parseFloat(Math.abs(cl_balance));
+                            }
+                            data_entry.push(single_entry);
+                            data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td colspan="2"></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    </tr>
+                                `;
+                            summary_counter++;
+                            summary.summary_data.push(sentry);
+                            if (data_entry.length > 0) {
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry,
+                                    data_total
+                                };
+                                datarows.push(entry);
+                            }
                         }
-                        data_entry.push(single_entry);
-                        data_total = `
-                            <tr style="text-align: center;background-color: silver;">
-                                <td colspan="2"></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                            </tr>
-                        `;
-                        summary_counter++;
-                        summary.summary_data.push(sentry);
-                        if (data_entry.length > 0) {
-                            entry = {
-                                data_title: sub_title,
-                                data: data_entry,
-                                data_total
-                            };
-                            datarows.push(entry);
-                        }
+
                         // Summary Generation
                         var net_balance = parseFloat(s_cr_global) - parseFloat(s_dr_global);
                         if (net_balance >= 0) {
@@ -4312,22 +4360,21 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -4399,66 +4446,75 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                 sql_arr = [data.from_date, data.from_date, data.to_date];
                 sql = `
                     SELECT
+                        Account_Head.account_id AS aid
+                    FROM Account_Head
+                    WHERE Account_Head.is_society = 0;
+                    SELECT
                         DISTINCT Account_Balance.sub_account_id AS aid,
                         Sub_Account.sub_account_name AS aname,
-                        (
-                            SELECT
-                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
-                            FROM Account_Balance
-                            WHERE Account_Balance.sub_account_id = aid
-                        ) AS op1,
-                        IFNULL(
-                            (
-                                SELECT
-                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
-                                FROM Ledger
-                                WHERE Ledger.sub_account_id = aid AND Ledger.transaction_date <= ?
-                            )
-                        ,0) AS op2,
-                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
-                        Ledger.narration AS narration,
-                        IFNULL(Ledger.cr_amount,0) AS cr,
-                        IFNULL(Ledger.dr_amount,0) AS dr
-                        FROM Account_Balance
+                        SUM(
+                            IF(
+                                Account_Balance.op_crdr = "DR", 
+                                -1*Account_Balance.op_balance,
+                                Account_Balance.op_balance
+                            ) 
+                        ) AS op1
+                    FROM Account_Balance
                         INNER JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
-                        INNER JOIN Ledger
-                            ON Ledger.sub_account_id = Account_Balance.sub_account_id
-                    WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
-                    ORDER BY Account_Balance.sub_account_id ASC, Ledger.transaction_date ASC;
+                    GROUP BY Account_Balance.sub_account_id;
+                    SELECT
+                        Ledger.sub_account_id AS aid,
+                        (IFNULL(SUM(Ledger.cr_amount),0) - IFNULL(SUM(Ledger.dr_amount),0)) AS op2
+                    FROM Ledger
+                        WHERE Ledger.transaction_date < ?
+                        GROUP BY Ledger.sub_account_id
+                        ORDER BY Ledger.sub_account_id ASC;
+                    SELECT
+                        Ledger.sub_account_id AS aid,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration
+                    FROM Ledger
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ?
+                        ORDER BY Ledger.sub_account_id ASC;
                 `;
             }
             else {
-                sql_arr = [data.from_date, data.from_date, data.to_date, data.sub_account_id_list];
+                sql_arr = [data.sub_account_id_list, data.sub_account_id_list, data.from_date, data.from_date, data.to_date, data.sub_account_id_list];
                 sql = `
                     SELECT
                         DISTINCT Account_Balance.sub_account_id AS aid,
                         Sub_Account.sub_account_name AS aname,
-                        (
-                            SELECT
-                                SUM(IF(Account_Balance.op_crdr = "DR",-1*Account_Balance.op_balance,Account_Balance.op_balance))
-                            FROM Account_Balance
-                            WHERE Account_Balance.sub_account_id = aid
-                        ) AS op1,
-                        IFNULL(
-                            (
-                                SELECT
-                                    (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
-                                FROM Ledger
-                                WHERE Ledger.sub_account_id = aid AND Ledger.transaction_date <= ?
-                            )
-                        ,0) AS op2,
-                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
-                        Ledger.narration AS narration,
-                        IFNULL(Ledger.cr_amount,0) AS cr,
-                        IFNULL(Ledger.dr_amount,0) AS dr
-                        FROM Account_Balance
+                        SUM(
+                            IF(
+                                Account_Balance.op_crdr = "DR", 
+                                -1*Account_Balance.op_balance,
+                                Account_Balance.op_balance
+                            ) 
+                        ) AS op1
+                    FROM Account_Balance
                         INNER JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
-                        INNER JOIN Ledger
-                            ON Ledger.sub_account_id = Account_Balance.sub_account_id
-                    WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Sub_Account.sub_account_id IN (?)
-                    ORDER BY Account_Balance.sub_account_id ASC, Ledger.transaction_date ASC;
+                    WHERE Sub_Account.sub_account_id IN (?)
+                    GROUP BY Account_Balance.sub_account_id;
+                    SELECT
+                        Ledger.sub_account_id AS aid,
+                        (IFNULL(SUM(Ledger.cr_amount),0) - IFNULL(SUM(Ledger.dr_amount),0)) AS op2
+                    FROM Ledger
+                        WHERE Ledger.sub_account_id IN (?) AND Ledger.transaction_date < ?
+                        GROUP BY Ledger.sub_account_id
+                        ORDER BY Ledger.sub_account_id ASC;
+                    SELECT
+                        Ledger.sub_account_id AS aid,
+                        IFNULL(Ledger.cr_amount,0) AS cr,
+                        IFNULL(Ledger.dr_amount,0) AS dr,
+                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
+                        Ledger.narration AS narration
+                    FROM Ledger
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.sub_account_id IN (?)
+                        ORDER BY Ledger.sub_account_id ASC;
                 `;
             }
             connection.query(sql, sql_arr, (err, results) => {
@@ -4492,7 +4548,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, new_id, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
+                        var data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, cl_balance = 0.00, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
@@ -4506,239 +4562,186 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                         var to_date = to_date_arr[2] + "/" + to_date_arr[1] + "/" + to_date_arr[0];
                         op = (parseFloat(results[0].op1) + parseFloat(results[0].op2)) || 0.00;
                         last_aname = results[0].aname;
-                        if (op >= 0) {
-                            single_entry = {
-                                date: fr_date,
-                                narration: "Opening Balance",
-                                cr: Math.abs(op).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }),
-                                dr: ' '
-                            };
-                            s_cr += Math.abs(parseFloat(op));
+
+                        var i = 0, j = 0;
+                        var main_op1 = [], main_op2 = [], ledger = [];
+                        var item_op1, item_op2, item_ledger;
+
+                        if (data.select_all == '1') {
+                            var acc_list = results[0];
+                            var non_sos = [];
+                            var l;
+                            for (l = 0; l < acc_list.length; l++)
+                                non_sos.push(acc_list[l].aid);
+                            main_op1 = results[1];
+                            var main_op2_pre = results[2];
+                            var ledger_pre = results[3];
+                            for (i = 0; i < main_op2_pre.length; i++) {
+                                item_op2 = main_op2_pre[i];
+                                if (!non_sos.includes(item_op2.aid))
+                                    main_op2.push(item_op2);
+                            }
+                            for (j = 0; j < ledger_pre.length; j++) {
+                                item_ledger = ledger_pre[j];
+                                if (!non_sos.includes(item_ledger.aid))
+                                    ledger.push(item_ledger);
+                            }
+                            i = 0;
+                            j = 0;
                         }
                         else {
-                            single_entry = {
-                                date: fr_date,
-                                narration: "Opening Balance",
-                                cr: ' ',
-                                dr: Math.abs(op).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }),
-                            };
-                            s_dr += Math.abs(parseFloat(op));
+                            main_op1 = results[0];
+                            main_op2 = results[1];
+                            ledger = results[2];
                         }
-                        data_entry.push(single_entry);
 
-                        // DataRows Generation
-                        for (item of results) {
-                            new_id = item.aid;
-                            if (curr_id != new_id) {
-                                cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
-                                if (cl_balance >= 0) {
-                                    single_entry = {
-                                        date: to_date,
-                                        narration: "Closing Balance",
-                                        cr: ' ',
-                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }) + " CR"
-                                    }
-                                    s_dr += Math.abs(parseFloat(cl_balance));
-                                    sentry = {
-                                        snum: summary_counter,
-                                        aid: curr_id,
-                                        aname: last_aname,
-                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }),
-                                        dr: ''
-                                    };
-                                    s_cr_global += parseFloat(Math.abs(cl_balance));
-                                }
-                                else {
-                                    single_entry = {
-                                        date: to_date,
-                                        narration: "Closing Balance",
-                                        cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }) + " DR",
-                                        dr: ' '
-                                    }
-                                    s_cr += Math.abs(parseFloat(cl_balance));
-                                    sentry = {
-                                        snum: summary_counter,
-                                        aid: curr_id,
-                                        aname: last_aname,
-                                        cr: '',
-                                        dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        })
-                                    };
-                                    s_dr_global += parseFloat(Math.abs(cl_balance));
-                                }
-                                data_entry.push(single_entry);
-                                data_total = `
-                                    <tr style="text-align: center;background-color: silver;">
-                                        <td colspan="2"></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}</strong></td>
-                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}</strong></td>
-                                    </tr>
-                                `;
-                                summary_counter++;
-                                summary.summary_data.push(sentry);
-                                if (data_entry.length > 0) {
-                                    entry = {
-                                        data_title: sub_title,
-                                        data: data_entry,
-                                        data_total
-                                    };
-                                    datarows.push(entry);
-                                }
-                                sub_title = item.aid + " - " + item.aname;
-                                curr_id = new_id;
-                                s_cr = 0.00;
-                                s_dr = 0.00;
-                                data_entry = [];
-                                op = parseFloat(item.op1) + parseFloat(item.op2);
-                                if (op >= 0) {
-                                    single_entry = {
-                                        date: fr_date,
-                                        narration: "Opening Balance",
-                                        cr: Math.abs(op).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        }),
-                                        dr: ' '
-                                    };
-                                    s_cr += Math.abs(parseFloat(op));
-                                }
-                                else {
-                                    single_entry = {
-                                        date: fr_date,
-                                        narration: "Opening Balance",
-                                        cr: ' ',
-                                        dr: Math.abs(op).toLocaleString("en-IN", {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                        })
-                                    };
-                                    s_dr += Math.abs(parseFloat(op));
-                                }
-                                data_entry.push(single_entry);
+                        for (item_op1 of main_op1) {
+                            data_entry = [];
+                            s_cr = 0.00;
+                            s_dr = 0.00;
+
+                            sub_title = item_op1.aid + " - " + item_op1.aname;
+
+                            if (i < main_op2.length && main_op2[i].aid == item_op1.aid) {
+                                op2 = main_op1[i].op2;
+                                i++;
                             }
-                            cr = Math.abs(parseFloat(item.cr)) || 0.00;
-                            dr = Math.abs(parseFloat(item.dr)) || 0.00;
-                            if (dr > 0) {
+                            else
+                                op2 = 0.00;
+
+                            op = (parseFloat(item_op1.op1) + parseFloat(op2)) || 0.00;
+
+                            if (op >= 0) {
                                 single_entry = {
-                                    date: item.tc_date,
-                                    narration: item.narration,
-                                    cr: ' ',
-                                    dr: Math.abs(dr).toLocaleString("en-IN", {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })
-                                };
-                                s_dr += dr;
-                            }
-                            else {
-                                single_entry = {
-                                    date: item.tc_date,
-                                    narration: item.narration,
-                                    cr: Math.abs(cr).toLocaleString("en-IN", {
+                                    date: fr_date,
+                                    narration: "Opening Balance",
+                                    cr: Math.abs(op).toLocaleString("en-IN", {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
                                     }),
                                     dr: ' '
                                 };
-                                s_cr += cr;
+                                s_cr += Math.abs(parseFloat(op));
+                            }
+                            else {
+                                single_entry = {
+                                    date: fr_date,
+                                    narration: "Opening Balance",
+                                    cr: ' ',
+                                    dr: Math.abs(op).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_dr += Math.abs(parseFloat(op));
                             }
                             data_entry.push(single_entry);
-                            last_aname = item.aname;
-                        }
-                        cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
-                        if (cl_balance >= 0) {
-                            single_entry = {
-                                date: to_date,
-                                narration: "Closing Balance",
-                                cr: ' ',
-                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }) + " CR"
+
+                            while (j < ledger.length && ledger[j].aid == item_op1.aid) {
+                                item_ledger = ledger[j];
+                                cr = Math.abs(parseFloat(item_ledger.cr)) || 0.00;
+                                dr = Math.abs(parseFloat(item_ledger.dr)) || 0.00;
+                                if (dr > 0) {
+                                    single_entry = {
+                                        date: item_ledger.tc_date,
+                                        narration: item_ledger.narration,
+                                        cr: ' ',
+                                        dr: Math.abs(dr).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                    s_dr += dr;
+                                }
+                                else {
+                                    single_entry = {
+                                        date: item_ledger.tc_date,
+                                        narration: item_ledger.narration,
+                                        cr: Math.abs(cr).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: ' '
+                                    };
+                                    s_cr += cr;
+                                }
+                                data_entry.push(single_entry);
+                                j++;
+                                //last_aname = item.aname;
                             }
-                            s_dr += Math.abs(parseFloat(cl_balance));
-                            sentry = {
-                                snum: summary_counter,
-                                aid: curr_id,
-                                aname: last_aname,
-                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }),
-                                dr: ''
-                            };
-                            s_cr_global += parseFloat(Math.abs(cl_balance));
-                        }
-                        else {
-                            single_entry = {
-                                date: to_date,
-                                narration: "Closing Balance",
-                                cr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }) + " DR",
-                                dr: ' '
+                            cl_balance = parseFloat(s_cr) - parseFloat(s_dr);
+                            if (cl_balance >= 0) {
+                                single_entry = {
+                                    date: to_date,
+                                    narration: "Closing Balance",
+                                    cr: ' ',
+                                    dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + ' CR'
+                                }
+                                s_dr += Math.abs(parseFloat(cl_balance));
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: item_op1.aid,
+                                    aname: item_op1.aname,
+                                    cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: ''
+                                };
+                                s_cr_global += parseFloat(Math.abs(cl_balance));
                             }
-                            s_cr += Math.abs(parseFloat(cl_balance));
-                            sentry = {
-                                snum: summary_counter,
-                                aid: curr_id,
-                                aname: last_aname,
-                                cr: '',
-                                dr: Math.abs(cl_balance).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })
-                            };
-                            s_dr_global += parseFloat(Math.abs(cl_balance));
+                            else {
+                                single_entry = {
+                                    date: to_date,
+                                    narration: "Closing Balance",
+                                    cr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) + ' DR',
+                                    dr: ' '
+                                }
+                                s_cr += Math.abs(parseFloat(cl_balance));
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: item_op1.aid,
+                                    aname: item_op1.aname,
+                                    cr: '',
+                                    dr: Math.abs(cl_balance).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                                s_dr_global += parseFloat(Math.abs(cl_balance));
+                            }
+                            data_entry.push(single_entry);
+                            data_total = `
+                                    <tr style="text-align: center;background-color: silver;">
+                                        <td colspan="2"></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                        <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    </tr>
+                                `;
+                            summary_counter++;
+                            summary.summary_data.push(sentry);
+                            if (data_entry.length > 0) {
+                                entry = {
+                                    data_title: sub_title,
+                                    data: data_entry,
+                                    data_total
+                                };
+                                datarows.push(entry);
+                            }
                         }
-                        data_entry.push(single_entry);
-                        data_total = `
-                            <tr style="text-align: center;background-color: silver;">
-                                <td colspan="2"></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_cr).toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                                <td style="text-align: right;"><strong>${Math.abs(s_dr).toLocaleString("en-IN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        })}</strong></td>
-                            </tr>
-                        `;
-                        summary_counter++;
-                        summary.summary_data.push(sentry);
-                        if (data_entry.length > 0) {
-                            entry = {
-                                data_title: sub_title,
-                                data: data_entry,
-                                data_total
-                            };
-                            datarows.push(entry);
-                        }
+
                         // Summary Generation
                         var net_balance = parseFloat(s_cr_global) - parseFloat(s_dr_global);
                         if (net_balance >= 0) {
@@ -4821,22 +4824,21 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -5351,22 +5353,21 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -5617,22 +5618,21 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -5950,22 +5950,21 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -6140,22 +6139,21 @@ router.get('/societywiseheiferdate', middleware.loggedin_as_superuser, (req, res
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -6330,22 +6328,21 @@ router.get('/societywisedeathdate', middleware.loggedin_as_superuser, (req, res)
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -6530,22 +6527,21 @@ router.get('/receiptperiodicalregister', middleware.loggedin_as_superuser, (req,
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -6729,22 +6725,21 @@ router.get('/paymentperiodicalregister', middleware.loggedin_as_superuser, (req,
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
@@ -6985,12 +6980,17 @@ router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
                                 i++;
                             }
                             else {
-                                if(itemMain.sid < main_op[i].sid)
+                                if (itemMain.sid < main_op[i].sid)
                                     op2 = 0.00;
                                 else {
-                                    while(itemMain.sid > main_op[i].sid )
+                                    var prev_i = i;
+                                    while (itemMain.sid > main_op[i].sid)
                                         i++;
-                                    if(itemMain.sid == main_op[i].sid) {
+                                    if (i >= main_op.length) {
+                                        i = prev_i;
+                                        op2 = 0.00;
+                                    }
+                                    else if (itemMain.sid == main_op[i].sid) {
                                         op2 = main_op[i].op2;
                                         i++;
                                     }
@@ -7287,22 +7287,21 @@ router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
                             });
                         }
                         else {
-                            var fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-                            var client_link = new URL(fullUrl);
-                            var link = new URL(String(resheaders.headers['permanent-link']));
-                            if (!link) {
-                                res.send({
-                                    status: false
-                                });
-                            }
-                            else {
+                            var fullUrl, client_link, link;
+                            try {
+                                fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+                                client_link = new URL(fullUrl);
+                                link = new URL(String(resheaders.headers['permanent-link']));
                                 link.hostname = client_link.hostname;
-                                //console.log("FINAL PDF LINK : ",link.href);
-                                //var pdf_id = link.split('/').slice(-2)[0];
-                                //console.log(pdf_id);
                                 res.send({
                                     status: true,
                                     link: link.href
+                                });
+                            }
+                            catch (e) {
+                                console.log(e);
+                                res.send({
+                                    status: false
                                 });
                             }
                         }
