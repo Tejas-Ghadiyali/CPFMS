@@ -3459,6 +3459,7 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         var i = 0, j = 0;
                         var main_op = [], ledger = [];
                         var item_op, item_ledger;
+                        var s_cl_net = 0.00;
 
                         if (data.select_all == '1') {
                             var acc_list = results[0];
@@ -3498,19 +3499,31 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                                 })}</strong></td>
                                     </tr>
                                 `;
-                                sentry = {
-                                    snum: summary_counter,
-                                    aid: last_aid,
-                                    aname: last_aname,
-                                    cr: Math.abs(s_cr).toLocaleString("en-IN", {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    }),
-                                    dr: Math.abs(s_dr).toLocaleString("en-IN", {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })
-                                };
+                                s_cl_net = s_cr + s_dr; // s_dr is already in negative
+                                if (s_cl_net >= 0) {
+                                    sentry = {
+                                        snum: summary_counter,
+                                        aid: last_aid,
+                                        aname: last_aname,
+                                        cr: Math.abs(s_cl_net).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        }),
+                                        dr: '0.00'
+                                    };
+                                }
+                                else {
+                                    sentry = {
+                                        snum: summary_counter,
+                                        aid: last_aid,
+                                        aname: last_aname,
+                                        cr: '0.00',
+                                        dr: Math.abs(s_cl_net).toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        })
+                                    };
+                                }
                                 if (data.show_zero == '0') {
                                     if (s_cr != 0 || s_dr != 0) {
                                         summary_counter++;
@@ -3591,19 +3604,31 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         }
                         if (data_entry.length > 0) {
                             sub_title = last_aid + " - " + last_aname;
-                            sentry = {
-                                snum: summary_counter,
-                                aid: last_aid,
-                                aname: last_aname,
-                                cr: Math.abs(s_cr).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }),
-                                dr: Math.abs(s_dr).toLocaleString("en-IN", {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })
-                            };
+                            s_cl_net = s_cr + s_dr; // s_dr is already in negative
+                            if (s_cl_net >= 0) {
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: last_aid,
+                                    aname: last_aname,
+                                    cr: Math.abs(s_cl_net).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }),
+                                    dr: '0.00'
+                                };
+                            }
+                            else {
+                                sentry = {
+                                    snum: summary_counter,
+                                    aid: last_aid,
+                                    aname: last_aname,
+                                    cr: '0.00',
+                                    dr: Math.abs(s_cl_net).toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })
+                                };
+                            }
                             if (data.show_zero == '0') {
                                 if (s_cr != 0 || s_dr != 0) {
                                     summary.summary_data.push(sentry);
