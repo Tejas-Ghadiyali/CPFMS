@@ -2827,16 +2827,16 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             Account_Balance.op_balance
                         ) AS op1
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
                     WHERE Account_Head.is_society = 1
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
                     SELECT
                         Ledger.account_id AS aid,
                         Ledger.sub_account_id AS sid,
-                        (IFNULL(SUM(Ledger.cr_amount),0) - IFNULL(SUM(Ledger.dr_amount),0)) AS op2
+                        (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount)) AS op2
                     FROM Ledger
                         WHERE Ledger.transaction_date < ?
                         GROUP BY Ledger.account_id,Ledger.sub_account_id
@@ -2847,7 +2847,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                         IFNULL(SUM(Ledger.cr_amount),0) AS cr,
                         IFNULL(SUM(Ledger.dr_amount),0) AS dr
                     FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ?
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
                         GROUP BY Ledger.account_id, Ledger.sub_account_id
                         ORDER BY Ledger.account_id ASC, Ledger.sub_account_id ASC;
                 `;
@@ -2866,9 +2866,9 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             Account_Balance.op_balance
                         ) AS op1
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
                     WHERE Account_Head.is_society = 1 AND Account_Head.account_id IN (?)
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
@@ -2886,7 +2886,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                         IFNULL(SUM(Ledger.cr_amount),0) AS cr,
                         IFNULL(SUM(Ledger.dr_amount),0) AS dr
                     FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id IN (?)
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id IN (?)
                         GROUP BY Ledger.account_id, Ledger.sub_account_id
                         ORDER BY Ledger.account_id ASC, Ledger.sub_account_id ASC;
                 `;
@@ -2962,12 +2962,26 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             main_op2 = results[1];
                             ledger = results[2];
                         }
-                        //console.log("MAIN OP1 SIZE : ",main_op1.length);
-                        //console.log("MAIN OP2 SIZE : ",main_op2.length);
-                        //console.log("LEDGER SIZE : ",ledger.length);
+                        console.log("MAIN OP1 SIZE : ", main_op1.length);
+                        console.log("MAIN OP2 SIZE : ", main_op2.length);
+                        console.log("LEDGER SIZE : ", ledger.length);
                         last_aid = main_op1[0].aid;
                         for (i = 0; i < main_op1.length; i++) {
                             item_op1 = main_op1[i];
+                            if (item_op1.aid == '0044') {
+                                console.log("\n<=================================================>");
+                                console.log(item_op1);
+                                console.log(j, k);
+                                console.log("-------------------------");
+                                console.log(main_op2[j]);
+                                console.log(main_op2[j + 1]);
+                                console.log(main_op2[j + 2]);
+                                console.log("-------------------------");
+                                console.log(ledger[k]);
+                                console.log(ledger[k + 1]);
+                                console.log(ledger[k + 2]);
+                                console.log("<=================================================>\n");
+                            }
                             if (last_aid != item_op1.aid && data_entry.length > 0) {
                                 sub_title = last_aid + " - " + last_aname;
                                 if (s_op >= 0) {
@@ -3367,9 +3381,9 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             Account_Balance.op_balance
                         ) AS op
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
                     WHERE Account_Head.is_society = 1
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
@@ -3398,9 +3412,9 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             Account_Balance.op_balance
                         ) AS op
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Account_Balance.sub_account_id = Sub_Account.sub_account_id
                     WHERE Account_Balance.account_id IN (?) AND Account_Head.is_society = 1
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
@@ -3446,15 +3460,12 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         `;
                     }
                     else {
-                        var curr_id = results[0].aid, data_entry = [], single_entry, sub_title = results[0].aid + " - " + results[0].aname, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, last_aid, last_aname;
+                        var data_entry = [], single_entry, entry, s_cr = 0.00, s_dr = 0.00, op = 0.00, cr = 0.00, dr = 0.00, cl = 0.00, data_total, s_cr_global = 0.00, s_dr_global = 0.00, last_aid, last_aname;
 
                         var summary_counter = 1, sentry;
                         summary.summary_headers = summary_headers;
                         summary.summary_len = summary_headers.length;
                         summary.summary_data = [];
-
-                        last_aid = curr_id;
-                        last_aname = results[0].aname;
 
                         var i = 0, j = 0;
                         var main_op = [], ledger = [];
@@ -3481,9 +3492,25 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             ledger = results[1];
                         }
 
+                        //console.log(main_op.length,ledger.length);
+                        //console.log(i,j);
+
+                        //console.log(results[2][0]);
+
                         last_aid = main_op[0].aid;
                         for (i = 0; i < main_op.length; i++) {
                             item_op = main_op[i];
+                            /*
+                            if(item_op.aid == '0087' || item_op.aid == '0086') {
+                                console.log("------------------------------------------------")
+                                console.log(item_op);
+                                console.log(j);
+                                console.log(ledger[j]);
+                                console.log(ledger[j+1]);
+                                console.log(ledger[j+2]);
+                                console.log("------------------------------------------------")
+                            }
+                            */
                             if (last_aid != item_op.aid && data_entry.length > 0) {
                                 sub_title = last_aid + " - " + last_aname;
                                 data_total = `
@@ -3696,6 +3723,62 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                             datarows.push(entry);
                         }
                         // Summary Generation
+                        var net_balance = Math.abs(parseFloat(s_cr_global)) - Math.abs(parseFloat(s_dr_global));
+                        if (net_balance >= 0) {
+                            summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td colspan="3"></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                                <tr style="background-color: white">
+                                    <td></td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Net Balance</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(net_balance).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td></td>
+                                </tr>
+                            `;
+                        }
+                        else {
+                            summary.summary_total = `
+                                <tr style="text-align: center;background-color: gray;">
+                                    <td colspan="3"></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_cr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(s_dr_global).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                                <tr style="background-color: white">
+                                    <td></td>
+                                </tr>
+                                <tr style="background-color: gray;">
+                                    <td></td>
+                                    <td colspan="2" style="text-align: center;"><strong>Net Balance</strong></td>
+                                    <td></td>
+                                    <td style="text-align: right;"><strong>${Math.abs(net_balance).toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            })}</strong></td>
+                                </tr>
+                            `;
+                        }
+                        /*
                         summary.summary_total = `
                             <tr style="background-color: gray;">
                                 <td colspan="3" style="text-align: center;"><strong>Grand Total</strong></td>
@@ -3709,6 +3792,7 @@ router.get('/societybalancedetailsondate', middleware.loggedin_as_superuser, (re
                         })}</strong></td>
                             </tr>
                         `;
+                        */
                     }
                     var username = req.user.user_name;
                     var dataobject = {
@@ -3837,7 +3921,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                             ) 
                         ) AS op1
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
                     WHERE Account_Head.is_society = 1
                     GROUP BY Account_Balance.account_id;
@@ -3855,7 +3939,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
                         Ledger.narration AS narration
                     FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ?
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
                         ORDER BY Ledger.account_id ASC;
                 `;
             }
@@ -3873,7 +3957,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                             ) 
                         ) AS op1
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
                     WHERE Account_Head.is_society = 1 AND Account_Head.account_id IN (?)
                     GROUP BY Account_Balance.account_id;
@@ -3891,7 +3975,7 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
                         Ledger.narration AS narration
                     FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id IN (?)
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id IN (?)
                         ORDER BY Ledger.account_id ASC;
                 `;
             }
@@ -4305,7 +4389,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                             ) 
                         ) AS op1
                     FROM Account_Balance
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
                     GROUP BY Account_Balance.sub_account_id;
                     SELECT
@@ -4322,7 +4406,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                         DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
                         Ledger.narration AS narration
                     FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ?
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
                         ORDER BY Ledger.sub_account_id ASC;
                 `;
             }
@@ -4340,7 +4424,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                             ) 
                         ) AS op1
                     FROM Account_Balance
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
                     WHERE Sub_Account.sub_account_id IN (?)
                     GROUP BY Account_Balance.sub_account_id;
@@ -4358,7 +4442,7 @@ router.get('/memberledger', middleware.loggedin_as_superuser, (req, res) => {
                         DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
                         Ledger.narration AS narration
                     FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.sub_account_id IN (?)
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.sub_account_id IN (?)
                         ORDER BY Ledger.sub_account_id ASC;
                 `;
             }
@@ -4778,7 +4862,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                             ) 
                         ) AS op1
                     FROM Account_Balance
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
                     WHERE Account_Balance.account_id = ?
                     GROUP BY Account_Balance.sub_account_id;
@@ -4796,7 +4880,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                         DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
                         Ledger.narration AS narration
                     FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id = ?
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id = ?
                         ORDER BY Ledger.sub_account_id ASC;
                 `;
             }
@@ -4814,7 +4898,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                             ) 
                         ) AS op1
                     FROM Account_Balance
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
                     WHERE Account_Balance.account_id = ? AND Sub_Account.sub_account_id IN (?)
                     GROUP BY Account_Balance.sub_account_id;
@@ -4832,7 +4916,7 @@ router.get('/societywisememberledger', middleware.loggedin_as_superuser, (req, r
                         DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
                         Ledger.narration AS narration
                     FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id = ? AND Ledger.sub_account_id IN (?)
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id = ? AND Ledger.sub_account_id IN (?)
                         ORDER BY Ledger.sub_account_id ASC;
                 `;
             }
@@ -5213,9 +5297,9 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                         Account_Balance.birth_date AS bcaldate,
                         Account_Balance.calwing_date AS ccaldate
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
                     WHERE Account_Balance.birth_date IS NOT NULL AND Account_Balance.calwing_date IS NOT NULL AND Account_Balance.calwing_date >= ? AND Account_Balance.calwing_date <= ?
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC, Account_Balance.birth_date ASC;
@@ -5234,9 +5318,9 @@ router.get('/societywisecalwingage', middleware.loggedin_as_superuser, (req, res
                         Account_Balance.birth_date AS bcaldate,
                         Account_Balance.calwing_date AS ccaldate
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
                     WHERE Account_Balance.birth_date IS NOT NULL AND Account_Balance.calwing_date IS NOT NULL AND Account_Balance.calwing_date >= ? AND Account_Balance.calwing_date <= ? AND Account_Balance.account_id IN (?)
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC, Account_Balance.birth_date ASC;
@@ -5469,9 +5553,9 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                         DATE_FORMAT(Account_Balance.death_date,'%d/%m/%Y') AS deathdate,
                         IF(Account_Balance.cl_crdr = "DR", -1*Account_Balance.cl_balance, Account_Balance.cl_balance) AS cl
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
                     WHERE Account_Head.is_society = '1'
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
@@ -5490,9 +5574,9 @@ router.get('/societywisecalwinganalysis', middleware.loggedin_as_superuser, (req
                         DATE_FORMAT(Account_Balance.death_date,'%d/%m/%Y') AS deathdate,
                         IF(Account_Balance.cl_crdr = "DR", -1*Account_Balance.cl_balance, Account_Balance.cl_balance) AS cl
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
                     WHERE Account_Head.is_society = '1' AND Account_Balance.account_id IN (?)
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
@@ -5805,9 +5889,9 @@ router.get('/societywiseheiferdate', middleware.loggedin_as_superuser, (req, res
                         Sub_Account.sub_account_name AS sname,
                         DATE_FORMAT(Account_Balance.heifer_date,'%d/%m/%Y') AS hdate
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
                     WHERE Account_Balance.heifer_date IS NOT NULL AND Account_Balance.heifer_date >= ? AND Account_Balance.heifer_date <= ?
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
@@ -5823,9 +5907,9 @@ router.get('/societywiseheiferdate', middleware.loggedin_as_superuser, (req, res
                         Sub_Account.sub_account_name AS sname,
                         DATE_FORMAT(Account_Balance.heifer_date,'%d/%m/%Y') AS hdate
                     FROM Account_Balance
-                        INNER JOIN Account_Head
+                        LEFT JOIN Account_Head
                             ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
+                        LEFT JOIN Sub_Account
                             ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
                     WHERE Account_Balance.heifer_date IS NOT NULL AND Account_Balance.heifer_date >= ? AND Account_Balance.heifer_date <= ? AND Account_Balance.account_id IN (?)
                     ORDER BY Account_Balance.account_id ASC, Account_Balance.sub_account_id ASC;
