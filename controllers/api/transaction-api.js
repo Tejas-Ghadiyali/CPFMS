@@ -52,9 +52,9 @@ router.get('/paymentdetails/:docnum', middleware.loggedin_as_superuser, (req, re
             var sql = `
                 SELECT 
                     Payment_Details.voucher_serial_number,Payment_Details.dr_sub_account_id,Payment_Details.payment_amount,Payment_Details.cattle_feed,Payment_Details.mineral_mix,Payment_Details.pasu_posak,Payment_Details.insurance,Payment_Details.other,Payment_Details.other1,Payment_Details.narration,
-                    Sub_Account.sub_account_name
+                    IFNULL(Sub_Account.sub_account_name,' ') AS sub_account_name
                 FROM Payment_Details
-                INNER JOIN Sub_Account
+                LEFT JOIN Sub_Account
                     ON Payment_Details.dr_sub_account_id = Sub_Account.sub_account_id
                 WHERE Payment_Details.document_number = ?
                 ORDER BY Payment_Details.voucher_serial_number ASC

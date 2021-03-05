@@ -2962,12 +2962,13 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                             main_op2 = results[1];
                             ledger = results[2];
                         }
-                        console.log("MAIN OP1 SIZE : ", main_op1.length);
-                        console.log("MAIN OP2 SIZE : ", main_op2.length);
-                        console.log("LEDGER SIZE : ", ledger.length);
+                        //console.log("MAIN OP1 SIZE : ", main_op1.length);
+                        //console.log("MAIN OP2 SIZE : ", main_op2.length);
+                        //console.log("LEDGER SIZE : ", ledger.length);
                         last_aid = main_op1[0].aid;
                         for (i = 0; i < main_op1.length; i++) {
                             item_op1 = main_op1[i];
+                            /*
                             if (item_op1.aid == '0044') {
                                 console.log("\n<=================================================>");
                                 console.log(item_op1);
@@ -2982,6 +2983,7 @@ router.get('/societybalancedetails', middleware.loggedin_as_superuser, (req, res
                                 console.log(ledger[k + 2]);
                                 console.log("<=================================================>\n");
                             }
+                            */
                             if (last_aid != item_op1.aid && data_entry.length > 0) {
                                 sub_title = last_aid + " - " + last_aname;
                                 if (s_op >= 0) {
@@ -3934,12 +3936,13 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         ORDER BY Ledger.account_id ASC;
                     SELECT
                         Ledger.account_id AS aid,
-                        IFNULL(Ledger.cr_amount,0) AS cr,
-                        IFNULL(Ledger.dr_amount,0) AS dr,
+                        IFNULL(SUM(Ledger.cr_amount),0) AS cr,
+                        IFNULL(SUM(Ledger.dr_amount),0) AS dr,
                         DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
                         Ledger.narration AS narration
                     FROM Ledger
                         WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ?
+                        GROUP BY Ledger.tc, Ledger.document_number
                         ORDER BY Ledger.account_id ASC;
                 `;
             }
@@ -3970,12 +3973,13 @@ router.get('/societyledger', middleware.loggedin_as_superuser, (req, res) => {
                         ORDER BY Ledger.account_id ASC;
                     SELECT
                         Ledger.account_id AS aid,
-                        IFNULL(Ledger.cr_amount,0) AS cr,
-                        IFNULL(Ledger.dr_amount,0) AS dr,
+                        IFNULL(SUM(Ledger.cr_amount),0) AS cr,
+                        IFNULL(SUM(Ledger.dr_amount),0) AS dr,
                         DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
                         Ledger.narration AS narration
                     FROM Ledger
                         WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id IN (?)
+                        GROUP BY Ledger.tc, Ledger.document_number
                         ORDER BY Ledger.account_id ASC;
                 `;
             }

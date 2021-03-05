@@ -176,11 +176,13 @@
         function viewentry(index) {
             $("#viewEmployeeModal .receipt-details-table tbody").empty();
             var item = data_local[index];
+            console.log(item.document_number);
             $.ajax({
                 url: '/api/transaction/paymentdetails/' + item.document_number,
                 success: function (res) {
                     var inhtml;
                     if (res.status === true) {
+                        console.log(res.data);
                         for (entry of res.data) {
                             if(entry.narration == null){
                                 entry.narration = ""
@@ -218,6 +220,9 @@
                         `;
                         $("#viewEmployeeModal .receipt-details-table tbody").append(inhtml);
                     }
+                },
+                error: function(res) {
+                    console.log("Failed to fetch...");
                 }
             });
             for (key in item) {
