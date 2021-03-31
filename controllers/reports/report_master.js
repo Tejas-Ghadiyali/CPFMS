@@ -576,4 +576,43 @@ router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
 	});
 });
 
+router.get('/summary', middleware.loggedin_as_superuser, (req, res) => {
+	getConnection((err, connection) => {
+		if (err) {
+			console.log(err);
+			req.flash(
+				"danger",
+				"Error while getting data!"
+			);
+			res.render('reports/summary', {
+				account_id_list: [],
+				flash: res.locals.flash
+			});
+		}
+		else {
+			var sql = `SELECT Account_Head.account_id AS id FROM Account_Head WHERE Account_Head.is_society = '1';`
+			connection.query(sql, (err, results) => {
+				connection.release();	
+				var account_id = [];
+				if(err) {
+					console.log(err);
+					req.flash(
+						"danger",
+						"Error while getting data!"
+					);
+				}
+				else {	
+					for(item of results) {
+						account_id.push(item.id);
+					}
+				}
+				res.render('reports/summary', {
+					account_id_list: account_id,
+					flash: res.locals.flash
+				});
+			});
+		}
+	});
+});
+
 module.exports = router;
