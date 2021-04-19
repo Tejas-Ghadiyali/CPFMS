@@ -254,7 +254,6 @@ router.get("/add", middleware.loggedin_as_superuser, (req, res) => {
 });
 
 router.post("/", middleware.loggedin_as_superuser, (req, res) => {
-    console.log(req.body);
     const len = req.body.account_ids.length;
     if (!(req.body.sub_account_ids.length == len && req.body.cr_amounts.length == len && req.body.dr_amounts.length == len && req.body.narrations.length == len)) {
         console.log("Array Length is not matching");
@@ -352,7 +351,6 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
                     amount: cr_total,
                     narration: req.body.acc_narration.trim()
                 };
-                console.log(sql, mentry);
                 connection.query(sql, mentry, (err, results) => {
                     connection.release();
                     if (err) {
@@ -443,7 +441,6 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                 }
                 else {
                     sql = '';
-                    console.log(results);
                     for (var entryob of results) {
                         if (entryob.cr_amount == 0) {
                             sql = sql + `CALL updateBalance_Payment(${entryob.sub_account_id}, ${-1 * entryob.dr_amount});`;
@@ -457,7 +454,6 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                         DELETE FROM Ledger WHERE Ledger.document_number in (?) AND Ledger.tc = "JV";
                         DELETE FROM JV WHERE JV.document_number in (?);
                     `;
-                    console.log(sql, docnum);
                     connection.query(sql, [docnum, docnum, docnum], (err1, results1) => {
                         if (err1) {
                             connection.release();
@@ -466,7 +462,6 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                             res.redirect('/jv');
                         }
                         else {
-                            console.log(results);
                             sql = '';
                             if (results1[0].affectedRows == 0 && results1[1].affectedRows == 0 && results1[2].affectedRows == 0) {
                                 connection.release();
@@ -492,11 +487,8 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                         cr_amount: parseFloat(req.body.cr_amounts[i]),
                                         narration: req.body.narrations[i].trim()
                                     };
-                                    console.log("ENTRY : ");
-                                    console.log(entry);
                                     if (entry.cr_amount != 0 && entry.dr_amount != 0) {
                                         //connection.release();
-                                        console.log("1");
                                         console.log("Error : Both Credit and Debit Amount should not be there!");
                                         req.flash('danger', 'Error while editing jv !');
                                         error_flag = true;
@@ -505,7 +497,6 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                     }
                                     else if (entry.cr_amount == 0 && entry.dr_amount == 0) {
                                         //connection.release();
-                                        console.log("2");
                                         console.log("Error : Both Credit and Debit Amount should not be zero!");
                                         req.flash('danger', 'Error while editing jv !');
                                         error_flag = true;
@@ -518,7 +509,6 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                 }
                                 if (cr_total != dr_total && error_flag != true) {
                                     //connection.release();
-                                    console.log("3");
                                     console.log("Error : CR Amount and DR Amount is not matching!");
                                     req.flash('danger', 'Error while editing jv !');
                                     error_flag = true;
@@ -582,7 +572,6 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                         amount: cr_total,
                                         narration: req.body.acc_narration.trim()
                                     };
-                                    console.log(sql, mentry);
                                     connection.query(sql, mentry, (err, results) => {
                                         connection.release();
                                         if (err) {
