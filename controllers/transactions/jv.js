@@ -275,8 +275,8 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
                         jv_serial_number: i + 1,
                         account_id: req.body.account_ids[i],
                         sub_account_id: req.body.sub_account_ids[i],
-                        dr_amount: parseFloat(req.body.dr_amounts[i]),
-                        cr_amount: parseFloat(req.body.cr_amounts[i]),
+                        dr_amount: parseFloat(req.body.dr_amounts[i]) || 0.00,
+                        cr_amount: parseFloat(req.body.cr_amounts[i]) || 0.00,
                         narration: req.body.narrations[i].trim()
                     };
                     if (entry.cr_amount != 0 && entry.dr_amount != 0) {
@@ -307,7 +307,7 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
                             account_id: req.body.account_ids[i],
                             sub_account_id: req.body.sub_account_ids[i],
                             cr_amount: 0.00,
-                            dr_amount: parseFloat(req.body.dr_amounts[i]),
+                            dr_amount: parseFloat(req.body.dr_amounts[i]) || 0.00,
                             cross_account_id: "Multiple",
                             narration: req.body.acc_narration.trim() + '_' + req.body.narrations[i].trim()
                         };
@@ -319,7 +319,7 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
                             transaction_date: req.body.jv_date,
                             account_id: req.body.account_ids[i],
                             sub_account_id: req.body.sub_account_ids[i],
-                            cr_amount: parseFloat(req.body.cr_amounts[i]),
+                            cr_amount: parseFloat(req.body.cr_amounts[i]) || 0.00,
                             dr_amount: 0.00,
                             cross_account_id: "Multiple",
                             narration: req.body.acc_narration.trim() + '_' + req.body.narrations[i].trim()
@@ -333,8 +333,8 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
                         jv_serial_number: i + 1,
                         account_id: req.body.account_ids[i],
                         sub_account_id: req.body.sub_account_ids[i],
-                        dr_amount: parseFloat(req.body.dr_amounts[i]),
-                        cr_amount: parseFloat(req.body.cr_amounts[i]),
+                        dr_amount: parseFloat(req.body.dr_amounts[i]) || 0.00,
+                        cr_amount: parseFloat(req.body.cr_amounts[i]) || 0.00,
                         narration: req.body.narrations[i].trim()
                     };
                     if (entry.cr_amount == 0) {
@@ -483,8 +483,8 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                         jv_serial_number: i + 1,
                                         account_id: req.body.account_ids[i],
                                         sub_account_id: req.body.sub_account_ids[i],
-                                        dr_amount: parseFloat(req.body.dr_amounts[i]),
-                                        cr_amount: parseFloat(req.body.cr_amounts[i]),
+                                        dr_amount: parseFloat(req.body.dr_amounts[i]) || 0.00,
+                                        cr_amount: parseFloat(req.body.cr_amounts[i]) || 0.00,
                                         narration: req.body.narrations[i].trim()
                                     };
                                     if (entry.cr_amount != 0 && entry.dr_amount != 0) {
@@ -528,7 +528,7 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                                 account_id: req.body.account_ids[i],
                                                 sub_account_id: req.body.sub_account_ids[i],
                                                 cr_amount: 0.00,
-                                                dr_amount: parseFloat(req.body.dr_amounts[i]),
+                                                dr_amount: parseFloat(req.body.dr_amounts[i]) || 0.00,
                                                 cross_account_id: "Multiple",
                                                 narration: req.body.acc_narration.trim() + '_' + req.body.narrations[i].trim()
                                             };
@@ -540,7 +540,7 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                                 transaction_date: req.body.jv_date,
                                                 account_id: req.body.account_ids[i],
                                                 sub_account_id: req.body.sub_account_ids[i],
-                                                cr_amount: parseFloat(req.body.cr_amounts[i]),
+                                                cr_amount: parseFloat(req.body.cr_amounts[i]) || 0.00,
                                                 dr_amount: 0.00,
                                                 cross_account_id: "Multiple",
                                                 narration: req.body.acc_narration.trim() + '_' + req.body.narrations[i].trim()
@@ -554,8 +554,8 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                             jv_serial_number: i + 1,
                                             account_id: req.body.account_ids[i],
                                             sub_account_id: req.body.sub_account_ids[i],
-                                            dr_amount: parseFloat(req.body.dr_amounts[i]),
-                                            cr_amount: parseFloat(req.body.cr_amounts[i]),
+                                            dr_amount: parseFloat(req.body.dr_amounts[i]) || 0.00,
+                                            cr_amount: parseFloat(req.body.cr_amounts[i]) || 0.00,
                                             narration: req.body.narrations[i].trim()
                                         };
                                         if (entry.cr_amount == 0) {
