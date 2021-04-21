@@ -208,8 +208,10 @@ router.get('/jv_acc_details/:id', middleware.loggedin_as_superuser, (req, res) =
                     res.send({ status: false });
                 }
                 else {
-                    if(results[0].length > 0 && results[1].length > 0){
-                        var sname = results[0][0].sname;
+                    if(results[1].length > 0){
+                        var sname = "";
+                        if(results[0].length > 0)
+                            sname = results[0][0].sname;
                         var aid = results[1][0].aid;
                         sql = `SELECT account_name AS aname FROM Account_Head WHERE account_id = ?`;
                         conncetion.query(sql,[aid],(err,res1) => {
@@ -219,18 +221,15 @@ router.get('/jv_acc_details/:id', middleware.loggedin_as_superuser, (req, res) =
                                 res.send({ status: false });
                             }
                             else {
-                                if(res1.length > 0){
-                                    var aname = res1[0].aname;
-                                    res.send({
-                                        status: true,
-                                        acc_id: aid,
-                                        acc_name: aname,
-                                        sub_acc_name: sname
-                                    });
-                                }
-                                else {
-                                    res.send({ status: false });
-                                }
+                                var aname = "";
+                                if(res1.length > 0)
+                                    aname = res1[0].aname;
+                                res.send({
+                                    status: true,
+                                    acc_id: aid,
+                                    acc_name: aname,
+                                    sub_acc_name: sname
+                                });
                             }
                         });
                     }
