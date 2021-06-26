@@ -7187,20 +7187,8 @@ router.get('/summary', middleware.loggedin_as_superuser, (req, res) => {
     };
     var headers = ["Date", "Narration", "Credit", "Debit", "Closing", "From", "To", "Days", "Interest Amount"];
     var summary_headers = ["Sr.No.", "Member ID", "Member Name", "Closing", "Interest", "Total"];
-    var report_title = "Society Wise Member Account Interest Report";
+    var report_title = "Summary Report";
     var mem_led_list, soc_led_list;
-    if (data.select_all == '1')
-        mem_led_list = 'All';
-    else {
-        if ("sub_account_id_list" in data) {
-            if (typeof (data.sub_account_id_list) === 'string')
-                mem_led_list = data.sub_account_id_list
-            else
-                mem_led_list = data.sub_account_id_list.join(', ');
-        }
-        else
-            mem_led_list = 'None';
-    }
     if ("account_id_list" in data) {
         if (typeof (data.account_id_list) === 'string')
             soc_led_list = data.account_id_list
@@ -7238,73 +7226,95 @@ router.get('/summary', middleware.loggedin_as_superuser, (req, res) => {
         }
         else {
             var sql, sql_arr = [];
-            if (data.select_all == '1') {
-                sql_arr = [data.from_date, data.to_date];
-                sql = `
-                    SELECT
-                        COUNT(DISTINCT Account_Head.village_id) AS vcount,
-                        COUNT(DISTINCT Account_Balance.sub_account_id) AS mcount
-                    FROM Account_Balance
-                        LEFT JOIN Account_Head
-                            ON Account_Head.account_id = Account_Balance.account_id
-                    WHERE
-                        Account_Balance.join_date >= (?) AND Account_Balance.join_date <= (?) AND Account_Head.is_society=1;
-                    SELECT
-                        SUM(cr_amount) AS cr,
-                        SUM(dr_amount) AS dr
-                    FROM Ledger
-                    WHERE
-                        transaction_date >= (?) AND transaction_date <= (?) AND
-                        account_id NOT IN (
-                            SELECT
-                                account_id
-                            FROM Account_Head
-                            WHERE is_society=0
-                        );
-                `;
-            }
-            else {
-                sql_arr = [data.account_id_list, data.sub_account_id_list, data.account_id_list, data.sub_account_id_list, data.from_date, data.from_date, data.to_date, data.account_id_list, data.sub_account_id_list];
-                sql = `
-                    SELECT
-                        Account_Balance.account_id AS aid,
-                        Account_Balance.sub_account_id AS sid,
-                        Account_Head.account_name AS aname,
-                        Sub_Account.sub_account_name AS sname,
-                        Account_Balance.birth_date AS bdate,
-                        IF(
-                            Account_Balance.op_crdr = "DR", 
-                            -1*Account_Balance.op_balance,
-                            Account_Balance.op_balance
-                        ) AS op1
-                    FROM Account_Balance
-                        INNER JOIN Account_Head
-                            ON Account_Head.account_id = Account_Balance.account_id
-                        INNER JOIN Sub_Account
-                            ON Sub_Account.sub_account_id = Account_Balance.sub_account_id
-                    WHERE Account_Balance.account_id = ? AND Account_Balance.sub_account_id IN (?)
-                    ORDER BY Account_Balance.sub_account_id ASC;
-                    SELECT
-                        Ledger.sub_account_id AS sid,
-                        IFNULL(
-                            (SUM(Ledger.cr_amount) - SUM(Ledger.dr_amount))
-                        ,0) AS op2
-                    FROM Ledger
-                        WHERE Ledger.account_id = ? AND Ledger.sub_account_id IN (?) AND Ledger.transaction_date < ?
-                        GROUP BY Ledger.sub_account_id
-                        ORDER BY Ledger.sub_account_id ASC;
-                    SELECT
-                        Ledger.sub_account_id AS sid,
-                        Ledger.transaction_date AS tc_date_r,
-                        DATE_FORMAT(Ledger.transaction_date,'%d/%m/%Y') AS tc_date,
-                        Ledger.narration AS narration,
-                        IFNULL(Ledger.cr_amount,0) AS cr,
-                        IFNULL(Ledger.dr_amount,0) AS dr
-                    FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id = ? AND Ledger.sub_account_id IN (?)
-                        ORDER BY Ledger.sub_account_id ASC, Ledger.transaction_date ASC;
-                `;
-            }
+            sql_arr = [data.from_date, data.to_date, data.from_date, data.to_date, data.from_date, data.to_date, data.from_date, data.to_date,data.to_date, data.from_date, data.to_date, data.from_date, data.to_date, data.from_date, data.to_date];
+            sql = `
+                SELECT
+                    COUNT(DISTINCT account_id) AS scount,
+                    COUNT(DISTINCT sub_account_id) AS mcount
+                FROM Account_Balance
+                WHERE 
+                    join_date >= (?) AND join_date <= (?) AND join_date != '0000-00-00' AND
+                    account_id NOT IN (
+                        SELECT
+                            account_id
+                        FROM Account_Head
+                        WHERE is_society=0
+                    );
+                SELECT
+                    IFNULL(SUM(cr_amount),0) AS cr,
+                    IFNULL(SUM(dr_amount),0) AS dr
+                FROM Ledger
+                WHERE
+                    transaction_date >= (?) AND transaction_date <= (?) AND transaction_date != '0000-00-00' AND
+                    account_id NOT IN (
+                        SELECT
+                            account_id
+                        FROM Account_Head
+                        WHERE is_society=0
+                    );
+                SELECT
+                    COUNT(DISTINCT sub_account_id) AS hcount
+                FROM Account_Balance
+                WHERE
+                    calwing_date >= (?) AND calwing_date <= (?) AND calwing_date != '0000-00-00' AND birth_date != '0000-00-00' AND
+                    account_id NOT IN (
+                        SELECT
+                            account_id
+                        FROM Account_Head
+                        WHERE is_society=0
+                    );
+                SELECT
+                    ( IFNULL(SUM(DATEDIFF(calwing_date,birth_date) + 1),0) ) AS total_days
+                FROM Account_Balance
+                WHERE
+                    calwing_date >= (?) AND calwing_date <= (?) AND calwing_date != '0000-00-00' AND birth_date != '0000-00-00' AND
+                    account_id NOT IN (
+                        SELECT
+                            account_id
+                        FROM Account_Head
+                        WHERE is_society=0
+                    );
+                SELECT
+                    IFNULL(SUM(dr_amount),0) AS calwing_dr
+                FROM Ledger
+                WHERE
+                    transaction_date <= (?) AND
+                    account_id IN (
+                        SELECT
+                            account_id
+                        FROM Account_Balance
+                        WHERE 
+                            calwing_date >= (?) AND calwing_date <= (?) AND calwing_date != '0000-00-00' AND birth_date != '0000-00-00'
+                    ) AND
+                    account_id NOT IN (
+                        SELECT
+                            account_id
+                        FROM Account_Head
+                        WHERE is_society=0
+                    );
+                SELECT
+                    COUNT(DISTINCT sub_account_id) AS cancel_count
+                FROM Account_Balance
+                WHERE
+                    cancel_date >= (?) AND cancel_date <= (?) AND cancel_date != '0000-00-00' AND
+                    account_id NOT IN (
+                        SELECT
+                            account_id
+                        FROM Account_Head
+                        WHERE is_society=0
+                    );
+                SELECT
+                    COUNT(DISTINCT sub_account_id) AS death_count
+                FROM Account_Balance
+                WHERE
+                    death_date >= (?) AND death_date <= (?) AND death_date != '0000-00-00' AND
+                    account_id NOT IN (
+                        SELECT
+                            account_id
+                        FROM Account_Head
+                        WHERE is_society=0
+                    );
+            `;
             connection.query(sql, sql_arr, (err, results) => {
                 connection.release();
                 if (err) {
@@ -7314,8 +7324,8 @@ router.get('/summary', middleware.loggedin_as_superuser, (req, res) => {
                     });
                 }
                 else {
-                    //console.log(results);
-
+                    // console.log(results);
+    
                     var date = new Date();
                     var dd = ('0' + date.getDate()).slice(-2);
                     var mm = ('0' + (date.getMonth() + 1)).slice(-2);
@@ -7325,16 +7335,114 @@ router.get('/summary', middleware.loggedin_as_superuser, (req, res) => {
 
                     var datarows = [], summary = {};
                     if (results[0].length <= 0) {
-                        datarows = [];
-                        summary = [];
-                        data_global_total = `
-                            <tr style="text-align: center;background-color: gray;">
-                                <td colspan="2"></td>
-                                <td><strong>0</strong></td>
-                                <td><strong>0</strong></td>
+                        console.log("NO DATA FOUND!");
+                        res.send({
+                            status: false
+                        });
+                    }
+                    else{
+                        var scount = results[0][0].scount;
+                        var mcount = results[0][0].mcount;
+                        var cr = results[1][0].cr;
+                        var dr = results[1][0].dr;
+                        var hcount = results[2][0].hcount;
+                        var total_days = results[3][0].total_days;
+                        var calwing_dr = results[4][0].calwing_dr;
+                        var cancel_count = results[5][0].cancel_count;
+                        var death_count = results[6][0].death_count;
+
+                        var avg_calwing_days = total_days/hcount;
+                        var avg_calwing_months = avg_calwing_days/30;
+                        var avg_calwing_cost = calwing_dr/hcount;
+
+                        var summary_information = `
+                            <tr>
+                                <td>DCS Covered<br>(Joint Villages)</td>
+                                <td>:</td>
+                                <td style="text-align: right;">${parseInt(scount).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</td>
+                            </tr>
+                            <tr>
+                                <td>Joint Members</td>
+                                <td>:</td>
+                                <td style="text-align: right;">${parseInt(mcount).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Finance Rs.<br>(Total Debit Amount)</td>
+                                <td>:</td>
+                                <td style="text-align: right;">${parseFloat(dr).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Recovery Rs.<br>(Total Credit Amount)</td>
+                                <td>:</td>
+                                <td style="text-align: right;">${parseFloat(cr).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</td>
+                            </tr>
+                            <tr>
+                                <td>Heifer Calved<br>(Heifer Calved Number)</td>
+                                <td>:</td>
+                                <td style="text-align: right;">${parseInt(hcount).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</td>
+                            </tr>
+                            <tr>
+                                <td>Average Calving Period (Months)<br>(Calved date - Birth date) (Days)</td>
+                                <td>:</td>
+                                <td style="text-align: right;">${parseFloat(avg_calwing_months).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}<br>
+                                ${parseFloat(avg_calwing_days).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Calving Cost</td>
+                                <td>:</td>
+                                <td style="text-align: right;">${parseFloat(calwing_dr).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</td>
+                            </tr>
+                            <tr>
+                                <td>Average Calving Cost<br>(Calving Loan / Member)</td>
+                                <td>:</td>
+                                <td style="text-align: right;">${parseFloat(avg_calwing_cost).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Cancelled Accounts<br>(Within Given Periods)</td>
+                                <td>:</td>
+                                <td style="text-align: right;">${parseInt(cancel_count).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</td>
+                            </tr>
+                            <tr>
+                                <td>Total Death<br>(Within Given Periods)</td>
+                                <td>:</td>
+                                <td style="text-align: right;">${parseInt(death_count).toLocaleString("en-IN", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}</td>
                             </tr>
                         `;
                     }
+                    /*
                     else {
                         var i = 0, j = 0, itemMain, itemSub, op2 = 0.00, op = 0.00;
                         var main = results[0];
@@ -7634,12 +7742,14 @@ router.get('/summary', middleware.loggedin_as_superuser, (req, res) => {
                             </tr>
                         `;
                     }
+                    */
                     var username = req.user.user_name;
                     var dataobject = {
                         headers,
                         len: headers.length,
                         report_title,
                         report_information,
+                        summary_information,
                         date: sdate,
                         username,
                         settings

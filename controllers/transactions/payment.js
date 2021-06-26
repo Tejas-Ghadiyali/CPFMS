@@ -319,7 +319,7 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
                 };
                 sql = sql + 'INSERT INTO Ledger SET ' + connection.escape(lentry) + ';';
                 for (i = 0; i < sub_account_len; i++) {
-                    sql = sql + `CALL updateBalance_Payment(${req.body.sub_account_ids[i]}, ${sub_total_arr[i]});`;
+                    sql = sql + `CALL updateBalance_Payment("${req.body.sub_account_ids[i]}", ${sub_total_arr[i]});`;
                 }
                 var mentry = {
                     document_number: req.body.document_number,
@@ -424,7 +424,7 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                 else {
                     sql = '';
                     for (var entryob of results) {
-                        sql = sql + `CALL updateBalance_Payment(${entryob.dr_sub_account_id}, ${-1 * entryob.payment_amount});`;
+                        sql = sql + `CALL updateBalance_Payment("${entryob.dr_sub_account_id}", ${-1 * entryob.payment_amount});`;
                     }
                     sql = sql + `
                         DELETE FROM Payment_Details WHERE Payment_Details.document_number in (?);
@@ -500,7 +500,7 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                 };
                                 sql = sql + 'INSERT INTO Ledger SET ' + connection.escape(lentry) + ';';
                                 for (i = 0; i < sub_account_len; i++) {
-                                    sql = sql + `CALL updateBalance_Payment(${req.body.sub_account_ids[i]}, ${sub_total_arr[i]});`;
+                                    sql = sql + `CALL updateBalance_Payment("${req.body.sub_account_ids[i]}", ${sub_total_arr[i]});`;
                                 }
                                 var mentry = {
                                     document_number: req.body.document_number,
@@ -555,7 +555,7 @@ router.post("/delete", middleware.loggedin_as_admin, (req, res) => {
                 else {
                     sql = '';
                     for (var entryob of results) {
-                        sql = sql + `CALL updateBalance_Payment(${entryob.dr_sub_account_id}, ${-1 * entryob.payment_amount});`;
+                        sql = sql + `CALL updateBalance_Payment("${entryob.dr_sub_account_id}", ${-1 * entryob.payment_amount});`;
                     }
                     sql = sql + `
                         DELETE FROM Payment_Details WHERE Payment_Details.document_number in (?);

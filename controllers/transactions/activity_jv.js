@@ -346,10 +346,10 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
                         narration: req.body.narrations[i].trim()
                     };
                     if (entry.cr_amount == 0) {
-                        sql = sql + `CALL updateBalance_Payment(${entry.sub_account_id}, ${entry.dr_amount});`;
+                        sql = sql + `CALL updateBalance_Payment("${entry.sub_account_id}", ${entry.dr_amount});`;
                     }
                     else {
-                        sql = sql + `CALL updateBalance_Receipt(${entry.sub_account_id}, ${entry.cr_amount});`;
+                        sql = sql + `CALL updateBalance_Receipt("${entry.sub_account_id}", ${entry.cr_amount});`;
                     }
                 }
                 var mentry = {
@@ -453,10 +453,10 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                     console.log(results);
                     for (var entryob of results) {
                         if (entryob.cr_amount == 0) {
-                            sql = sql + `CALL updateBalance_Payment(${entryob.sub_account_id}, ${-1 * entryob.dr_amount});`;
+                            sql = sql + `CALL updateBalance_Payment("${entryob.sub_account_id}", ${-1 * entryob.dr_amount});`;
                         }
                         else {
-                            sql = sql + `CALL updateBalance_Receipt(${entryob.sub_account_id}, ${-1 * entryob.cr_amount});`;
+                            sql = sql + `CALL updateBalance_Receipt("${entryob.sub_account_id}", ${-1 * entryob.cr_amount});`;
                         }
                     }
                     sql = sql + `
@@ -576,10 +576,10 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                             narration: req.body.narrations[i].trim()
                                         };
                                         if (entry.cr_amount == 0) {
-                                            sql = sql + `CALL updateBalance_Payment(${entry.sub_account_id}, ${entry.dr_amount});`;
+                                            sql = sql + `CALL updateBalance_Payment("${entry.sub_account_id}", ${entry.dr_amount});`;
                                         }
                                         else {
-                                            sql = sql + `CALL updateBalance_Receipt(${entry.sub_account_id}, ${entry.cr_amount});`;
+                                            sql = sql + `CALL updateBalance_Receipt("${entry.sub_account_id}", ${entry.cr_amount});`;
                                         }
                                     }
                                     var mentry = {
@@ -635,10 +635,10 @@ router.post("/delete", middleware.loggedin_as_admin, (req, res) => {
                     sql = '';
                     for (var entryob of results) {
                         if (entryob.cr_amount == 0) {
-                            sql = sql + `CALL updateBalance_Payment(${entryob.sub_account_id}, ${-1 * entryob.dr_amount});`;
+                            sql = sql + `CALL updateBalance_Payment("${entryob.sub_account_id}", ${-1 * entryob.dr_amount});`;
                         }
                         else {
-                            sql = sql + `CALL updateBalance_Receipt(${entryob.sub_account_id}, ${-1 * entryob.cr_amount});`;
+                            sql = sql + `CALL updateBalance_Receipt("${entryob.sub_account_id}", ${-1 * entryob.cr_amount});`;
                         }
                     }
                     sql = sql + `

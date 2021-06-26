@@ -333,7 +333,7 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
                         receipt_amount: parseFloat(req.body.receipt_amounts[i]),
                         narration: req.body.narrations[i].trim()
                     };
-                    sql = sql + `CALL updateBalance_Receipt(${entry.cr_sub_account_id}, ${entry.receipt_amount});`;
+                    sql = sql + `CALL updateBalance_Receipt("${entry.cr_sub_account_id}", ${entry.receipt_amount});`;
                 }
                 var mentry = {
                     document_number: req.body.document_number,
@@ -435,7 +435,7 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                     sql = '';
                     console.log(results);
                     for (var entryob of results) {
-                        sql = sql + `CALL updateBalance_Receipt(${entryob.cr_sub_account_id}, ${-1 * entryob.receipt_amount});`;
+                        sql = sql + `CALL updateBalance_Receipt("${entryob.cr_sub_account_id}", ${-1 * entryob.receipt_amount});`;
                     }
                     sql = sql + `
                         DELETE FROM Receipt_Details WHERE Receipt_Details.document_number in (?);
@@ -506,7 +506,7 @@ router.post("/edit/:documentnum", middleware.loggedin_as_admin, (req, res) => {
                                         receipt_amount: parseFloat(req.body.receipt_amounts[i]),
                                         narration: req.body.narrations[i].trim()
                                     };
-                                    sql = sql + `CALL updateBalance_Receipt(${entry.cr_sub_account_id}, ${entry.receipt_amount});`;
+                                    sql = sql + `CALL updateBalance_Receipt("${entry.cr_sub_account_id}", ${entry.receipt_amount});`;
                                 }
                                 var mentry = {
                                     document_number: req.body.document_number,
@@ -562,7 +562,7 @@ router.post("/delete", middleware.loggedin_as_admin, (req, res) => {
                 else {
                     sql = '';
                     for (var entryob of results) {
-                        sql = sql + `CALL updateBalance_Receipt(${entryob.cr_sub_account_id}, ${-1 * entryob.receipt_amount});`;
+                        sql = sql + `CALL updateBalance_Receipt("${entryob.cr_sub_account_id}", ${-1 * entryob.receipt_amount});`;
                     }
                     sql = sql + `
                         DELETE FROM Receipt_Details WHERE Receipt_Details.document_number in (?);

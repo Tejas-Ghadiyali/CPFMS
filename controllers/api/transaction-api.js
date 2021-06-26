@@ -175,7 +175,7 @@ router.get('/account_details/:id', middleware.loggedin_as_superuser, (req, res) 
                     if (results[0].length > 0) {
                         res.send({
                             status: true,
-                            account_name: results[0][0].account_name,
+                            account_name: results[0][0].account_name || "",
                             sub_account_id: results[1]
                         });
                     }
