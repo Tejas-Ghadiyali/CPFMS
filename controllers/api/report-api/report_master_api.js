@@ -6731,7 +6731,7 @@ router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
                         IFNULL(Ledger.cr_amount,0) AS cr,
                         IFNULL(Ledger.dr_amount,0) AS dr
                     FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id = ?
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id = ?
                         ORDER BY Ledger.sub_account_id ASC, Ledger.transaction_date ASC;
                 `;
             }
@@ -6774,7 +6774,7 @@ router.get('/interest', middleware.loggedin_as_superuser, (req, res) => {
                         IFNULL(Ledger.cr_amount,0) AS cr,
                         IFNULL(Ledger.dr_amount,0) AS dr
                     FROM Ledger
-                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date < ? AND Ledger.account_id = ? AND Ledger.sub_account_id IN (?)
+                        WHERE Ledger.transaction_date >= ? AND Ledger.transaction_date <= ? AND Ledger.account_id = ? AND Ledger.sub_account_id IN (?)
                         ORDER BY Ledger.sub_account_id ASC, Ledger.transaction_date ASC;
                 `;
             }
