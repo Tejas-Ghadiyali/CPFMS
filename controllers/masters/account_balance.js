@@ -256,7 +256,6 @@ router.get("/add", middleware.loggedin_as_superuser, (req, res) => {
 			res.redirect("/accountbalance");
 		} else {
 			var sql = `
-                SELECT sub_account_id,sub_account_name,sub_account_address FROM Sub_Account;
                 SELECT * FROM Account_Head WHERE is_society=1;
                 SELECT * FROM Organization;
                 SELECT * FROM Resource_Person;
@@ -270,11 +269,10 @@ router.get("/add", middleware.loggedin_as_superuser, (req, res) => {
 					res.redirect("/accountbalance");
 				} else {
 					res.render("masters/account_balance/addform", {
-						sub_account: results[0],
-						account_head: results[1],
-						organization: results[2],
-						rp: results[3],
-						cc: results[4],
+						account_head: results[0],
+						organization: results[1],
+						rp: results[2],
+						cc: results[3],
 					});
 				}
 			});
@@ -289,6 +287,18 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
 			console.log(err);
 			res.redirect("/accountbalance");
 		} else {
+			var sub_account_info = {};
+			sub_account_info.sub_account_id = req.body.sub_account_id;
+			sub_account_info.sub_account_name = req.body.sub_account_name;
+			sub_account_info.sub_account_address = req.body.sub_account_address.trim();
+			sub_account_info.sub_account_remark = req.body.sub_account_remark.trim();
+
+			delete req.body.sub_account_name;
+			delete req.body.sub_account_address;
+			delete req.body.sub_account_remark;
+
+			req.body.sub_account_id = req.body.sub_account_id.trim();
+
 			var decimal_val = [
 				"birth_wt",
 				"join_wt",
@@ -305,36 +315,100 @@ router.post("/", middleware.loggedin_as_superuser, (req, res) => {
 					}
 				}
 			}
-			var sql = "INSERT INTO `Account_Balance` SET ?";
-			connection.query(sql, req.body, (err, result) => {
-				connection.release();
-				if (err) {
-					console.log(err);
-					if (err.code == "ER_DUP_ENTRY")
-						req.flash(
-							"danger",
-							"Member with Member Id " +
-							req.body.sub_account_id +
-							" with Society " +
-							req.body.account_id +
-							" already exists!"
-						);
-					else
-						req.flash(
-							"danger",
-							"Error while adding account in Master-Account Balance!"
-						);
-					res.redirect("/accountbalance");
-				} else {
+			var sub_account_check = "SELECT COUNT(sub_account_id) AS scount FROM Sub_Account WHERE sub_account_id=?";
+			connection.query(sub_account_check, req.body.sub_account_id, (err1, res1) => {
+				if (err1) {
+					connection.release();
+					console.log(err1);
 					req.flash(
-						"success",
-						"Member with Member Id " +
-						req.body.sub_account_id +
-						" with Society " +
-						req.body.account_id +
-						" added!"
+						"danger",
+						"Error while adding account in Master-Account Balance-->Sub Account!"
 					);
 					res.redirect("/accountbalance");
+				}
+				else {
+					if (res1[0].scount == 0) {
+						var add_sql = "INSERT INTO `Sub_Account` SET ?";
+						connection.query(add_sql, sub_account_info, (err2, res2) => {
+							if (err2) {
+								connection.release();
+								console.log(err2);
+								req.flash(
+									"danger",
+									"Error while adding account in Master-Account Balance --> Sub Account!"
+								);
+								res.redirect("/accountbalance");
+							}
+							else {
+								var sql = "INSERT INTO `Account_Balance` SET ?";
+								connection.query(sql, req.body, (err, result) => {
+									connection.release();
+									if (err) {
+										console.log(err);
+										if (err.code == "ER_DUP_ENTRY")
+											req.flash(
+												"danger",
+												"Member with Member Id " +
+												req.body.sub_account_id +
+												" with Society " +
+												req.body.account_id +
+												" already exists!"
+											);
+										else
+											req.flash(
+												"danger",
+												"Error while adding account in Master-Account Balance!"
+											);
+										res.redirect("/accountbalance");
+									} else {
+										req.flash(
+											"success",
+											"Member with Member Id " +
+											req.body.sub_account_id +
+											" with Society " +
+											req.body.account_id +
+											" added!"
+										);
+										res.redirect("/accountbalance");
+									}
+								});
+							}
+						});
+					}
+					else {
+						var sql = "INSERT INTO `Account_Balance` SET ?";
+						connection.query(sql, req.body, (err, result) => {
+							connection.release();
+							if (err) {
+								console.log(err);
+								if (err.code == "ER_DUP_ENTRY")
+									req.flash(
+										"danger",
+										"Member with Member Id " +
+										req.body.sub_account_id +
+										" with Society " +
+										req.body.account_id +
+										" already exists!"
+									);
+								else
+									req.flash(
+										"danger",
+										"Error while adding account in Master-Account Balance!"
+									);
+								res.redirect("/accountbalance");
+							} else {
+								req.flash(
+									"success",
+									"Member with Member Id " +
+									req.body.sub_account_id +
+									" with Society " +
+									req.body.account_id +
+									" added!"
+								);
+								res.redirect("/accountbalance");
+							}
+						});
+					}
 				}
 			});
 		}
@@ -493,17 +567,17 @@ router.post("/delete", middleware.loggedin_as_admin, (req, res) => {
 					console.log(results);
 					var count = 0;
 					if (req.body.sub_account_ids.length <= 1) {
-						if(results.affectedRows > 0){
-							req.flash("success","Successfully added memeber with society id " + req.body.account_ids[0] + " and member id " + req.body.sub_account_ids[0] + " !");
+						if (results.affectedRows > 0) {
+							req.flash("success", "Successfully added memeber with society id " + req.body.account_ids[0] + " and member id " + req.body.sub_account_ids[0] + " !");
 						}
-						else{
-							req.flash("danger", "Error while deleting member with society id " + req.body.account_ids[0] + " and member id " + req.body.sub_account_ids[0] + " !");							
+						else {
+							req.flash("danger", "Error while deleting member with society id " + req.body.account_ids[0] + " and member id " + req.body.sub_account_ids[0] + " !");
 						}
 					}
 					else {
 						for (result of results) {
 							if (result.affectedRows === 1) {
-								req.flash("success","Successfully added memeber with society id " + req.body.account_ids[count] + " and member id " + req.body.sub_account_ids[count] + " !");
+								req.flash("success", "Successfully added memeber with society id " + req.body.account_ids[count] + " and member id " + req.body.sub_account_ids[count] + " !");
 							} else {
 								req.flash("danger", "Error while deleting member with society id " + req.body.account_ids[count] + " and member id " + req.body.sub_account_ids[count] + " !");
 							}

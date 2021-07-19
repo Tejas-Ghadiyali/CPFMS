@@ -24,8 +24,13 @@ router.get('/accounthead/:id',middleware.loggedin_as_superuser, (req, res) => {
                         ON Taluka.taluka_id = Village.taluka_id
                     INNER JOIN District
                         ON District.district_id = Taluka.district_id;
+                SELECT
+                    DISTINCT sub_account_id AS sid
+                FROM Account_Balance
+                WHERE account_id = ?
+                ORDER BY sub_account_id DESC;
             `;
-            connection.query(sql, account_id, (err, results) => {
+            connection.query(sql, [account_id, account_id], (err, results) => {
                 connection.release();
                 if (err) {
                     console.log(err);
@@ -35,7 +40,8 @@ router.get('/accounthead/:id',middleware.loggedin_as_superuser, (req, res) => {
                     if (results.length > 0) {
                         res.send({
                             status: true,
-                            data: results[0]
+                            data: results[0][0],
+                            sub_account_list: results[1]
                         });
                     }
                     else {

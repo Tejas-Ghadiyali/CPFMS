@@ -5,7 +5,6 @@ $(document).ready(function () {
     // Account Head Detail Fetch
     $("form table select[name=account_id]").on('change', function () {
         var id = this.value;
-        console.log("Account ID : ", id);
         if (id === "--SELECT--")
             return;
         var url = window.location.href;
@@ -19,6 +18,20 @@ $(document).ready(function () {
                     $("form table input[name=village_name]").val(res.data.village_name);
                     $("form table input[name=taluka_name]").val(res.data.taluka_name);
                     $("form table input[name=district_name]").val(res.data.district_name);
+                    if(res.sub_account_list.length > 0) {
+                        sa_arr = []
+                        for(sa of res.sub_account_list) {
+                            sa_arr.push(sa.sid);
+                        }
+                        sa_str = sa_arr.join("&#13;&#10;");
+                        last_id = sa_arr[0];
+                        $("form table textarea[name=sub_account_list]").html(sa_str);
+                        $("form table input[name=sub_account_last_id]").val(last_id);
+                    }
+                    else {
+                        $("form table textarea[name=sub_account_list]").val("--NOT AVAILABLE--");
+                        $("form table input[name=sub_account_last_id]").val("--NOT AVAILABLE--");
+                    }
                 }
                 else {
                     alert("Unable to fatch data of selected Society !");
@@ -26,11 +39,14 @@ $(document).ready(function () {
                     $("form table input[name=village_name]").val("--NOT AVAILABLE--");
                     $("form table input[name=taluka_name]").val("--NOT AVAILABLE--");
                     $("form table input[name=district_name]").val("--NOT AVAILABLE--");
+                    $("form table textarea[name=sub_account_list]").val("--NOT AVAILABLE--");
+                    $("form table input[name=sub_account_last_id]").val("--NOT AVAILABLE--");
                 }
             }
         });
     });
 
+    /*
     // Sub Account Detail Fetch
     $("form table select[name=sub_account_id]").on('change', function () {
         var id = this.value;
@@ -54,6 +70,7 @@ $(document).ready(function () {
             }
         });
     });
+    */
 
     // Organization Name Fill
     $("form table select[name=organization_id]").on('change', function () {
